@@ -1,4 +1,4 @@
-import { Avatar, Button, Tooltip } from "@heroui/react";
+import { Avatar, Button, Select, SelectItem, Tooltip } from "@heroui/react";
 import type { MeResponse } from "../../../features/auth/auth.api";
 import type { Group } from "../../../features/groups/groups.api";
 
@@ -19,34 +19,53 @@ export default function TopBar({
 }: TopBarProps) {
   console.log(groups);
   return (
-    <nav className="sticky top-0 z-50 flex flex-wrap items-center justify-between gap-4 border-b border-[#D4AF37]/20 bg-[#070707]/95 px-6 py-3 backdrop-blur-sm">
+    <nav className="sticky top-0 z-50 flex flex-wrap items-center justify-between border-b border-[#D4AF37]/20 bg-[#070707]/95 px-6 py-3 backdrop-blur-sm">
       {/* Left: Logo */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center">
         <img
           src="/arbiter.png"
           alt="Arbiter"
-          className="h-12 w-12 rounded-sm object-contain"
+          className="h-34 w-34 rounded-sm object-contain"
         />
-        <span className="text-xl font-semibold text-[#D4AF37]">Arbiter</span>
+        <h1 className="text-6xl font-semibold text-[#D4AF37]">Arbiter</h1>
       </div>
 
       {/* Center: Group Dropdown */}
       <div className="flex flex-1 items-center justify-center gap-3">
-        <label className="text-xs uppercase tracking-[0.3em] text-[#D4AF37]/70">
-          Group
-        </label>
-        <select
-          className="min-w-[220px] rounded-md border border-[#D4AF37]/30 bg-[#0F0F10] px-3 py-2 text-sm text-white transition focus:border-[#D4AF37] focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/50"
-          value={selectedGroupId ?? ""}
-          onChange={(event) => onSelectGroup(event.target.value)}
-          disabled={!groups || groups.length === 0}
+        <Select
+          aria-label="Group"
+          placeholder="Select a group"
+          selectedKeys={selectedGroupId ? [selectedGroupId] : []}
+          renderValue={(items) =>
+            items.map((item) => (
+              <span key={item.key} className="text-[#D4AF37]">
+                {item.textValue}
+              </span>
+            ))
+          }
+          onSelectionChange={(keys) => {
+            const [value] = Array.from(keys);
+            if (typeof value === "string") {
+              onSelectGroup(value);
+            }
+          }}
+          isDisabled={!groups || groups.length === 0}
+          size="sm"
+          variant="bordered"
+          className="max-w-xs min-w-55"
+          classNames={{
+            trigger:
+              "border-[#D4AF37]/30 bg-[#0F0F10] text-[#D4AF37] data-[focus=true]:border-[#D4AF37] data-[focus=true]:ring-1 data-[focus=true]:ring-[#D4AF37]/50",
+            value: "!text-[#D4AF37] data-[placeholder=true]:text-[#D4AF37]/70",
+            listbox: "bg-[#0F0F10] text-[#D4AF37]",
+            popoverContent: "bg-[#0F0F10] border border-[#D4AF37]/20",
+            selectorIcon: "text-[#D4AF37]/70",
+          }}
         >
           {(groups ?? []).map((group) => (
-            <option key={group.id} value={group.id}>
-              {group.name}
-            </option>
+            <SelectItem key={group.id}>{group.name}</SelectItem>
           ))}
-        </select>
+        </Select>
       </div>
 
       {/* Right: Avatar */}

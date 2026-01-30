@@ -8,10 +8,10 @@ import {
   useDisclosure,
 } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { unfriend } from "../../../features/friends/friends.api";
 import type { Friend } from "../../../features/friends/friends.api";
-import { getGroup } from "../../../features/groups/groups.api";
+import { addGroupMembers, getGroup } from "../../../features/groups/groups.api";
 import type { Group } from "../../../features/groups/groups.api";
 import type { ConfirmAction } from "../types";
 import ConfirmActionModal from "./ConfirmActionModal";
@@ -37,6 +37,10 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
     enabled: Boolean(selectedGroup?.id),
   });
   const members = groupDetailsQuery.data?.members ?? [];
+  const memberIds = useMemo(
+    () => new Set(members.map((member) => member.id)),
+    [members],
+  );
 
   const unfriendMutation = useMutation({
     mutationFn: (userId: string) => unfriend(userId),
@@ -48,6 +52,32 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
     },
     onSettled: () => {
       setPendingUnfriendId(null);
+    },
+  });
+
+  const [pendingAddId, setPendingAddId] = useState<string | null>(null);
+  const addMemberMutation = useMutation({
+    mutationFn: (userId: string) => {
+      if (!selectedGroup) {
+        return Promise.reject(new Error("No group selected"));
+      }
+      return addGroupMembers(selectedGroup.id, {
+        member_user_ids: [userId],
+      });
+    },
+    onMutate: (userId) => {
+      setPendingAddId(userId);
+    },
+    onSuccess: () => {
+      if (selectedGroup?.id) {
+        queryClient.invalidateQueries({
+          queryKey: ["group-detail", selectedGroup.id],
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
+    },
+    onSettled: () => {
+      setPendingAddId(null);
     },
   });
 
@@ -94,7 +124,9 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                   <Avatar
                     key={member.id}
                     src={member.avatar_url ?? undefined}
-                    name={member.display_name ?? member.username ?? member.email}
+                    name={
+                      member.display_name ?? member.username ?? member.email
+                    }
                     className="bg-[#D4AF37]/20 text-[#D4AF37]"
                   />
                 ))}
@@ -112,7 +144,7 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
               Friends
             </p>
             <h3 className="text-lg font-semibold text-white">
-              {friends?.length ?? 0} connected
+              {friends?.length ?? 0} CONNECTED
             </h3>
           </div>
         </CardHeader>
@@ -125,6 +157,8 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                   friend.username ??
                   friend.email ??
                   friend.id;
+                const isMember = memberIds.has(friend.id);
+                const addDisabled = !selectedGroup || isMember;
                 return (
                   <li
                     key={friend.id}
@@ -139,21 +173,33 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                       />
                       <span className="text-sm text-white">{label}</span>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="bordered"
-                      className="border-[#7B1E2B]/40 text-[#7B1E2B] hover:bg-[#7B1E2B]/10"
-                      onPress={() =>
-                        openConfirm({
-                          type: "unfriend",
-                          id: friend.id,
-                          label,
-                        })
-                      }
-                      isLoading={pendingUnfriendId === friend.id}
-                    >
-                      Unfriend
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="bordered"
+                        className="border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                        onPress={() => addMemberMutation.mutate(friend.id)}
+                        isDisabled={addDisabled}
+                        isLoading={pendingAddId === friend.id}
+                      >
+                        {isMember ? "In group" : "Add"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="bordered"
+                        className="border-[#7B1E2B]/40 text-[#7B1E2B] hover:bg-[#7B1E2B]/10"
+                        onPress={() =>
+                          openConfirm({
+                            type: "unfriend",
+                            id: friend.id,
+                            label,
+                          })
+                        }
+                        isLoading={pendingUnfriendId === friend.id}
+                      >
+                        Unfriend
+                      </Button>
+                    </div>
                   </li>
                 );
               })}

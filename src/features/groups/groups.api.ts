@@ -24,6 +24,16 @@ export type InviteResponse = {
   code: string;
 };
 
+export type AddGroupMembersPayload = {
+  member_user_ids: string[];
+};
+
+export type AddGroupMembersResponse = {
+  ok: boolean;
+  added_user_ids: string[];
+  skipped_user_ids: string[];
+};
+
 export async function getGroups() {
   return apiJson<Group[]>("/groups");
 }
@@ -35,6 +45,16 @@ export type CreateGroupPayload = {
 
 export async function createGroup(payload: CreateGroupPayload) {
   return apiJson<Group>("/groups", {
+    method: "POST",
+    ...jsonBody(payload),
+  });
+}
+
+export async function addGroupMembers(
+  groupId: string,
+  payload: AddGroupMembersPayload,
+) {
+  return apiJson<AddGroupMembersResponse>(`/groups/${groupId}/members`, {
     method: "POST",
     ...jsonBody(payload),
   });

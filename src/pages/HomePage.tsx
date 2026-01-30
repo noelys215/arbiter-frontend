@@ -185,6 +185,7 @@ export default function HomePage() {
               <WatchlistCard
                 selectedGroupName={selectedGroup?.name ?? null}
                 selectedGroupId={resolvedSelectedGroupId}
+                currentUserId={me?.id ?? null}
                 watchlistItems={watchlistItems}
                 isLoading={watchlistQuery.isLoading}
                 isError={watchlistQuery.isError}

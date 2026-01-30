@@ -24,6 +24,13 @@ export type WatchlistItem = {
   status?: string | null;
   snoozed_until?: string | null;
   created_at?: string;
+  added_by_user?: {
+    id?: string;
+    email?: string;
+    username?: string;
+    display_name?: string;
+    avatar_url?: string | null;
+  } | null;
   title?: WatchlistTitle | null;
   title_info?: WatchlistTitle | null;
   already_exists?: boolean;
@@ -77,8 +84,11 @@ export async function updateWatchlistItem(
   itemId: string | number,
   payload: Record<string, unknown>,
 ) {
-  return apiJson<WatchlistItem>(`/watchlist-items/${itemId}`, {
-    method: "PATCH",
-    ...jsonBody(payload),
-  });
+  return apiJson<{ ok: boolean; removed?: boolean }>(
+    `/watchlist-items/${itemId}`,
+    {
+      method: "PATCH",
+      ...jsonBody(payload),
+    },
+  );
 }
