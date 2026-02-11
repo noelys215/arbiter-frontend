@@ -1,4 +1,4 @@
-import { api, apiJson, jsonBody } from "../../lib/api";
+import { apiJson, jsonBody } from "../../lib/api";
 
 export type TmdbSearchResult = {
   tmdb_id: number;

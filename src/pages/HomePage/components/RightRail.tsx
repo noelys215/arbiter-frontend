@@ -177,7 +177,7 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                       <Button
                         size="sm"
                         variant="bordered"
-                        className="border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                        className="border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 uppercase"
                         onPress={() => addMemberMutation.mutate(friend.id)}
                         isDisabled={addDisabled}
                         isLoading={pendingAddId === friend.id}
@@ -187,7 +187,7 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                       <Button
                         size="sm"
                         variant="bordered"
-                        className="border-[#7B1E2B]/40 text-[#7B1E2B] hover:bg-[#7B1E2B]/10"
+                        className="border-[#7B1E2B]/40 text-[#7B1E2B] hover:bg-[#7B1E2B]/10 uppercase"
                         onPress={() =>
                           openConfirm({
                             type: "unfriend",

@@ -3,6 +3,8 @@ import RequireAuth from "./RequireAuth";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
+import PrivacyPolicyPage from "../pages/PrivacyPolicyPage";
+import DataDeletionPage from "../pages/DataDeletionPage";
 
 export default function AppRouter() {
   return (
@@ -18,6 +20,10 @@ export default function AppRouter() {
         />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/data-deletion" element={<DataDeletionPage />} />
+        <Route path="/delete-data" element={<DataDeletionPage />} />
         <Route
           path="/app"
           element={

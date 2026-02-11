@@ -102,7 +102,7 @@ export default function AddToWatchlistCard({
         <div className="flex flex-wrap items-center gap-3">
           <Button
             variant="bordered"
-            className="border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/10"
+            className="border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/10 uppercase"
             onPress={onOpenManual}
             isDisabled={isManualDisabled}
           >
