@@ -5,6 +5,7 @@ import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import PrivacyPolicyPage from "../pages/PrivacyPolicyPage";
 import DataDeletionPage from "../pages/DataDeletionPage";
+import SessionPage from "../pages/SessionPage";
 
 export default function AppRouter() {
   return (
@@ -29,6 +30,14 @@ export default function AppRouter() {
           element={
             <RequireAuth>
               <HomePage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/app/session"
+          element={
+            <RequireAuth>
+              <SessionPage />
             </RequireAuth>
           }
         />

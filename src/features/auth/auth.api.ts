@@ -21,7 +21,7 @@ export type RegisterPayload = {
 };
 
 export async function getMe() {
-  return apiJson<MeResponse>("/me");
+  return apiJson<MeResponse>("/me", { cache: "no-store" });
 }
 
 export async function login(payload: LoginPayload) {
@@ -51,7 +51,10 @@ export async function register(payload: RegisterPayload) {
 }
 
 export async function logout() {
-  const response = await api("/auth/logout", { method: "POST" });
+  const response = await api("/auth/logout", {
+    method: "POST",
+    cache: "no-store",
+  });
   if (!response.ok) {
     const error = new Error("Logout failed");
     (error as Error & { status?: number }).status = response.status;

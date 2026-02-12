@@ -1,6 +1,18 @@
-export const TMDB_POSTER_BASE = "https://image.tmdb.org/t/p/w92";
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
 
-export function tmdbPosterUrl(path?: string | null) {
+export type TmdbPosterSize =
+  | "w92"
+  | "w154"
+  | "w185"
+  | "w342"
+  | "w500"
+  | "w780"
+  | "original";
+
+export function tmdbPosterUrl(
+  path?: string | null,
+  size: TmdbPosterSize = "w92",
+) {
   if (!path) return null;
-  return `${TMDB_POSTER_BASE}${path}`;
+  return `${TMDB_IMAGE_BASE}/${size}${path}`;
 }

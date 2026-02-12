@@ -8,6 +8,7 @@ import {
 } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { updateWatchlistItem } from "../../../features/watchlist/watchlist.api";
 import type { WatchlistItem } from "../../../features/watchlist/watchlist.api";
 import type { WatchlistMeta } from "../types";
@@ -33,6 +34,7 @@ export default function WatchlistCard({
   renderPoster,
   getWatchlistMeta,
 }: WatchlistCardProps) {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [pendingRemoveId, setPendingRemoveId] = useState<
     string | number | null
@@ -85,6 +87,10 @@ export default function WatchlistCard({
             variant="bordered"
             className="uppercase border-[#D4AF37]/60 text-[#0B0B0B] bg-[#D4AF37] hover:bg-[#D4AF37]/90"
             isDisabled={!selectedGroupId || watchlistItems.length < 2}
+            onPress={() => {
+              if (!selectedGroupId) return;
+              navigate(`/app/session?groupId=${encodeURIComponent(selectedGroupId)}`);
+            }}
           >
             Start Session
           </Button>
