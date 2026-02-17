@@ -10,6 +10,8 @@ export type SessionTitle = {
   poster_path: string | null;
   overview: string | null;
   runtime_minutes: number | null;
+  tmdb_genres?: string[];
+  tmdb_genre_ids?: number[];
 };
 
 export type SessionCandidate = {

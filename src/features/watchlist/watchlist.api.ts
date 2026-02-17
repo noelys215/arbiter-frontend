@@ -6,6 +6,7 @@ export type TmdbSearchResult = {
   title: string;
   year?: number | null;
   poster_path?: string | null;
+  genre_ids?: number[];
 };
 
 export type WatchlistTitle = {
@@ -16,6 +17,8 @@ export type WatchlistTitle = {
   name?: string;
   release_year?: number | null;
   poster_path?: string | null;
+  tmdb_genres?: string[];
+  tmdb_genre_ids?: number[];
 };
 
 export type WatchlistItem = {
@@ -42,11 +45,45 @@ export type WatchlistItem = {
 
 export async function searchTmdb(query: string) {
   const params = new URLSearchParams({ q: query });
-  return apiJson<TmdbSearchResult[]>(`/tmdb/search?${params.toString()}`);
+  const results = await apiJson<TmdbSearchResult[]>(
+    `/tmdb/search?${params.toString()}`,
+  );
+
+  if (import.meta.env.DEV) {
+    console.groupCollapsed(`[TMDB] /tmdb/search q="${query}"`);
+    console.log("full_response_json", results);
+    console.groupEnd();
+  }
+
+  return results;
 }
 
 export async function getGroupWatchlist(groupId: string) {
-  return apiJson<WatchlistItem[]>(`/groups/${groupId}/watchlist`);
+  return getGroupWatchlistWithOptions(groupId);
+}
+
+export async function getGroupWatchlistWithOptions(
+  groupId: string,
+  options?: { status?: "watchlist" | "watched"; tonight?: boolean },
+) {
+  const params = new URLSearchParams();
+  if (options?.status) {
+    params.set("status", options.status);
+  }
+  if (options?.tonight) {
+    params.set("tonight", "true");
+  }
+  const query = params.toString();
+  const path = query
+    ? `/groups/${groupId}/watchlist?${query}`
+    : `/groups/${groupId}/watchlist`;
+  const items = await apiJson<WatchlistItem[]>(path);
+  if (import.meta.env.DEV) {
+    console.groupCollapsed(`[Watchlist] ${path}`);
+    console.log("items_with_tmdb_taxonomy", items);
+    console.groupEnd();
+  }
+  return items;
 }
 
 export async function addTmdbToWatchlist(

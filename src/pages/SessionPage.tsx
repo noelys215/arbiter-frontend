@@ -36,6 +36,7 @@ import {
   type SessionCandidate,
   type SessionStateResponse,
 } from "../features/sessions/sessions.api";
+import { getGroupWatchlistWithOptions } from "../features/watchlist/watchlist.api";
 import { tmdbPosterUrl } from "../lib/tmdb";
 import {
   playDeckShuffleAnimation,
@@ -61,23 +62,77 @@ type SessionContext = {
   aiWhy: string | null;
 };
 
-const VIBE_TAGS = [
-  "Mind-Bender",
-  "Cozy",
-  "Feel-Good",
-  "Dark Comedy",
-  "Thrilling",
-  "Slow Burn",
-  "Heartfelt",
-  "Epic",
-  "Nostalgic",
-  "Romantic",
-  "High Energy",
-  "Cerebral",
-  "Scary",
+const TMDB_GENRE_LABEL_BY_ID: Record<number, string> = {
+  12: "Adventure",
+  14: "Fantasy",
+  16: "Animation",
+  18: "Drama",
+  27: "Horror",
+  28: "Action",
+  35: "Comedy",
+  36: "History",
+  37: "Western",
+  53: "Thriller",
+  80: "Crime",
+  99: "Documentary",
+  878: "Science Fiction",
+  9648: "Mystery",
+  10402: "Music",
+  10749: "Romance",
+  10751: "Family",
+  10752: "War",
+  10759: "Action & Adventure",
+  10762: "Kids",
+  10763: "News",
+  10764: "Reality",
+  10765: "Sci-Fi & Fantasy",
+  10766: "Soap",
+  10767: "Talk",
+  10768: "War & Politics",
+  10770: "TV Movie",
+};
+
+const TMDB_GENRE_DISPLAY_ORDER = [
+  "Action",
+  "Adventure",
+  "Action & Adventure",
+  "Animation",
+  "Comedy",
+  "Crime",
   "Documentary",
-  "Animated",
+  "Drama",
+  "Family",
+  "Fantasy",
+  "History",
+  "Horror",
+  "Kids",
+  "Music",
+  "Mystery",
+  "News",
+  "Reality",
+  "Romance",
+  "Science Fiction",
+  "Sci-Fi & Fantasy",
+  "Soap",
+  "Talk",
+  "TV Movie",
+  "Thriller",
+  "War",
+  "War & Politics",
+  "Western",
 ];
+
+const TMDB_GENRE_SORT_INDEX = Object.fromEntries(
+  TMDB_GENRE_DISPLAY_ORDER.map((label, index) => [label, index]),
+) as Record<string, number>;
+
+const CANONICAL_GENRE_LABELS: Record<string, string> = {
+  "action & adventure": "Action & Adventure",
+  "sci-fi & fantasy": "Sci-Fi & Fantasy",
+  "science fiction": "Science Fiction",
+  "tv movie": "TV Movie",
+  "war & politics": "War & Politics",
+};
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -99,6 +154,12 @@ function toTitleCaseTag(value: string) {
         `${word.slice(0, 1).toUpperCase()}${word.slice(1).toLowerCase()}`,
     )
     .join(" ");
+}
+
+function toDisplayGenreLabel(value: string) {
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return "";
+  return CANONICAL_GENRE_LABELS[normalized] ?? toTitleCaseTag(normalized);
 }
 
 function mapDirectionToVote(direction: SwipeDirection): SwipeVote {
@@ -173,6 +234,8 @@ export default function SessionPage() {
   const [sessionStatus, setSessionStatus] = useState<string>("active");
   const [sessionPhase, setSessionPhase] = useState<string>("collecting");
   const [sessionRound, setSessionRound] = useState<number>(0);
+  const [leaderEndedSessionNotice, setLeaderEndedSessionNotice] =
+    useState(false);
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [winnerWatchlistItemId, setWinnerWatchlistItemId] = useState<
     string | null
@@ -215,6 +278,14 @@ export default function SessionPage() {
     }
     return groups[0]?.id ?? null;
   }, [groups, selectedGroupId]);
+
+  const watchlistQuery = useQuery({
+    queryKey: ["session-watchlist", resolvedGroupId],
+    queryFn: () =>
+      getGroupWatchlistWithOptions(resolvedGroupId ?? "", { tonight: true }),
+    enabled: Boolean(resolvedGroupId),
+    staleTime: 30_000,
+  });
 
   const selectedGroup = useMemo<Group | null>(() => {
     return groups?.find((group) => group.id === resolvedGroupId) ?? null;
@@ -265,6 +336,7 @@ export default function SessionPage() {
 
   useEffect(() => {
     joinAttemptRef.current = null;
+    setLeaderEndedSessionNotice(false);
   }, [resolvedGroupId]);
 
   useEffect(() => {
@@ -325,6 +397,12 @@ export default function SessionPage() {
       activeSessionId &&
       state.ended_by_leader
     ) {
+      setLeaderEndedSessionNotice(true);
+      setSessionStatus("complete");
+      setSessionPhase("ended_by_leader");
+      setDeckCards([]);
+      setCurrentIndex(-1);
+      setDeckPhase("idle");
       localStorage.removeItem(activeSessionStorageKey);
       setActiveSessionId(null);
       return;
@@ -345,7 +423,8 @@ export default function SessionPage() {
     setSessionRound(nextRound);
     setSessionPhase(nextPhase);
     setDeckCards(state.candidates ?? []);
-    setSessionStatus(state.status);
+      setSessionStatus(state.status);
+      setLeaderEndedSessionNotice(false);
 
     if (state.result_watchlist_item_id) {
       setWinnerWatchlistItemId(state.result_watchlist_item_id);
@@ -408,6 +487,52 @@ export default function SessionPage() {
   const sortedCards = useMemo(() => {
     return [...deckCards].sort((a, b) => a.position - b.position);
   }, [deckCards]);
+
+  const availableGenreTags = useMemo(() => {
+    const items = Array.isArray(watchlistQuery.data) ? watchlistQuery.data : [];
+    const labels = new Set<string>();
+
+    for (const item of items) {
+      const title = item.title ?? item.title_info;
+      if (!title) continue;
+
+      const genreIds = Array.isArray(title.tmdb_genre_ids)
+        ? title.tmdb_genre_ids
+        : [];
+      const genreNames = Array.isArray(title.tmdb_genres)
+        ? title.tmdb_genres
+        : [];
+
+      if (genreIds.length > 0) {
+        for (const rawId of genreIds) {
+          if (typeof rawId !== "number" || !Number.isFinite(rawId)) continue;
+          const label = TMDB_GENRE_LABEL_BY_ID[rawId];
+          if (label) labels.add(label);
+        }
+        continue;
+      }
+
+      for (const rawGenre of genreNames) {
+        if (typeof rawGenre !== "string") continue;
+        const label = toDisplayGenreLabel(rawGenre);
+        if (label) labels.add(label);
+      }
+    }
+
+    return Array.from(labels).sort((a, b) => {
+      const left = TMDB_GENRE_SORT_INDEX[a] ?? Number.MAX_SAFE_INTEGER;
+      const right = TMDB_GENRE_SORT_INDEX[b] ?? Number.MAX_SAFE_INTEGER;
+      if (left !== right) return left - right;
+      return a.localeCompare(b);
+    });
+  }, [watchlistQuery.data]);
+
+  useEffect(() => {
+    setSelectedTags((prev) => {
+      const next = prev.filter((tag) => availableGenreTags.includes(tag));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [availableGenreTags]);
 
   const stackCards = useMemo(() => {
     return [...sortedCards].reverse();
@@ -531,7 +656,7 @@ export default function SessionPage() {
                 (mood): mood is string =>
                   typeof mood === "string" && mood.trim().length > 0,
               )
-              .map((mood) => toTitleCaseTag(mood))
+              .map((mood) => toDisplayGenreLabel(mood))
           : [];
         const manualTagsUsed = vibeInputMode === "tags" ? selectedTags : [];
         const context: SessionContext = {
@@ -612,6 +737,7 @@ export default function SessionPage() {
 
   useEffect(() => {
     if (!resolvedGroupId) return;
+    if (leaderEndedSessionNotice) return;
     if (activeSessionId) return;
     if (generateDeckMutation.isPending) return;
     if (joinAttemptRef.current === resolvedGroupId) return;
@@ -627,7 +753,12 @@ export default function SessionPage() {
         candidate_count: DEAL_CANDIDATE_COUNT,
       },
     });
-  }, [activeSessionId, generateDeckMutation, resolvedGroupId]);
+  }, [
+    activeSessionId,
+    generateDeckMutation,
+    leaderEndedSessionNotice,
+    resolvedGroupId,
+  ]);
 
   const shuffleMutation = useMutation({
     mutationFn: (sessionId: string) => shuffleSession(sessionId),
@@ -684,6 +815,7 @@ export default function SessionPage() {
     sessionStatus === "active" &&
     !tieBreakRequired &&
     (sessionPhase === "waiting" || sessionPhase === "collecting");
+  const showLeaderEndedCard = leaderEndedSessionNotice;
   const canSwipe =
     sessionPhase === "swiping" &&
     deckPhase === "ready" &&
@@ -801,6 +933,17 @@ export default function SessionPage() {
         candidate_count: DEAL_CANDIDATE_COUNT,
       },
     });
+    personalPreviewModal.onClose();
+  };
+
+  const handleBackToVibeSelection = () => {
+    if (generateDeckMutation.isPending) return;
+    if (activeSessionId) {
+      localStorage.removeItem(
+        `${DEAL_SUBMITTED_STORAGE_PREFIX}${activeSessionId}`,
+      );
+    }
+    setHasSubmittedDeck(false);
     personalPreviewModal.onClose();
   };
 
@@ -967,6 +1110,36 @@ export default function SessionPage() {
     );
   };
 
+  const renderLeaderEndedCard = () => {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 18, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.34, ease: "easeOut" }}
+        className="absolute inset-0 z-30 flex items-center justify-center"
+      >
+        <div className="session-deck-card-size session-waiting-card rounded-2xl p-6 text-center">
+          <p className="session-title-micro text-xs text-[#D4AF37]/70">
+            Session Ended
+          </p>
+          <h4 className="mt-3 text-xl text-[#F2E2AE]">
+            Leader has ended the session
+          </h4>
+          <p className="mt-2 text-sm text-[#CFCFCF]">
+            Return to home to start or join a new session.
+          </p>
+          <Button
+            size="sm"
+            className="mt-5 border border-[#D4AF37]/55 bg-[#D4AF37] text-[#171717]"
+            onPress={() => navigate("/app")}
+          >
+            Back to Home
+          </Button>
+        </div>
+      </motion.div>
+    );
+  };
+
   if (groupsLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#070707] text-[#D4AF37]">
@@ -1001,7 +1174,12 @@ export default function SessionPage() {
     <div className="min-h-screen bg-[#070707] text-white">
       <header className="sticky top-0 z-40 border-b border-[#D4AF37]/20 bg-[#070707]/90 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
+          <button
+            type="button"
+            aria-label="Go to home"
+            className="flex items-center gap-3 rounded-lg p-1 text-left transition hover:bg-[#D4AF37]/10"
+            onClick={() => navigate("/app")}
+          >
             <img
               src="/arbiter.png"
               alt="Arbiter"
@@ -1013,7 +1191,7 @@ export default function SessionPage() {
               </p>
               <h1 className="text-lg text-[#D4AF37]">Arbiter</h1>
             </div>
-          </div>
+          </button>
 
           <div className="flex items-center gap-3">
             <Select
@@ -1047,19 +1225,11 @@ export default function SessionPage() {
               <p>{me?.email ?? ""}</p>
             </div>
 
-            <Button
-              size="sm"
-              variant="bordered"
-              className="border-[#D4AF37]/50 text-[#D4AF37]"
-              onPress={() => navigate("/app")}
-            >
-              Back
-            </Button>
             {isGroupLeader && activeSessionId ? (
               <Button
                 size="sm"
                 variant="bordered"
-                className="border-[#7B1E2B]/45 text-[#E0919B]"
+                className="border-[#7B1E2B]/45 text-[#E0919B] px-8"
                 isLoading={endSessionMutation.isPending}
                 onPress={() => {
                   if (!activeSessionId) return;
@@ -1085,8 +1255,9 @@ export default function SessionPage() {
                   Curate the mood before the deal
                 </h2>
                 <p className="mt-1 text-sm text-[#A0A0A0]">
-                  Choose one input mode. Use tags or AI mood text to build the
-                  deck for {selectedGroup?.name ?? "your group"}.
+                  Tags are generated from TMDB genres currently in{" "}
+                  {selectedGroup?.name ?? "your group"}&apos;s watchlist. Use
+                  tags or AI mood text to build the deck.
                 </p>
               </div>
             </CardHeader>
@@ -1119,26 +1290,38 @@ export default function SessionPage() {
               </div>
 
               {vibeInputMode === "tags" ? (
-                <div className="flex flex-wrap gap-2">
-                  {VIBE_TAGS.map((tag) => {
-                    const selected = selectedTags.includes(tag);
-                    return (
-                      <Button
-                        key={tag}
-                        size="sm"
-                        variant={selected ? "solid" : "bordered"}
-                        className={
-                          selected
-                            ? "bg-[#D4AF37] text-[#161616]"
-                            : "border-[#D4AF37]/35 text-[#D4AF37]"
-                        }
-                        onPress={() => handleToggleTag(tag)}
-                      >
-                        {tag}
-                      </Button>
-                    );
-                  })}
-                </div>
+                availableGenreTags.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {availableGenreTags.map((tag) => {
+                      const selected = selectedTags.includes(tag);
+                      return (
+                        <Button
+                          key={tag}
+                          size="sm"
+                          variant={selected ? "solid" : "bordered"}
+                          className={
+                            selected
+                              ? "bg-[#D4AF37] text-[#161616]"
+                              : "border-[#D4AF37]/35 text-[#D4AF37]"
+                          }
+                          onPress={() => handleToggleTag(tag)}
+                        >
+                          {tag}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-[#D4AF37]/20 bg-black/30 p-4">
+                    <p className="text-sm text-[#D4AF37]">
+                      No TMDB genre tags available yet
+                    </p>
+                    <p className="mt-1 text-xs text-[#A0A0A0]">
+                      Add more TMDB titles to the watchlist, or use AI mood
+                      input to infer a genre match.
+                    </p>
+                  </div>
+                )
               ) : (
                 <div className="rounded-xl border border-[#D4AF37]/20 bg-black/40 p-4">
                   <p className="text-sm text-[#D4AF37]">
@@ -1185,8 +1368,8 @@ export default function SessionPage() {
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-xs uppercase tracking-[0.1em] text-[#A0A0A0]">
-                  {selectedTags.length} selected · {sessionContext.tags.length}{" "}
-                  AI inferred
+                  {selectedTags.length} selected · {availableGenreTags.length}{" "}
+                  available · {sessionContext.tags.length} AI inferred
                 </div>
                 <Button
                   size="lg"
@@ -1219,13 +1402,15 @@ export default function SessionPage() {
                 Deck
               </p>
               <h3 className="text-xl text-[#F2E2AE] text-center">
-                {winnerWatchlistItemId
+                {showLeaderEndedCard
+                  ? "Leader has ended the session."
+                  : winnerWatchlistItemId
                   ? "And now… the feature presentation."
                   : sessionPhase === "swiping"
-                  ? "Swipe through the shared group deck"
-                  : tieBreakRequired
-                    ? "Tie-break required"
-                    : "The stage is set. We await the cast."}
+                    ? "Swipe through the shared group deck"
+                    : tieBreakRequired
+                      ? "Judgment remains divided"
+                      : "The stage is set. We await the cast."}
               </h3>
             </div>
           </div>
@@ -1238,6 +1423,7 @@ export default function SessionPage() {
                 </div>
               ) : null}
               {showWaitingCard ? renderWaitingCard() : null}
+              {showLeaderEndedCard ? renderLeaderEndedCard() : null}
               {tieBreakRequired ? renderTieBreakCard() : null}
               {stackCards.length > 0 && !showWaitingCard ? (
                 <motion.div
@@ -1513,6 +1699,14 @@ export default function SessionPage() {
                 )}
               </ModalBody>
               <ModalFooter>
+                <Button
+                  variant="bordered"
+                  className="border-[#D4AF37]/35 text-[#D4AF37]"
+                  isDisabled={generateDeckMutation.isPending}
+                  onPress={handleBackToVibeSelection}
+                >
+                  Back
+                </Button>
                 <Button
                   className="border border-[#D4AF37]/55 bg-[#D4AF37] text-[#171717]"
                   isLoading={generateDeckMutation.isPending}
