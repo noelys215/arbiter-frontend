@@ -46,6 +46,9 @@ export default function ManualAddModal({
     onSuccess: () => {
       handleOpenChange(false);
       queryClient.invalidateQueries({
+        queryKey: ["watchlist-library", selectedGroupId],
+      });
+      queryClient.invalidateQueries({
         queryKey: ["watchlist", selectedGroupId],
       });
     },

@@ -2,6 +2,7 @@ import type { SessionCandidate, SessionStateResponse } from "../../features/sess
 import type { WatchlistItem } from "../../features/watchlist/watchlist.api";
 import {
   CANONICAL_GENRE_LABELS,
+  RUNTIME_VIBE_TAGS,
   TMDB_GENRE_LABEL_BY_ID,
   TMDB_GENRE_SORT_INDEX,
 } from "./constants";
@@ -94,6 +95,12 @@ export function deriveAvailableGenreTags(items: WatchlistItem[]) {
   for (const item of items) {
     const title = item.title ?? item.title_info;
     if (!title) continue;
+    const runtime = title.runtime_minutes;
+    const mediaType = String(title.media_type ?? "").toLowerCase();
+    if (mediaType === "tv" && typeof runtime === "number" && runtime > 0) {
+      if (runtime <= 30) labels.add(RUNTIME_VIBE_TAGS[1]);
+      if (runtime <= 15) labels.add(RUNTIME_VIBE_TAGS[0]);
+    }
 
     const genreIds = Array.isArray(title.tmdb_genre_ids)
       ? title.tmdb_genre_ids

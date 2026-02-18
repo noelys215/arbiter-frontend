@@ -44,6 +44,9 @@ export default function AddToWatchlistCard({
     onSuccess: () => {
       onClearSearch();
       queryClient.invalidateQueries({
+        queryKey: ["watchlist-library", selectedGroupId],
+      });
+      queryClient.invalidateQueries({
         queryKey: ["watchlist", selectedGroupId],
       });
     },

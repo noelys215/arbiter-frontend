@@ -43,8 +43,9 @@ export default function VibeSelectionCard({
             Curate the mood before the deal
           </h2>
           <p className="mt-1 text-sm text-[#A0A0A0]">
-            Tags are generated from TMDB genres currently in {selectedGroupName}
-            &apos;s watchlist. Use tags or AI mood text to build the deck.
+            Tags are generated from TMDB genres and runtime buckets currently
+            in {selectedGroupName}&apos;s watchlist. Use tags or AI mood text
+            to build the deck.
           </p>
         </div>
       </CardHeader>
@@ -101,11 +102,11 @@ export default function VibeSelectionCard({
           ) : (
             <div className="rounded-xl border border-[#D4AF37]/20 bg-black/30 p-4">
               <p className="text-sm text-[#D4AF37]">
-                No TMDB genre tags available yet
+                No vibe tags available yet
               </p>
               <p className="mt-1 text-xs text-[#A0A0A0]">
-                Add more TMDB titles to the watchlist, or use AI mood input to
-                infer a genre match.
+                Add more TMDB titles with genre/runtime metadata, or use AI
+                mood input to infer a match.
               </p>
             </div>
           )

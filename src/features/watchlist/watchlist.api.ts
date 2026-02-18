@@ -16,6 +16,7 @@ export type WatchlistTitle = {
   media_type?: "movie" | "tv" | string;
   name?: string;
   release_year?: number | null;
+  runtime_minutes?: number | null;
   poster_path?: string | null;
   tmdb_genres?: string[];
   tmdb_genre_ids?: number[];
@@ -41,6 +42,24 @@ export type WatchlistItem = {
   title_text?: string;
   year?: number | null;
   poster_path?: string | null;
+};
+
+export type WatchlistSort = "recent" | "oldest";
+
+export type WatchlistLibraryParams = {
+  q?: string;
+  media_type?: "movie" | "tv" | null;
+  genre_id?: number | null;
+  sort?: WatchlistSort;
+  limit?: number;
+  cursor?: string | null;
+  status?: "watchlist" | "watched";
+};
+
+export type WatchlistPage = {
+  items: WatchlistItem[];
+  next_cursor: string | null;
+  total_count: number;
 };
 
 export async function searchTmdb(query: string) {
@@ -84,6 +103,26 @@ export async function getGroupWatchlistWithOptions(
     console.groupEnd();
   }
   return items;
+}
+
+export async function getGroupWatchlistPage(
+  groupId: string,
+  params?: WatchlistLibraryParams,
+) {
+  const query = new URLSearchParams();
+  query.set("paginate", "true");
+  query.set("limit", String(params?.limit ?? 24));
+
+  if (params?.q && params.q.trim().length > 0) query.set("q", params.q.trim());
+  if (params?.media_type) query.set("media_type", params.media_type);
+  if (typeof params?.genre_id === "number" && Number.isFinite(params.genre_id)) {
+    query.set("genre_id", String(params.genre_id));
+  }
+  if (params?.sort) query.set("sort", params.sort);
+  if (params?.cursor) query.set("cursor", params.cursor);
+  if (params?.status) query.set("status", params.status);
+
+  return apiJson<WatchlistPage>(`/groups/${groupId}/watchlist?${query.toString()}`);
 }
 
 export async function addTmdbToWatchlist(

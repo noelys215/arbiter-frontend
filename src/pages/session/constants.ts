@@ -5,6 +5,7 @@ export const SESSION_CONTEXT_STORAGE_PREFIX = "arbiter:session-context:";
 export const DEAL_SUBMITTED_STORAGE_PREFIX = "arbiter:session-deal-submitted:";
 export const ROUND_TIMER_SECONDS = 60;
 export const DEAL_CANDIDATE_COUNT = 8;
+export const RUNTIME_VIBE_TAGS = ["Under 15 Mins", "Under 30 Mins"] as const;
 
 export const TMDB_GENRE_LABEL_BY_ID: Record<number, string> = {
   12: "Adventure",
@@ -37,6 +38,8 @@ export const TMDB_GENRE_LABEL_BY_ID: Record<number, string> = {
 };
 
 export const TMDB_GENRE_DISPLAY_ORDER = [
+  "Under 15 Mins",
+  "Under 30 Mins",
   "Action",
   "Adventure",
   "Action & Adventure",
@@ -76,4 +79,10 @@ export const CANONICAL_GENRE_LABELS: Record<string, string> = {
   "science fiction": "Science Fiction",
   "tv movie": "TV Movie",
   "war & politics": "War & Politics",
+  "under 30 min": "Under 30 Mins",
+  "under 30 mins": "Under 30 Mins",
+  "under 30 minutes": "Under 30 Mins",
+  "under 15 min": "Under 15 Mins",
+  "under 15 mins": "Under 15 Mins",
+  "under 15 minutes": "Under 15 Mins",
 };

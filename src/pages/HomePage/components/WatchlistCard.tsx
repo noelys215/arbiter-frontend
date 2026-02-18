@@ -1,25 +1,39 @@
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Chip,
-  Spinner,
-} from "@heroui/react";
+import { Button, Card, CardBody, CardHeader } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { updateWatchlistItem } from "../../../features/watchlist/watchlist.api";
+import {
+  updateWatchlistItem,
+  type WatchlistSort,
+} from "../../../features/watchlist/watchlist.api";
 import type { WatchlistItem } from "../../../features/watchlist/watchlist.api";
 import type { WatchlistMeta } from "../types";
+import WatchlistControls from "./WatchlistControls";
+import WatchlistList from "./WatchlistList";
 
 type WatchlistCardProps = {
   selectedGroupName: string | null;
   selectedGroupId: string | null;
   currentUserId?: string | null;
   watchlistItems: WatchlistItem[];
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
   isLoading: boolean;
   isError: boolean;
+  isPagePending: boolean;
+  hasActiveFilters: boolean;
+  onPageChange: (value: number) => void;
+  q: string;
+  onQChange: (value: string) => void;
+  mediaType: "all" | "movie" | "tv";
+  onMediaTypeChange: (value: "all" | "movie" | "tv") => void;
+  genreId: number | null;
+  onGenreIdChange: (value: number | null) => void;
+  sort: WatchlistSort;
+  onSortChange: (value: WatchlistSort) => void;
+  onClearFilters: () => void;
+  genreOptions: Array<{ id: number; label: string }>;
   renderPoster: (posterPath?: string | null, altText?: string) => ReactNode;
   getWatchlistMeta: (item: WatchlistItem) => WatchlistMeta;
 };
@@ -29,8 +43,24 @@ export default function WatchlistCard({
   selectedGroupId,
   currentUserId,
   watchlistItems,
+  totalCount,
+  currentPage,
+  totalPages,
   isLoading,
   isError,
+  isPagePending,
+  hasActiveFilters,
+  onPageChange,
+  q,
+  onQChange,
+  mediaType,
+  onMediaTypeChange,
+  genreId,
+  onGenreIdChange,
+  sort,
+  onSortChange,
+  onClearFilters,
+  genreOptions,
   renderPoster,
   getWatchlistMeta,
 }: WatchlistCardProps) {
@@ -40,8 +70,6 @@ export default function WatchlistCard({
     string | number | null
   >(null);
 
-  console.log(watchlistItems);
-
   const removeMutation = useMutation({
     mutationFn: (itemId: string | number) =>
       updateWatchlistItem(itemId, { remove: true }),
@@ -50,6 +78,9 @@ export default function WatchlistCard({
     },
     onSuccess: () => {
       if (selectedGroupId) {
+        queryClient.invalidateQueries({
+          queryKey: ["watchlist-library", selectedGroupId],
+        });
         queryClient.invalidateQueries({
           queryKey: ["watchlist", selectedGroupId],
         });
@@ -86,7 +117,7 @@ export default function WatchlistCard({
             size="sm"
             variant="bordered"
             className="uppercase border-[#D4AF37]/60 text-[#0B0B0B] bg-[#D4AF37] hover:bg-[#D4AF37]/90"
-            isDisabled={!selectedGroupId || watchlistItems.length < 2}
+            isDisabled={!selectedGroupId || totalCount < 2}
             onPress={() => {
               if (!selectedGroupId) return;
               navigate(`/app/session?groupId=${encodeURIComponent(selectedGroupId)}`);
@@ -97,72 +128,38 @@ export default function WatchlistCard({
         </div>
       </CardHeader>
       <CardBody className="space-y-3">
-        {!selectedGroupId ? (
-          <p className="text-sm text-[#A0A0A0]">
-            Select a group to view its watchlist.
-          </p>
-        ) : isLoading ? (
-          <div className="flex items-center gap-2 text-[#A0A0A0]">
-            <Spinner size="sm" color="warning" /> Loading watchlist...
-          </div>
-        ) : isError ? (
-          <p className="text-sm text-[#7B1E2B]">Unable to load watchlist.</p>
-        ) : watchlistItems.length === 0 ? (
-          <p className="text-sm text-[#A0A0A0]">
-            No items yet. Add your first title.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {watchlistItems.map((item) => {
-              const meta = getWatchlistMeta(item);
-              const addedBy = getAddedByLabel(item);
-              return (
-                <div
-                  key={item.id ?? `${meta.name}-${meta.year ?? ""}`}
-                  className="flex items-center gap-4 rounded-2xl border border-[#D4AF37]/10 bg-black/30 p-3"
-                >
-                  {renderPoster(meta.poster, meta.name)}
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-white">
-                      {meta.name}
-                    </p>
-                    <p className="text-xs text-[#A0A0A0]">
-                      {meta.year ? meta.year : "Unknown year"}
-                    </p>
-                    {addedBy ? (
-                      <p className="text-xs text-[#A0A0A0]">
-                        Added by {addedBy}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="flex items-center gap-2 uppercase">
-                    {item.status ? (
-                      <Chip
-                        variant="bordered"
-                        radius="sm"
-                        classNames={{
-                          base: "border-[#D4AF37]/50",
-                          content: "text-[#D4AF37]",
-                        }}
-                      >
-                        {item.status}
-                      </Chip>
-                    ) : null}
-                    <Button
-                      size="sm"
-                      variant="bordered"
-                      className="border-[#7B1E2B]/40 text-[#7B1E2B] hover:bg-[#7B1E2B]/10 uppercase"
-                      onPress={() => removeMutation.mutate(item.id)}
-                      isLoading={pendingRemoveId === item.id}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <WatchlistControls
+          q={q}
+          onQChange={onQChange}
+          mediaType={mediaType}
+          onMediaTypeChange={onMediaTypeChange}
+          genreId={genreId}
+          onGenreIdChange={onGenreIdChange}
+          sort={sort}
+          onSortChange={onSortChange}
+          genreOptions={genreOptions}
+          showingCount={watchlistItems.length}
+          totalCount={totalCount}
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={onClearFilters}
+        />
+
+        <WatchlistList
+          selectedGroupId={selectedGroupId}
+          items={watchlistItems}
+          isLoading={isLoading}
+          isError={isError}
+          isPagePending={isPagePending}
+          hasActiveFilters={hasActiveFilters}
+          renderPoster={renderPoster}
+          getWatchlistMeta={getWatchlistMeta}
+          getAddedByLabel={getAddedByLabel}
+          onRemove={(itemId) => removeMutation.mutate(itemId)}
+          pendingRemoveId={pendingRemoveId}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
       </CardBody>
     </Card>
   );
