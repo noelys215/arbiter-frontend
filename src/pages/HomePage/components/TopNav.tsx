@@ -1,6 +1,7 @@
 import { Avatar, Button } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import BrandLockup from "../../../components/BrandLockup";
 import { logout } from "../../../features/auth/auth.api";
 import type { MeResponse } from "../../../features/auth/auth.api";
 import type { Group } from "../../../features/groups/groups.api";
@@ -28,21 +29,24 @@ export default function TopNav({
     },
   });
 
+  const groupSelectId = "topnav-group-select";
+
   return (
     <nav className="flex flex-wrap items-center justify-between gap-4">
-      <div className="flex items-center">
-        <img
-          src="/arbiter.png"
-          alt="Arbiter"
-          className="h-64 w-64 rounded-sm object-contain"
-        />
-        <span className="text-xl font-semibold">Arbiter</span>
-      </div>
+      <BrandLockup
+        logoClassName="h-64 w-64 sm:h-64 sm:w-64"
+        titleClassName="text-xl sm:text-xl text-white"
+        showVersion={false}
+      />
       <div className="flex flex-1 flex-wrap items-center gap-3">
-        <label className="text-xs uppercase tracking-[0.3em] text-[#D9C7A8]">
+        <label
+          htmlFor={groupSelectId}
+          className="text-xs uppercase tracking-[0.3em] text-[#D9C7A8]"
+        >
           Group
         </label>
         <select
+          id={groupSelectId}
           className="min-w-[220px] rounded-md border border-[#E0B15C]/30 bg-[#22130F] px-3 py-2 text-sm text-[#E0B15C] focus:border-[#E0B15C] focus:ring-1 focus:ring-[#E0B15C]/50 focus:outline-none"
           value={selectedGroupId ?? ""}
           onChange={(event) => onSelectGroup(event.target.value)}

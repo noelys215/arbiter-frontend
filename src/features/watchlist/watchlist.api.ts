@@ -64,17 +64,7 @@ export type WatchlistPage = {
 
 export async function searchTmdb(query: string) {
   const params = new URLSearchParams({ q: query });
-  const results = await apiJson<TmdbSearchResult[]>(
-    `/tmdb/search?${params.toString()}`,
-  );
-
-  if (import.meta.env.DEV) {
-    console.groupCollapsed(`[TMDB] /tmdb/search q="${query}"`);
-    console.log("full_response_json", results);
-    console.groupEnd();
-  }
-
-  return results;
+  return apiJson<TmdbSearchResult[]>(`/tmdb/search?${params.toString()}`);
 }
 
 export async function getGroupWatchlist(groupId: string) {
@@ -96,13 +86,7 @@ export async function getGroupWatchlistWithOptions(
   const path = query
     ? `/groups/${groupId}/watchlist?${query}`
     : `/groups/${groupId}/watchlist`;
-  const items = await apiJson<WatchlistItem[]>(path);
-  if (import.meta.env.DEV) {
-    console.groupCollapsed(`[Watchlist] ${path}`);
-    console.log("items_with_tmdb_taxonomy", items);
-    console.groupEnd();
-  }
-  return items;
+  return apiJson<WatchlistItem[]>(path);
 }
 
 export async function getGroupWatchlistPage(

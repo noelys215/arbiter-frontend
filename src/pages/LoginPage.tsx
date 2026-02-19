@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { login } from "../features/auth/auth.api";
+import SkipLink from "../components/SkipLink";
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   google_oauth_failed: "Google sign-in failed. Please try again.",
@@ -33,7 +34,7 @@ export default function LoginPage() {
       "Social sign-in failed. Please try again."
     : null;
   const inputClassNames = {
-    label: "text-[#D9C7A8]",
+    label: "!text-[#F5D9A5]",
     input: "!text-[#F7F1E3] placeholder:text-[#D9C7A8]/70",
     inputWrapper:
       "border-[#E0B15C]/30 bg-[#1C110F] data-[hover=true]:border-[#E0B15C]/50 data-[focus=true]:border-[#F2C16E]",
@@ -55,7 +56,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen w-full bg-[#140C0A] text-[#F7F1E3]">
-      <div className="mx-auto flex min-h-screen max-w-md items-center px-6 py-12">
+      <SkipLink />
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="mx-auto flex min-h-screen max-w-md items-center px-6 py-12"
+      >
         <Card className="w-full border border-[#E0B15C]/25 bg-[#22130F] shadow-none">
           <CardHeader className="px-6 pt-6">
             <h1 className="text-3xl font-semibold text-[#F5D9A5]">Login</h1>
@@ -85,12 +91,14 @@ export default function LoginPage() {
                 classNames={inputClassNames}
               />
               {loginMutation.isError ? (
-                <p className="text-sm text-[#D77B69]">
+                <p className="text-sm text-[#D77B69]" role="alert">
                   Unable to login. Check your credentials.
                 </p>
               ) : null}
               {oauthErrorMessage ? (
-                <p className="text-sm text-[#D77B69]">{oauthErrorMessage}</p>
+                <p className="text-sm text-[#D77B69]" role="alert">
+                  {oauthErrorMessage}
+                </p>
               ) : null}
               <Button
                 type="submit"
@@ -140,7 +148,7 @@ export default function LoginPage() {
             </p>
           </CardBody>
         </Card>
-      </div>
+      </main>
     </div>
   );
 }

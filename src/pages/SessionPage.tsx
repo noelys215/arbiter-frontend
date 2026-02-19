@@ -8,6 +8,7 @@ import {
 import ShortlistModal from "./session/components/ShortlistModal";
 import VibeSelectionCard from "./session/components/VibeSelectionCard";
 import { useSessionFlow } from "./session/hooks/useSessionFlow";
+import SkipLink from "../components/SkipLink";
 import "./session/SessionPage.css";
 
 export default function SessionPage() {
@@ -44,6 +45,8 @@ export default function SessionPage() {
     sessionStatus,
     winnerWatchlistItemId,
     tieBreakRequired,
+    watchPartyUrl,
+    watchPartyError,
     showLeaderEndedCard,
     showPlaceholderDeck,
     showWaitingCard,
@@ -73,9 +76,11 @@ export default function SessionPage() {
     handleSwipe,
     handleProgrammaticSwipe,
     handleShuffleToDecide,
+    handleSetWatchPartyUrl,
     goHome,
     handleEndSession,
     getReadableVote,
+    watchPartyMutation,
   } = useSessionFlow();
 
   if (groupsLoading) {
@@ -88,6 +93,7 @@ export default function SessionPage() {
 
   return (
     <div className="min-h-screen bg-[#140C0A] text-white">
+      <SkipLink />
       <SessionHeader
         groups={groups}
         resolvedGroupId={resolvedGroupId}
@@ -102,7 +108,11 @@ export default function SessionPage() {
         onGoHome={goHome}
       />
 
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 sm:px-6">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 sm:px-6"
+      >
         {!hasSubmittedDeck ? (
           <VibeSelectionCard
             selectedGroupName={selectedGroup?.name ?? "your group"}
@@ -138,6 +148,8 @@ export default function SessionPage() {
           sessionStatus={sessionStatus}
           winnerWatchlistItemId={winnerWatchlistItemId}
           tieBreakRequired={tieBreakRequired}
+          watchPartyUrl={watchPartyUrl}
+          watchPartyError={watchPartyError}
           showLeaderEndedCard={showLeaderEndedCard}
           showPlaceholderDeck={showPlaceholderDeck}
           showWaitingCard={showWaitingCard}
@@ -160,6 +172,8 @@ export default function SessionPage() {
           isGroupLeader={isGroupLeader}
           onShuffleWinner={handleShuffleToDecide}
           shuffleIsPending={shuffleMutation.isPending}
+          watchPartyIsUpdating={watchPartyMutation.isPending}
+          onSetWatchPartyUrl={handleSetWatchPartyUrl}
           sortedCardsLength={sortedCards.length}
           isDeckComplete={isDeckComplete}
           onGoHome={goHome}

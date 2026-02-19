@@ -94,7 +94,7 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
   };
 
   return (
-    <aside className="flex flex-col gap-6">
+    <aside className="flex flex-col gap-6" aria-label="Group and friends panel">
       {/* Group Context Card */}
       {selectedGroup ? (
         <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
@@ -181,6 +181,11 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                         onPress={() => addMemberMutation.mutate(friend.id)}
                         isDisabled={addDisabled}
                         isLoading={pendingAddId === friend.id}
+                        aria-label={
+                          isMember
+                            ? `${label} is already in this group`
+                            : `Add ${label} to current group`
+                        }
                       >
                         {isMember ? "In group" : "Add"}
                       </Button>
@@ -196,6 +201,7 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                           })
                         }
                         isLoading={pendingUnfriendId === friend.id}
+                        aria-label={`Unfriend ${label}`}
                       >
                         Unfriend
                       </Button>

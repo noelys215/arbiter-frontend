@@ -20,6 +20,7 @@ import RightRail from "./HomePage/components/RightRail";
 import TopBar from "./HomePage/components/TopBar";
 import WatchlistCard from "./HomePage/components/WatchlistCard";
 import type { InputClassNames, WatchlistMeta } from "./HomePage/types";
+import SkipLink from "../components/SkipLink";
 
 const GROUP_STORAGE_KEY = "arbiter:lastGroupId";
 
@@ -239,6 +240,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#140C0A] text-white">
+      <SkipLink />
       {/* Sticky Top Bar */}
       <TopBar
         groups={groups}
@@ -249,14 +251,18 @@ export default function HomePage() {
       />
 
       {/* Main Content Area */}
-      <div className="mx-auto max-w-7xl px-6 py-8">
+      <div id="main-content" tabIndex={-1} className="mx-auto max-w-7xl px-6 py-8">
         {groupsLoading ? (
-          <div className="flex items-center gap-3 text-[#D9C7A8]">
+          <div
+            className="flex items-center gap-3 text-[#D9C7A8]"
+            role="status"
+            aria-live="polite"
+          >
             <span className="inline-flex h-4 w-4 animate-pulse rounded-full bg-[#E0B15C]/40" />
             Loading groups...
           </div>
         ) : groupsError ? (
-          <p className="text-sm text-[#D77B69]">
+          <p className="text-sm text-[#D77B69]" role="alert">
             Unable to load groups. Please refresh.
           </p>
         ) : groups && groups.length === 0 ? (
@@ -264,7 +270,12 @@ export default function HomePage() {
         ) : (
           <div className="grid grid-cols-1 gap-8 md:grid-cols-[2fr_1fr]">
             {/* Main Column */}
-            <main className="order-2 flex flex-col gap-6 md:order-1">
+            <main className="flex flex-col gap-6">
+              <p className="sr-only" role="status" aria-live="polite">
+                {selectedGroup?.name
+                  ? `${selectedGroup.name} watchlist loaded.`
+                  : "Watchlist loaded."}
+              </p>
               <AddToWatchlistCard
                 selectedGroupId={resolvedSelectedGroupId}
                 search={tmdbSearch}
@@ -313,7 +324,7 @@ export default function HomePage() {
             </main>
 
             {/* Right Rail */}
-            <div className="order-1 md:order-2">
+            <div>
               <RightRail friends={friends} selectedGroup={selectedGroup} />
             </div>
           </div>

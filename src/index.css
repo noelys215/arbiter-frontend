@@ -70,6 +70,25 @@ pre {
   min-height: 100vh;
 }
 
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 200;
+  transform: translateY(-200%);
+  border: 1px solid rgb(224 177 92 / 0.8);
+  border-radius: 0.5rem;
+  background: #22130f;
+  color: #f7f1e3;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.5rem 0.75rem;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
 ::selection {
   background: rgb(224 177 92 / 0.35);
   color: var(--theater-text);

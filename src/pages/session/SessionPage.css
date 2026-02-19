@@ -204,3 +204,11 @@
     filter: brightness(0.95);
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .session-winner,
+  .session-winner::after,
+  .session-placeholder-dealing {
+    animation: none !important;
+  }
+}

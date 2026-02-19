@@ -1,6 +1,6 @@
 import { Button, Card, CardBody } from "@heroui/react";
 import { motion } from "framer-motion";
-import type { RefObject } from "react";
+import { useEffect, useState, type RefObject } from "react";
 import SwipeDeck, {
   type SwipeDeckHandle,
   type SwipeDirection,
@@ -55,6 +55,8 @@ type SessionDeckSectionProps = {
   sessionStatus: string;
   winnerWatchlistItemId: string | null;
   tieBreakRequired: boolean;
+  watchPartyUrl: string | null;
+  watchPartyError: string | null;
   showLeaderEndedCard: boolean;
   showPlaceholderDeck: boolean;
   showWaitingCard: boolean;
@@ -77,6 +79,8 @@ type SessionDeckSectionProps = {
   isGroupLeader: boolean;
   onShuffleWinner: () => Promise<void>;
   shuffleIsPending: boolean;
+  watchPartyIsUpdating: boolean;
+  onSetWatchPartyUrl: (url: string | null) => Promise<void>;
   sortedCardsLength: number;
   isDeckComplete: boolean;
   onGoHome: () => void;
@@ -88,6 +92,8 @@ export default function SessionDeckSection({
   sessionStatus,
   winnerWatchlistItemId,
   tieBreakRequired,
+  watchPartyUrl,
+  watchPartyError,
   showLeaderEndedCard,
   showPlaceholderDeck,
   showWaitingCard,
@@ -110,10 +116,13 @@ export default function SessionDeckSection({
   isGroupLeader,
   onShuffleWinner,
   shuffleIsPending,
+  watchPartyIsUpdating,
+  onSetWatchPartyUrl,
   sortedCardsLength,
   isDeckComplete,
   onGoHome,
 }: SessionDeckSectionProps) {
+  const watchPartyInputId = "watch-party-url-input";
   const winnerCard = winnerWatchlistItemId
     ? stackCards.find((card) => card.watchlist_item_id === winnerWatchlistItemId) ?? null
     : null;
@@ -121,24 +130,50 @@ export default function SessionDeckSection({
   const winnerStreamingOptions = normalizeStreamingOptions(
     winnerCard?.title.tmdb_streaming_options,
   );
+  const [watchPartyDraft, setWatchPartyDraft] = useState("");
+  const [showWatchPartyEditor, setShowWatchPartyEditor] = useState(false);
+  const hasWatchPartyUrl =
+    typeof watchPartyUrl === "string" && watchPartyUrl.trim().length > 0;
+  const deckHeading = showLeaderEndedCard
+    ? "Leader has ended the session."
+    : winnerWatchlistItemId
+      ? "And now… the feature presentation."
+      : sessionPhase === "swiping"
+        ? "Swipe through the shared group deck"
+        : tieBreakRequired
+          ? "Judgment remains divided"
+          : "The stage is set. We await the cast.";
+  const statusAnnouncement = showLeaderEndedCard
+    ? "Session ended by the group leader."
+    : winnerCard
+      ? `Winner selected: ${winnerCard.title.name}.`
+      : tieBreakRequired
+        ? "Tie break required."
+        : sessionPhase === "swiping"
+          ? `Swiping in progress. ${Math.max(0, swipedCount)} of ${Math.max(0, totalCards)} cards reviewed.`
+          : "Session setup in progress.";
+
+  useEffect(() => {
+    setWatchPartyDraft(watchPartyUrl ?? "");
+    setShowWatchPartyEditor(!watchPartyUrl && isGroupLeader);
+  }, [watchPartyUrl, isGroupLeader]);
 
   return (
-    <section ref={deckSectionRef} className="space-y-4">
+    <section
+      ref={deckSectionRef}
+      className="space-y-4"
+      aria-labelledby="deck-heading"
+    >
+      <p className="sr-only" role="status" aria-live="polite">
+        {statusAnnouncement}
+      </p>
       <div className="flex items-end justify-center">
         <div className="w-full">
           <p className="session-title-micro text-left text-xs text-[#E0B15C]/65">
             Deck
           </p>
-          <h3 className="text-center text-xl text-[#F5D9A5]">
-            {showLeaderEndedCard
-              ? "Leader has ended the session."
-              : winnerWatchlistItemId
-                ? "And now… the feature presentation."
-                : sessionPhase === "swiping"
-                  ? "Swipe through the shared group deck"
-                  : tieBreakRequired
-                    ? "Judgment remains divided"
-                    : "The stage is set. We await the cast."}
+          <h3 id="deck-heading" className="text-center text-xl text-[#F5D9A5]">
+            {deckHeading}
           </h3>
         </div>
       </div>
@@ -198,11 +233,12 @@ export default function SessionDeckSection({
           ) : null}
         </div>
 
-        <div className="flex w-full items-center justify-center gap-2">
+        <div className="flex w-full flex-wrap items-center justify-center gap-2">
           <Button
             variant="bordered"
             className="border-[#D77B69]/45 text-[#F1A799]"
             isDisabled={!canSwipe}
+            aria-label="Vote no on current title"
             onPress={() => {
               void onProgrammaticSwipe("left");
             }}
@@ -213,6 +249,7 @@ export default function SessionDeckSection({
             variant="bordered"
             className="border-[#E0B15C]/45 text-[#E0B15C]"
             isDisabled={!canSwipe}
+            aria-label="Vote maybe on current title"
             onPress={() => {
               void onProgrammaticSwipe("up");
             }}
@@ -222,6 +259,7 @@ export default function SessionDeckSection({
           <Button
             className="border border-[#E0B15C]/55 bg-[#E0B15C] text-[#171717]"
             isDisabled={!canSwipe}
+            aria-label="Vote yes on current title"
             onPress={() => {
               void onProgrammaticSwipe("right");
             }}
@@ -230,7 +268,11 @@ export default function SessionDeckSection({
           </Button>
         </div>
 
-        <div className="flex w-full items-center justify-between text-xs text-[#D9C7A8]">
+        <div
+          className="flex w-full flex-wrap items-center justify-between gap-2 text-xs text-[#D9C7A8]"
+          role="status"
+          aria-live="polite"
+        >
           <div className="flex flex-col">
             <span>
               {Math.max(0, swipedCount)} / {Math.max(0, totalCards)}
@@ -280,38 +322,135 @@ export default function SessionDeckSection({
               {winnerStreamingOptions.length > 0 ? (
                 <>
                   <p className="text-sm text-[#E8E8E8]">
-                    {winnerStreamingOptions.length === 1
-                      ? `Stream on ${winnerStreamingOptions[0].provider_name}.`
-                      : `Streaming options for ${winnerCard.title.name}.`}
+                    {`Streaming options for ${winnerCard.title.name}.`}
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <ul className="flex flex-wrap gap-2" aria-label="Streaming providers">
                     {winnerStreamingOptions.map((provider) =>
                       provider.streaming_url ? (
-                        <a
-                          key={provider.provider_name}
-                          href={provider.streaming_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="rounded-md border border-[#E0B15C]/45 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-[#E0B15C] transition-colors hover:border-[#E0B15C]/75 hover:text-[#F5D9A5]"
-                        >
-                          {provider.provider_name}
-                        </a>
+                        <li key={provider.provider_name}>
+                          <a
+                            href={provider.streaming_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-md border border-[#E0B15C]/45 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-[#E0B15C] transition-colors hover:border-[#E0B15C]/75 hover:text-[#F5D9A5]"
+                            aria-label={`Open ${provider.provider_name}`}
+                          >
+                            {provider.provider_name}
+                          </a>
+                        </li>
                       ) : (
-                        <span
-                          key={provider.provider_name}
-                          className="rounded-md border border-[#E0B15C]/30 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-[#E0B15C]/80"
-                        >
-                          {provider.provider_name}
-                        </span>
+                        <li key={provider.provider_name}>
+                          <span
+                            className="rounded-md border border-[#E0B15C]/30 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-[#E0B15C]/80"
+                            aria-label={`${provider.provider_name} (no direct streaming link available)`}
+                          >
+                            {provider.provider_name}
+                          </span>
+                        </li>
                       ),
                     )}
-                  </div>
+                  </ul>
                 </>
               ) : (
                 <p className="text-sm text-[#E8E8E8]">
                   No streaming providers found right now.
                 </p>
               )}
+            </CardBody>
+          </Card>
+        ) : null}
+
+        {winnerCard ? (
+          <Card className="w-full border border-[#E0B15C]/25 bg-[#22130F]">
+            <CardBody className="flex flex-col gap-3">
+              <p className="session-title-micro text-xs text-[#E0B15C]/65">
+                Teleparty
+              </p>
+
+              {hasWatchPartyUrl ? (
+                <>
+                  <p className="text-sm text-[#E8E8E8]" role="status" aria-live="polite">
+                    Party link is ready. Join to watch together.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <a
+                      href={watchPartyUrl ?? "#"}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-md border border-[#E0B15C]/45 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-[#E0B15C] transition-colors hover:border-[#E0B15C]/75 hover:text-[#F5D9A5]"
+                    >
+                      Join Teleparty
+                    </a>
+                    {isGroupLeader ? (
+                      <Button
+                        size="sm"
+                        variant="bordered"
+                        className="border-[#E0B15C]/45 text-[#E0B15C]"
+                        onPress={() => {
+                          setShowWatchPartyEditor((value) => !value);
+                        }}
+                      >
+                        {showWatchPartyEditor ? "Close" : "Update Link"}
+                      </Button>
+                    ) : null}
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-[#E8E8E8]" role="status" aria-live="polite">
+                  {isGroupLeader
+                    ? "Start Teleparty in your streaming tab, then paste the Teleparty URL below."
+                    : "Waiting for the group leader to share the Teleparty link."}
+                </p>
+              )}
+
+              {isGroupLeader && (showWatchPartyEditor || !hasWatchPartyUrl) ? (
+                <div className="flex flex-col gap-2">
+                  <label htmlFor={watchPartyInputId} className="sr-only">
+                    Teleparty URL
+                  </label>
+                  <input
+                    id={watchPartyInputId}
+                    type="url"
+                    value={watchPartyDraft}
+                    onChange={(event) => {
+                      setWatchPartyDraft(event.target.value);
+                    }}
+                    placeholder="https://www.teleparty.com/join/..."
+                    className="w-full rounded-md border border-[#E0B15C]/35 bg-black/30 px-3 py-2 text-sm text-[#F5D9A5] placeholder:text-[#D9C7A8]/45 focus:border-[#E0B15C]/65 focus:outline-none"
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      className="border border-[#E0B15C]/55 bg-[#E0B15C] text-[#171717]"
+                      isLoading={watchPartyIsUpdating}
+                      isDisabled={watchPartyDraft.trim().length === 0}
+                      onPress={() => {
+                        void onSetWatchPartyUrl(watchPartyDraft);
+                      }}
+                    >
+                      Save Teleparty Link
+                    </Button>
+                    {hasWatchPartyUrl ? (
+                      <Button
+                        size="sm"
+                        variant="bordered"
+                        className="border-[#E0B15C]/45 text-[#E0B15C]"
+                        isLoading={watchPartyIsUpdating}
+                        onPress={() => {
+                          void onSetWatchPartyUrl(null);
+                        }}
+                      >
+                        Clear Link
+                      </Button>
+                    ) : null}
+                  </div>
+                  {watchPartyError ? (
+                    <p className="text-xs text-[#F1A799]" role="alert">
+                      {watchPartyError}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </CardBody>
           </Card>
         ) : null}

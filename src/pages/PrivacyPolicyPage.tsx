@@ -1,11 +1,17 @@
 import { Link } from "react-router-dom";
+import SkipLink from "../components/SkipLink";
 
 const LAST_UPDATED = "February 11, 2026";
 
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-[#140C0A] px-6 py-12 text-[#F7F1E3]">
-      <main className="mx-auto w-full max-w-3xl space-y-8">
+      <SkipLink />
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="mx-auto w-full max-w-3xl space-y-8"
+      >
         <header className="space-y-3">
           <h1 className="text-3xl font-semibold text-[#F5D9A5]">Privacy Policy</h1>
           <p className="text-sm text-[#D9C7A8]">Last updated: {LAST_UPDATED}</p>

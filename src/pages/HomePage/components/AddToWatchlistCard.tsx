@@ -71,35 +71,45 @@ export default function AddToWatchlistCard({
             classNames={inputClassNames}
           />
           {isSearching ? (
-            <div className="flex items-center gap-2 text-sm text-[#D9C7A8]">
+            <div
+              className="flex items-center gap-2 text-sm text-[#D9C7A8]"
+              role="status"
+              aria-live="polite"
+            >
               <Spinner size="sm" color="warning" /> Searching...
             </div>
           ) : null}
           {tmdbResults.length > 0 ? (
-            <div className="space-y-2 rounded-2xl border border-[#E0B15C]/10 bg-black/40 p-2">
+            <ul
+              className="space-y-2 rounded-2xl border border-[#E0B15C]/10 bg-black/40 p-2"
+              aria-label="TMDB search results"
+            >
               {tmdbResults.map((item) => (
-                <button
-                  key={`${item.tmdb_id}-${item.media_type}`}
-                  className="flex w-full items-center gap-3 rounded-xl border border-transparent p-2 text-left transition hover:border-[#E0B15C]/30 hover:bg-[#E0B15C]/5"
-                  onClick={() => {
-                    if (!selectedGroupId) return;
-                    addTmdbMutation.mutate(item);
-                  }}
-                >
-                  {renderPoster(item.poster_path ?? null, item.title)}
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-white">
-                      {item.title}
-                    </p>
-                    <p className="text-xs text-[#D9C7A8]">
-                      {item.media_type.toUpperCase()}{" "}
-                      {item.year ? `• ${item.year}` : ""}
-                    </p>
-                  </div>
-                  <span className="text-xs text-[#E0B15C]">Add</span>
-                </button>
+                <li key={`${item.tmdb_id}-${item.media_type}`}>
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-3 rounded-xl border border-transparent p-2 text-left transition hover:border-[#E0B15C]/30 hover:bg-[#E0B15C]/5"
+                    onClick={() => {
+                      if (!selectedGroupId) return;
+                      addTmdbMutation.mutate(item);
+                    }}
+                    disabled={!selectedGroupId || addTmdbMutation.isPending}
+                  >
+                    {renderPoster(item.poster_path ?? null, item.title)}
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-white">
+                        {item.title}
+                      </p>
+                      <p className="text-xs text-[#D9C7A8]">
+                        {item.media_type.toUpperCase()}{" "}
+                        {item.year ? `• ${item.year}` : ""}
+                      </p>
+                    </div>
+                    <span className="text-xs text-[#E0B15C]">Add</span>
+                  </button>
+                </li>
               ))}
-            </div>
+            </ul>
           ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -112,7 +122,7 @@ export default function AddToWatchlistCard({
             Add manually
           </Button>
           {addTmdbMutation.isError ? (
-            <p className="text-sm text-[#D77B69]">
+            <p className="text-sm text-[#D77B69]" role="alert">
               Unable to add to watchlist.
             </p>
           ) : null}

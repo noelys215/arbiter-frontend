@@ -66,6 +66,7 @@ export default function VibeSelectionCard({
                 ? "bg-[#E0B15C] text-[#161616]"
                 : "border-[#E0B15C]/35 text-[#E0B15C]"
             }
+            aria-pressed={vibeInputMode === "tags"}
             onPress={() => onVibeInputModeChange("tags")}
           >
             Use Tags
@@ -78,6 +79,7 @@ export default function VibeSelectionCard({
                 ? "bg-[#E0B15C] text-[#161616]"
                 : "border-[#E0B15C]/35 text-[#E0B15C]"
             }
+            aria-pressed={vibeInputMode === "ai"}
             onPress={() => onVibeInputModeChange("ai")}
           >
             Use AI Mood
@@ -99,6 +101,7 @@ export default function VibeSelectionCard({
                         ? "bg-[#E0B15C] text-[#161616]"
                         : "border-[#E0B15C]/35 text-[#E0B15C]"
                     }
+                    aria-pressed={selected}
                     onPress={() => onToggleTag(tag)}
                   >
                     {tag}
@@ -160,7 +163,11 @@ export default function VibeSelectionCard({
         ) : null}
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-xs uppercase tracking-widest text-[#D9C7A8]">
+          <div
+            className="text-xs uppercase tracking-widest text-[#D9C7A8]"
+            role="status"
+            aria-live="polite"
+          >
             {selectedTags.length} selected · {availableGenreTags.length}{" "}
             available · {sessionContext.tags.length} AI inferred
           </div>

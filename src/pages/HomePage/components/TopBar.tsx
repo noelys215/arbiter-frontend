@@ -1,4 +1,5 @@
 import { Avatar, Button, Select, SelectItem, Tooltip } from "@heroui/react";
+import BrandLockup from "../../../components/BrandLockup";
 import { theaterSelectClassNames } from "../../../lib/selectTheme";
 import type { MeResponse } from "../../../features/auth/auth.api";
 import type { Group } from "../../../features/groups/groups.api";
@@ -18,21 +19,17 @@ export default function TopBar({
   me,
   onAvatarClick,
 }: TopBarProps) {
+  const groupLabelId = "topbar-group-label";
+
   return (
-    <nav className="sticky top-0 z-50 border-b border-[#E0B15C]/20 bg-[#140C0A]/95 px-4 py-3 backdrop-blur-sm sm:px-6">
+    <nav
+      className="sticky top-0 z-50 border-b border-[#E0B15C]/20 bg-[#140C0A]/95 px-4 py-3 backdrop-blur-sm sm:px-6"
+      aria-label="Primary"
+    >
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-2">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Left: Logo */}
-          <div className="flex items-center">
-            <img
-              src="/arbiter.png"
-              alt="Arbiter"
-              className="h-11 w-11 rounded-sm object-contain sm:h-20 sm:w-20"
-            />
-            <h1 className="text-4xl font-semibold text-[#E0B15C] sm:text-5xl">
-              Arbiter
-            </h1>
-          </div>
+          <BrandLockup />
 
           {/* Right: Avatar */}
           <div className="flex items-center gap-3">
@@ -64,9 +61,14 @@ export default function TopBar({
 
         {/* Center: Group Dropdown */}
         <div className="flex items-center justify-center gap-3">
-          <span className="text-sm font-medium text-[#D9C7A8]">Group:</span>
+          <span
+            id={groupLabelId}
+            className="text-sm font-medium text-[#D9C7A8]"
+          >
+            Group:
+          </span>
           <Select
-            aria-label="Group"
+            aria-labelledby={groupLabelId}
             placeholder="Select a group"
             selectedKeys={selectedGroupId ? [selectedGroupId] : []}
             renderValue={(items) =>

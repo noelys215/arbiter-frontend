@@ -63,6 +63,7 @@ export default function WatchlistControls({
               ? "bg-[#E0B15C] text-[#161616]"
               : "border-[#E0B15C]/35 text-[#E0B15C]"
           }
+          aria-pressed={mediaType === "all"}
           onPress={() => onMediaTypeChange("all")}
         >
           All
@@ -75,6 +76,7 @@ export default function WatchlistControls({
               ? "bg-[#E0B15C] text-[#161616]"
               : "border-[#E0B15C]/35 text-[#E0B15C]"
           }
+          aria-pressed={mediaType === "movie"}
           onPress={() => onMediaTypeChange("movie")}
         >
           Movies
@@ -87,6 +89,7 @@ export default function WatchlistControls({
               ? "bg-[#E0B15C] text-[#161616]"
               : "border-[#E0B15C]/35 text-[#E0B15C]"
           }
+          aria-pressed={mediaType === "tv"}
           onPress={() => onMediaTypeChange("tv")}
         >
           TV
@@ -133,7 +136,11 @@ export default function WatchlistControls({
       </div>
 
       <div className="flex items-center justify-between gap-2 text-xs">
-        <span className="uppercase tracking-[0.08em] text-[#D9C7A8]">
+        <span
+          className="uppercase tracking-[0.08em] text-[#D9C7A8]"
+          role="status"
+          aria-live="polite"
+        >
           Showing {showingCount} of {totalCount}
         </span>
         {hasActiveFilters ? (

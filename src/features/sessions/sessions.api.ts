@@ -76,6 +76,9 @@ export type SessionStateResponse = {
   ends_at: string;
   completed_at: string | null;
   result_watchlist_item_id: string | null;
+  watch_party_url?: string | null;
+  watch_party_set_at?: string | null;
+  watch_party_set_by_user_id?: string | null;
   candidates: SessionCandidate[];
   mutual_candidate_ids?: string[];
   shortlist?:
@@ -129,5 +132,15 @@ export async function shuffleSession(sessionId: string) {
 export async function endSession(sessionId: string) {
   return apiJson<SessionStateResponse>(`/sessions/${sessionId}/end`, {
     method: "POST",
+  });
+}
+
+export async function setSessionWatchPartyLink(
+  sessionId: string,
+  payload: { url: string | null },
+) {
+  return apiJson<SessionStateResponse>(`/sessions/${sessionId}/watch-party`, {
+    method: "PATCH",
+    ...jsonBody(payload),
   });
 }

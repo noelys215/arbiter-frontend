@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useDisclosure } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -10,6 +9,7 @@ import {
   createSession,
   endSession,
   getSessionState,
+  setSessionWatchPartyLink,
   shuffleSession,
   submitSessionVote,
   type CreateSessionPayload,
@@ -46,6 +46,185 @@ import {
   uniqueStrings,
 } from "../utils";
 
+function getMutationErrorMessage(error: unknown): string | null {
+  if (!error || typeof error !== "object") return null;
+  const maybeMessage = "message" in error ? error.message : null;
+  if (typeof maybeMessage === "string" && maybeMessage.trim()) {
+    return maybeMessage.trim();
+  }
+  return null;
+}
+
+function createEmptySessionContext(): SessionContext {
+  return { tags: [], moodSummary: "", aiWhy: null };
+}
+
+function getSessionContextStorageKey(sessionId: string): string {
+  return `${SESSION_CONTEXT_STORAGE_PREFIX}${sessionId}`;
+}
+
+function getDealSubmittedStorageKey(sessionId: string): string {
+  return `${DEAL_SUBMITTED_STORAGE_PREFIX}${sessionId}`;
+}
+
+function getRoundCardIndexStorageKey(sessionId: string, round: number): string {
+  return `${CARD_INDEX_STORAGE_PREFIX}${sessionId}:round:${round}`;
+}
+
+function normalizeSessionRound(round: unknown): number {
+  return typeof round === "number" && Number.isFinite(round)
+    ? Math.max(0, round)
+    : 0;
+}
+
+function deriveSessionPhase(state: SessionStateResponse): string {
+  if (typeof state.phase === "string") return state.phase;
+  if (state.status === "complete") return "complete";
+  return state.candidates.length > 0 ? "swiping" : "collecting";
+}
+
+function getSessionRefetchInterval(
+  data: SessionStateResponse | undefined,
+): number | false {
+  if (data?.status === "complete") {
+    const hasWinner = Boolean(data.result_watchlist_item_id);
+    const hasWatchPartyUrl =
+      typeof data.watch_party_url === "string" &&
+      data.watch_party_url.trim().length > 0;
+    // Keep polling after a winner so non-leaders pick up the shared Teleparty URL.
+    if (hasWinner && !hasWatchPartyUrl && !data.ended_by_leader) return 2000;
+    return false;
+  }
+  if (data?.status !== "active") return false;
+  if (data?.phase === "collecting" || data?.phase === "waiting") return 1000;
+  return 1500;
+}
+
+function isDeckAnimating(deckPhase: DeckPhase): boolean {
+  return deckPhase === "dealing" || deckPhase === "shuffling" || deckPhase === "revealingWinner";
+}
+
+function buildStackCards(candidates: SessionCandidate[]): SessionCandidate[] {
+  return [...candidates].sort((a, b) => a.position - b.position).reverse();
+}
+
+function findWinnerIndex(
+  cards: SessionCandidate[],
+  winnerId: string | null | undefined,
+): number {
+  if (!winnerId) return -1;
+  return cards.findIndex((card) => card.watchlist_item_id === winnerId);
+}
+
+function normalizeWatchPartyUrl(url: string | null | undefined): string | null {
+  return typeof url === "string" && url.trim().length > 0 ? url.trim() : null;
+}
+
+function readSessionContext(sessionId: string | null): SessionContext {
+  if (!sessionId) return createEmptySessionContext();
+  const rawValue = localStorage.getItem(getSessionContextStorageKey(sessionId));
+  if (!rawValue) return createEmptySessionContext();
+
+  try {
+    const parsed = JSON.parse(rawValue) as Partial<SessionContext>;
+    return {
+      tags: Array.isArray(parsed.tags)
+        ? parsed.tags.filter((tag): tag is string => typeof tag === "string")
+        : [],
+      moodSummary:
+        typeof parsed.moodSummary === "string" ? parsed.moodSummary : "",
+      aiWhy: typeof parsed.aiWhy === "string" ? parsed.aiWhy : null,
+    };
+  } catch {
+    return createEmptySessionContext();
+  }
+}
+
+function resolveRestoredCardIndex({
+  storedIndex,
+  cards,
+  sessionStatus,
+  sessionPhase,
+  userLocked,
+  winnerId,
+}: {
+  storedIndex: number | null;
+  cards: SessionCandidate[];
+  sessionStatus: string;
+  sessionPhase: string;
+  userLocked: boolean;
+  winnerId: string | null;
+}): number {
+  if (cards.length === 0) return -1;
+
+  if (storedIndex !== null) {
+    if (storedIndex < 0 && sessionStatus === "complete" && winnerId) {
+      const winnerIndex = findWinnerIndex(cards, winnerId);
+      if (winnerIndex >= 0) return winnerIndex;
+    }
+    if (
+      storedIndex < 0 &&
+      sessionStatus === "active" &&
+      sessionPhase === "swiping" &&
+      !userLocked
+    ) {
+      return cards.length - 1;
+    }
+    return clamp(storedIndex, -1, cards.length - 1);
+  }
+
+  return cards.length - 1;
+}
+
+function resolveEffectiveVibeInputMode({
+  requestedMode,
+  hasTags,
+  hasMood,
+}: {
+  requestedMode: VibeInputMode;
+  hasTags: boolean;
+  hasMood: boolean;
+}): VibeInputMode {
+  if (requestedMode === "tags") {
+    if (hasTags) return "tags";
+    if (hasMood) return "ai";
+    return "tags";
+  }
+  if (hasMood) return "ai";
+  if (hasTags) return "tags";
+  return "ai";
+}
+
+function buildSessionStateCacheFromCreateResponse({
+  response,
+  phase,
+  round,
+}: {
+  response: Awaited<ReturnType<typeof createSession>>;
+  phase: string;
+  round: number;
+}): SessionStateResponse {
+  return {
+    session_id: response.session_id,
+    status: "active",
+    phase,
+    round,
+    user_locked: Boolean(response.user_locked),
+    user_seconds_left:
+      typeof response.user_seconds_left === "number"
+        ? response.user_seconds_left
+        : ROUND_TIMER_SECONDS,
+    tie_break_required: Boolean(response.tie_break_required),
+    tie_break_candidate_ids: response.tie_break_candidate_ids ?? [],
+    ends_at: response.ends_at,
+    completed_at: null,
+    result_watchlist_item_id: null,
+    mutual_candidate_ids: [],
+    shortlist: [],
+    candidates: response.candidates,
+  };
+}
+
 export function useSessionFlow() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -76,11 +255,9 @@ export function useSessionFlow() {
     string | null
   >(null);
   const [localVotes, setLocalVotes] = useState<Record<string, SwipeVote>>({});
-  const [sessionContext, setSessionContext] = useState<SessionContext>({
-    tags: [],
-    moodSummary: "",
-    aiWhy: null,
-  });
+  const [sessionContext, setSessionContext] = useState<SessionContext>(
+    () => createEmptySessionContext(),
+  );
   const [personalPreviewCards, setPersonalPreviewCards] = useState<
     SessionCandidate[]
   >([]);
@@ -163,9 +340,7 @@ export function useSessionFlow() {
       setHasSubmittedDeck(false);
       return;
     }
-    const raw = localStorage.getItem(
-      `${DEAL_SUBMITTED_STORAGE_PREFIX}${activeSessionId}`,
-    );
+    const raw = localStorage.getItem(getDealSubmittedStorageKey(activeSessionId));
     setHasSubmittedDeck(raw === "1");
   }, [activeSessionId]);
 
@@ -187,40 +362,14 @@ export function useSessionFlow() {
     enabled: Boolean(activeSessionId),
     refetchIntervalInBackground: true,
     refetchInterval: (query) => {
-      const data = query.state.data as SessionStateResponse | undefined;
-      if (data?.status !== "active") return false;
-      if (data?.phase === "collecting" || data?.phase === "waiting")
-        return 1000;
-      return 1500;
+      return getSessionRefetchInterval(
+        query.state.data as SessionStateResponse | undefined,
+      );
     },
   });
 
   useEffect(() => {
-    if (!activeSessionId) {
-      setSessionContext({ tags: [], moodSummary: "", aiWhy: null });
-      return;
-    }
-
-    const key = `${SESSION_CONTEXT_STORAGE_PREFIX}${activeSessionId}`;
-    const rawValue = localStorage.getItem(key);
-    if (!rawValue) {
-      setSessionContext({ tags: [], moodSummary: "", aiWhy: null });
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(rawValue) as Partial<SessionContext>;
-      setSessionContext({
-        tags: Array.isArray(parsed.tags)
-          ? parsed.tags.filter((tag): tag is string => typeof tag === "string")
-          : [],
-        moodSummary:
-          typeof parsed.moodSummary === "string" ? parsed.moodSummary : "",
-        aiWhy: typeof parsed.aiWhy === "string" ? parsed.aiWhy : null,
-      });
-    } catch {
-      setSessionContext({ tags: [], moodSummary: "", aiWhy: null });
-    }
+    setSessionContext(readSessionContext(activeSessionId));
   }, [activeSessionId]);
 
   useEffect(() => {
@@ -243,21 +392,13 @@ export function useSessionFlow() {
       return;
     }
 
-    const nextRound = Number.isFinite(state.round)
-      ? Math.max(0, Number(state.round))
-      : 0;
-    const nextPhase =
-      typeof state.phase === "string"
-        ? state.phase
-        : state.status === "complete"
-          ? "complete"
-          : state.candidates.length > 0
-            ? "swiping"
-            : "collecting";
+    const nextRound = normalizeSessionRound(state.round);
+    const nextPhase = deriveSessionPhase(state);
+    const nextCandidates = state.candidates ?? [];
 
     setSessionRound(nextRound);
     setSessionPhase(nextPhase);
-    setDeckCards(state.candidates ?? []);
+    setDeckCards(nextCandidates);
     setSessionStatus(state.status);
     setLeaderEndedSessionNotice(false);
 
@@ -266,14 +407,11 @@ export function useSessionFlow() {
     }
 
     if (state.status === "complete") {
-      const completeDeck = [...(state.candidates ?? [])]
-        .sort((a, b) => a.position - b.position)
-        .reverse();
-      const winnerIndex = state.result_watchlist_item_id
-        ? completeDeck.findIndex(
-            (card) => card.watchlist_item_id === state.result_watchlist_item_id,
-          )
-        : -1;
+      const completeDeck = buildStackCards(nextCandidates);
+      const winnerIndex = findWinnerIndex(
+        completeDeck,
+        state.result_watchlist_item_id,
+      );
       setCurrentIndex(
         winnerIndex >= 0 ? winnerIndex : Math.max(-1, completeDeck.length - 1),
       );
@@ -281,9 +419,9 @@ export function useSessionFlow() {
     if (
       nextPhase === "tiebreak" &&
       state.status === "active" &&
-      state.candidates.length > 0
+      nextCandidates.length > 0
     ) {
-      setCurrentIndex(state.candidates.length - 1);
+      setCurrentIndex(nextCandidates.length - 1);
     }
 
     if (previousRoundRef.current !== nextRound && state.status !== "complete") {
@@ -291,11 +429,11 @@ export function useSessionFlow() {
       processedVotesRef.current = new Set();
       setLocalVotes({});
 
-      const startIndex = Math.max(-1, (state.candidates?.length ?? 0) - 1);
+      const startIndex = Math.max(-1, nextCandidates.length - 1);
       setCurrentIndex(startIndex);
       if (activeSessionId) {
         localStorage.setItem(
-          `${CARD_INDEX_STORAGE_PREFIX}${activeSessionId}:round:${nextRound}`,
+          getRoundCardIndexStorageKey(activeSessionId, nextRound),
           String(startIndex),
         );
       }
@@ -303,10 +441,8 @@ export function useSessionFlow() {
 
     if (
       nextPhase === "swiping" &&
-      state.candidates.length > 0 &&
-      deckPhase !== "dealing" &&
-      deckPhase !== "shuffling" &&
-      deckPhase !== "revealingWinner"
+      nextCandidates.length > 0 &&
+      !isDeckAnimating(deckPhase)
     ) {
       setDeckPhase("ready");
     } else if (nextPhase !== "swiping") {
@@ -338,11 +474,11 @@ export function useSessionFlow() {
   }, [availableGenreTags]);
 
   const stackCards = useMemo(() => {
-    return [...sortedCards].reverse();
+    return buildStackCards(sortedCards);
   }, [sortedCards]);
 
   const cardIndexStorageKey = activeSessionId
-    ? `${CARD_INDEX_STORAGE_PREFIX}${activeSessionId}:round:${sessionRound}`
+    ? getRoundCardIndexStorageKey(activeSessionId, sessionRound)
     : null;
 
   useEffect(() => {
@@ -361,31 +497,15 @@ export function useSessionFlow() {
     const userLockedNow = Boolean(sessionStateQuery.data?.user_locked);
     const winnerIdNow =
       sessionStateQuery.data?.result_watchlist_item_id ?? winnerWatchlistItemId;
-
-    if (Number.isFinite(parsedIndex)) {
-      if (parsedIndex < 0 && sessionStatus === "complete" && winnerIdNow) {
-        const winnerIndex = stackCards.findIndex(
-          (card) => card.watchlist_item_id === winnerIdNow,
-        );
-        if (winnerIndex >= 0) {
-          setCurrentIndex(winnerIndex);
-          return;
-        }
-      }
-      if (
-        parsedIndex < 0 &&
-        sessionStatus === "active" &&
-        sessionPhase === "swiping" &&
-        !userLockedNow
-      ) {
-        setCurrentIndex(stackCards.length - 1);
-        return;
-      }
-      setCurrentIndex(clamp(parsedIndex, -1, stackCards.length - 1));
-      return;
-    }
-
-    setCurrentIndex(stackCards.length - 1);
+    const restoredIndex = resolveRestoredCardIndex({
+      storedIndex: Number.isFinite(parsedIndex) ? parsedIndex : null,
+      cards: stackCards,
+      sessionStatus,
+      sessionPhase,
+      userLocked: userLockedNow,
+      winnerId: winnerIdNow,
+    });
+    setCurrentIndex(restoredIndex);
   }, [
     cardIndexStorageKey,
     stackCards,
@@ -438,8 +558,7 @@ export function useSessionFlow() {
       const nextSessionId = response.session_id;
       const nextPhase =
         typeof response.phase === "string" ? response.phase : "collecting";
-      const nextRound =
-        typeof response.round === "number" ? Math.max(0, response.round) : 0;
+      const nextRound = normalizeSessionRound(response.round);
 
       if (activeSessionId && activeSessionId !== nextSessionId) {
         setLocalVotes({});
@@ -468,7 +587,7 @@ export function useSessionFlow() {
           aiWhy: response.ai_why,
         };
         localStorage.setItem(
-          `${SESSION_CONTEXT_STORAGE_PREFIX}${nextSessionId}`,
+          getSessionContextStorageKey(nextSessionId),
           JSON.stringify(context),
         );
         setSessionContext(context);
@@ -483,10 +602,7 @@ export function useSessionFlow() {
           personalPreviewModal.onOpen();
         }
         setHasSubmittedDeck(true);
-        localStorage.setItem(
-          `${DEAL_SUBMITTED_STORAGE_PREFIX}${nextSessionId}`,
-          "1",
-        );
+        localStorage.setItem(getDealSubmittedStorageKey(nextSessionId), "1");
       }
 
       setDeckCards(response.candidates ?? []);
@@ -499,7 +615,7 @@ export function useSessionFlow() {
         const startIndex = (response.candidates?.length ?? 0) - 1;
         setCurrentIndex(startIndex);
         localStorage.setItem(
-          `${CARD_INDEX_STORAGE_PREFIX}${nextSessionId}:round:${nextRound}`,
+          getRoundCardIndexStorageKey(nextSessionId, nextRound),
           String(startIndex),
         );
         await playDeckShuffleAnimation({
@@ -513,25 +629,14 @@ export function useSessionFlow() {
         setDeckPhase("idle");
       }
 
-      queryClient.setQueryData(["session-state", nextSessionId], {
-        session_id: response.session_id,
-        status: "active",
-        phase: nextPhase,
-        round: nextRound,
-        user_locked: Boolean(response.user_locked),
-        user_seconds_left:
-          typeof response.user_seconds_left === "number"
-            ? response.user_seconds_left
-            : ROUND_TIMER_SECONDS,
-        tie_break_required: Boolean(response.tie_break_required),
-        tie_break_candidate_ids: response.tie_break_candidate_ids ?? [],
-        ends_at: response.ends_at,
-        completed_at: null,
-        result_watchlist_item_id: null,
-        mutual_candidate_ids: [],
-        shortlist: [],
-        candidates: response.candidates,
-      } satisfies SessionStateResponse);
+      queryClient.setQueryData(
+        ["session-state", nextSessionId],
+        buildSessionStateCacheFromCreateResponse({
+          response,
+          phase: nextPhase,
+          round: nextRound,
+        }),
+      );
     },
     onError: () => {
       setDeckPhase("idle");
@@ -590,13 +695,29 @@ export function useSessionFlow() {
       processedVotesRef.current = new Set();
       joinAttemptRef.current = null;
       if (activeSessionId) {
-        localStorage.removeItem(
-          `${DEAL_SUBMITTED_STORAGE_PREFIX}${activeSessionId}`,
-        );
+        localStorage.removeItem(getDealSubmittedStorageKey(activeSessionId));
       }
       navigate("/app");
     },
   });
+
+  const watchPartyMutation = useMutation({
+    mutationFn: ({
+      sessionId,
+      url,
+    }: {
+      sessionId: string;
+      url: string | null;
+    }) => setSessionWatchPartyLink(sessionId, { url }),
+    onSuccess: (response, variables) => {
+      queryClient.setQueryData(["session-state", variables.sessionId], response);
+    },
+  });
+  const watchPartyError =
+    watchPartyMutation.isError
+      ? getMutationErrorMessage(watchPartyMutation.error) ??
+        "Unable to save Teleparty link."
+      : null;
 
   const totalCards = stackCards.length;
   const swipedCount = totalCards > 0 ? totalCards - currentIndex - 1 : 0;
@@ -609,6 +730,8 @@ export function useSessionFlow() {
     sessionStatus === "active" &&
     (sessionPhase === "tiebreak" ||
       Boolean(sessionStateQuery.data?.tie_break_required));
+  const watchPartyUrl =
+    normalizeWatchPartyUrl(sessionStateQuery.data?.watch_party_url);
   const userLocked = Boolean(sessionStateQuery.data?.user_locked);
   const userSecondsLeft =
     typeof sessionStateQuery.data?.user_seconds_left === "number"
@@ -692,18 +815,11 @@ export function useSessionFlow() {
     const hasMood = mood.length > 0;
     if (!hasTags && !hasMood) return;
 
-    const effectiveMode: VibeInputMode =
-      vibeInputMode === "tags"
-        ? hasTags
-          ? "tags"
-          : hasMood
-            ? "ai"
-            : "tags"
-        : hasMood
-          ? "ai"
-          : hasTags
-            ? "tags"
-            : "ai";
+    const effectiveMode = resolveEffectiveVibeInputMode({
+      requestedMode: vibeInputMode,
+      hasTags,
+      hasMood,
+    });
 
     setDeckPhase("dealing");
     deckSectionRef.current?.scrollIntoView({
@@ -742,9 +858,7 @@ export function useSessionFlow() {
   const handleBackToVibeSelection = () => {
     if (generateDeckMutation.isPending) return;
     if (activeSessionId) {
-      localStorage.removeItem(
-        `${DEAL_SUBMITTED_STORAGE_PREFIX}${activeSessionId}`,
-      );
+      localStorage.removeItem(getDealSubmittedStorageKey(activeSessionId));
     }
     setHasSubmittedDeck(false);
     personalPreviewModal.onClose();
@@ -787,21 +901,12 @@ export function useSessionFlow() {
         const response = await shuffleMutation.mutateAsync(activeSessionId);
         queryClient.setQueryData(["session-state", activeSessionId], response);
         setSessionStatus(response.status);
-        setSessionPhase(
-          typeof response.phase === "string"
-            ? response.phase
-            : response.status === "complete"
-              ? "complete"
-              : "swiping",
-        );
-        if (typeof response.round === "number") {
-          setSessionRound(Math.max(0, response.round));
-          previousRoundRef.current = Math.max(0, response.round);
-        }
+        setSessionPhase(deriveSessionPhase(response));
+        const nextRound = normalizeSessionRound(response.round);
+        setSessionRound(nextRound);
+        previousRoundRef.current = nextRound;
         setDeckCards(response.candidates);
-        winnerDeck = [...response.candidates]
-          .sort((a, b) => a.position - b.position)
-          .reverse();
+        winnerDeck = buildStackCards(response.candidates);
         winnerId = response.result_watchlist_item_id;
       } catch {
         winnerId = null;
@@ -817,11 +922,23 @@ export function useSessionFlow() {
       setWinnerWatchlistItemId,
     });
 
-    const winnerIndex = winnerDeck.findIndex(
-      (card) => card.watchlist_item_id === winnerId,
-    );
+    const winnerIndex = findWinnerIndex(winnerDeck, winnerId);
     setSessionStatus("complete");
     setCurrentIndex(winnerIndex >= 0 ? winnerIndex : -1);
+  };
+
+  const handleSetWatchPartyUrl = async (url: string | null) => {
+    if (!activeSessionId || watchPartyMutation.isPending) return;
+    const normalized = normalizeWatchPartyUrl(url);
+    watchPartyMutation.reset();
+    try {
+      await watchPartyMutation.mutateAsync({
+        sessionId: activeSessionId,
+        url: normalized,
+      });
+    } catch {
+      // Mutation state carries the API error; avoid unhandled promise rejection.
+    }
   };
 
   return {
@@ -857,6 +974,8 @@ export function useSessionFlow() {
     sessionStatus,
     winnerWatchlistItemId,
     tieBreakRequired,
+    watchPartyUrl,
+    watchPartyError,
     showLeaderEndedCard,
     showPlaceholderDeck,
     showWaitingCard,
@@ -886,6 +1005,8 @@ export function useSessionFlow() {
     handleSwipe,
     handleProgrammaticSwipe,
     handleShuffleToDecide,
+    handleSetWatchPartyUrl,
+    watchPartyMutation,
     goHome: () => navigate("/app"),
     handleEndSession: () => {
       if (!activeSessionId) return;
