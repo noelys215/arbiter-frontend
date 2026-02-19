@@ -12,6 +12,12 @@ export type SessionTitle = {
   runtime_minutes: number | null;
   tmdb_genres?: string[];
   tmdb_genre_ids?: number[];
+  tmdb_streaming_options?: Array<{
+    provider_name: string;
+    streaming_url?: string | null;
+  }>;
+  tmdb_streaming_providers?: string[];
+  tmdb_streaming_link?: string | null;
 };
 
 export type SessionCandidate = {

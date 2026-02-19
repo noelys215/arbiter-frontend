@@ -1,4 +1,11 @@
-import { Button, Card, CardBody, CardHeader, Chip, Textarea } from "@heroui/react";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Chip,
+  Textarea,
+} from "@heroui/react";
 import type { SessionContext, VibeInputMode } from "../types";
 
 type VibeSelectionCardProps = {
@@ -43,9 +50,9 @@ export default function VibeSelectionCard({
             Curate the mood before the deal
           </h2>
           <p className="mt-1 text-sm text-[#D9C7A8]">
-            Tags are generated from TMDB genres and runtime buckets currently
-            in {selectedGroupName}&apos;s watchlist. Use tags or AI mood text
-            to build the deck.
+            Tags are generated from TMDB genres and runtime buckets currently in{" "}
+            {selectedGroupName}&apos;s watchlist. Use tags or AI mood text to
+            build the deck.
           </p>
         </div>
       </CardHeader>
@@ -105,8 +112,8 @@ export default function VibeSelectionCard({
                 No vibe tags available yet
               </p>
               <p className="mt-1 text-xs text-[#D9C7A8]">
-                Add more TMDB titles with genre/runtime metadata, or use AI
-                mood input to infer a match.
+                Add more TMDB titles with genre/runtime metadata, or use AI mood
+                input to infer a match.
               </p>
             </div>
           )
@@ -153,7 +160,7 @@ export default function VibeSelectionCard({
         ) : null}
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-xs uppercase tracking-[0.1em] text-[#D9C7A8]">
+          <div className="text-xs uppercase tracking-widest text-[#D9C7A8]">
             {selectedTags.length} selected · {availableGenreTags.length}{" "}
             available · {sessionContext.tags.length} AI inferred
           </div>

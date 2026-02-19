@@ -17,6 +17,38 @@ import {
 } from "./DeckOverlays";
 import SessionDeckCard from "./SessionDeckCard";
 
+type StreamingOption = {
+  provider_name: string;
+  streaming_url: string | null;
+};
+
+function normalizeStreamingOptions(raw: unknown): StreamingOption[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: StreamingOption[] = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object") continue;
+    const maybeName =
+      "provider_name" in entry ? (entry.provider_name as string) : "";
+    const maybeUrl =
+      "streaming_url" in entry ? (entry.streaming_url as string | null) : null;
+
+    const name = typeof maybeName === "string" ? maybeName.trim() : "";
+    if (!name) continue;
+
+    const url =
+      typeof maybeUrl === "string" && maybeUrl.trim().length > 0
+        ? maybeUrl.trim()
+        : null;
+
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ provider_name: name, streaming_url: url });
+  }
+  return out;
+}
+
 type SessionDeckSectionProps = {
   deckSectionRef: RefObject<HTMLDivElement | null>;
   sessionPhase: string;
@@ -82,6 +114,14 @@ export default function SessionDeckSection({
   isDeckComplete,
   onGoHome,
 }: SessionDeckSectionProps) {
+  const winnerCard = winnerWatchlistItemId
+    ? stackCards.find((card) => card.watchlist_item_id === winnerWatchlistItemId) ?? null
+    : null;
+  const isTmdbWinner = winnerCard?.title.source === "tmdb";
+  const winnerStreamingOptions = normalizeStreamingOptions(
+    winnerCard?.title.tmdb_streaming_options,
+  );
+
   return (
     <section ref={deckSectionRef} className="space-y-4">
       <div className="flex items-end justify-center">
@@ -230,6 +270,51 @@ export default function SessionDeckSection({
             ) : null}
           </div>
         </div>
+
+        {winnerCard && isTmdbWinner ? (
+          <Card className="w-full border border-[#E0B15C]/25 bg-[#22130F]">
+            <CardBody className="flex flex-col gap-3">
+              <p className="session-title-micro text-xs text-[#E0B15C]/65">
+                Streaming
+              </p>
+              {winnerStreamingOptions.length > 0 ? (
+                <>
+                  <p className="text-sm text-[#E8E8E8]">
+                    {winnerStreamingOptions.length === 1
+                      ? `Stream on ${winnerStreamingOptions[0].provider_name}.`
+                      : `Streaming options for ${winnerCard.title.name}.`}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {winnerStreamingOptions.map((provider) =>
+                      provider.streaming_url ? (
+                        <a
+                          key={provider.provider_name}
+                          href={provider.streaming_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-md border border-[#E0B15C]/45 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-[#E0B15C] transition-colors hover:border-[#E0B15C]/75 hover:text-[#F5D9A5]"
+                        >
+                          {provider.provider_name}
+                        </a>
+                      ) : (
+                        <span
+                          key={provider.provider_name}
+                          className="rounded-md border border-[#E0B15C]/30 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-[#E0B15C]/80"
+                        >
+                          {provider.provider_name}
+                        </span>
+                      ),
+                    )}
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-[#E8E8E8]">
+                  No streaming providers found right now.
+                </p>
+              )}
+            </CardBody>
+          </Card>
+        ) : null}
 
         {isDeckComplete && !showWaitingCard && sessionPhase === "swiping" ? (
           <Card className="w-full border border-[#E0B15C]/25 bg-[#22130F]">
