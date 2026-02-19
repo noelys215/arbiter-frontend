@@ -1,5 +1,6 @@
 import { Button, Input, Select, SelectItem } from "@heroui/react";
 import type { WatchlistSort } from "../../../features/watchlist/watchlist.api";
+import { theaterSelectClassNames } from "../../../lib/selectTheme";
 
 type GenreOption = {
   id: number;
@@ -107,14 +108,7 @@ export default function WatchlistControls({
             }
             onGenreIdChange(null);
           }}
-          classNames={{
-            trigger:
-              "border-[#E0B15C]/30 bg-[#22130F] text-[#E0B15C] data-[focus=true]:border-[#E0B15C]",
-            value: "!text-[#E0B15C] data-[placeholder=true]:text-[#E0B15C]/70",
-            listbox: "bg-[#22130F] text-[#E0B15C]",
-            popoverContent: "bg-[#22130F] border border-[#E0B15C]/20",
-            selectorIcon: "text-[#E0B15C]/70",
-          }}
+          classNames={theaterSelectClassNames}
         >
           {genreOptions.map((option) => (
             <SelectItem key={String(option.id)}>{option.label}</SelectItem>
@@ -131,14 +125,7 @@ export default function WatchlistControls({
               onSortChange(value);
             }
           }}
-          classNames={{
-            trigger:
-              "border-[#E0B15C]/30 bg-[#22130F] text-[#E0B15C] data-[focus=true]:border-[#E0B15C]",
-            value: "!text-[#E0B15C]",
-            listbox: "bg-[#22130F] text-[#E0B15C]",
-            popoverContent: "bg-[#22130F] border border-[#E0B15C]/20",
-            selectorIcon: "text-[#E0B15C]/70",
-          }}
+          classNames={theaterSelectClassNames}
         >
           <SelectItem key="recent">Recent added</SelectItem>
           <SelectItem key="oldest">Oldest to newest</SelectItem>

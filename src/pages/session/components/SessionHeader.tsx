@@ -1,5 +1,6 @@
 import { Button, Select, SelectItem } from "@heroui/react";
 import type { Group } from "../../../features/groups/groups.api";
+import { theaterSelectClassNames } from "../../../lib/selectTheme";
 
 type SessionHeaderProps = {
   groups: Group[];
@@ -60,13 +61,7 @@ export default function SessionHeader({
               }
             }}
             className="min-w-[180px]"
-            classNames={{
-              trigger:
-                "border-[#E0B15C]/25 bg-[#22130F] text-[#E0B15C] data-[focus=true]:border-[#E0B15C]",
-              value: "!text-[#E0B15C]",
-              popoverContent: "border border-[#E0B15C]/20 bg-[#22130F]",
-              selectorIcon: "text-[#E0B15C]/80",
-            }}
+            classNames={theaterSelectClassNames}
           >
             {groups.map((group) => (
               <SelectItem key={group.id}>{group.name}</SelectItem>

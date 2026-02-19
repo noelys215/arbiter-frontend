@@ -264,7 +264,7 @@ export default function HomePage() {
         ) : (
           <div className="grid grid-cols-1 gap-8 md:grid-cols-[2fr_1fr]">
             {/* Main Column */}
-            <main className="flex flex-col gap-6">
+            <main className="order-2 flex flex-col gap-6 md:order-1">
               <AddToWatchlistCard
                 selectedGroupId={resolvedSelectedGroupId}
                 search={tmdbSearch}
@@ -313,7 +313,9 @@ export default function HomePage() {
             </main>
 
             {/* Right Rail */}
-            <RightRail friends={friends} selectedGroup={selectedGroup} />
+            <div className="order-1 md:order-2">
+              <RightRail friends={friends} selectedGroup={selectedGroup} />
+            </div>
           </div>
         )}
       </div>

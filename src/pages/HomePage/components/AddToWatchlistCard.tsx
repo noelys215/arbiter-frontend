@@ -57,7 +57,7 @@ export default function AddToWatchlistCard({
       <CardHeader>
         <div>
           <h2 className="text-lg font-semibold text-white">Add to Watchlist</h2>
-          <p className="text-sm text-[#D9C7A8]">Search TMDB or add manually.</p>
+          <p className="text-sm text-[#D9C7A8]">Search or add manually.</p>
         </div>
       </CardHeader>
       <CardBody className="space-y-4">

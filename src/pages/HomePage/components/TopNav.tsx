@@ -43,7 +43,7 @@ export default function TopNav({
           Group
         </label>
         <select
-          className="min-w-[220px] rounded-md border border-[#E0B15C]/35 bg-[#1C110F] px-3 py-2 text-sm text-white"
+          className="min-w-[220px] rounded-md border border-[#E0B15C]/30 bg-[#22130F] px-3 py-2 text-sm text-[#E0B15C] focus:border-[#E0B15C] focus:ring-1 focus:ring-[#E0B15C]/50 focus:outline-none"
           value={selectedGroupId ?? ""}
           onChange={(event) => onSelectGroup(event.target.value)}
           disabled={!groups || groups.length === 0}
