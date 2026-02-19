@@ -97,10 +97,10 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
     <aside className="flex flex-col gap-6">
       {/* Group Context Card */}
       {selectedGroup ? (
-        <Card className="border border-[#D4AF37]/20 bg-[#0F0F10]">
+        <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
           <CardHeader className="pb-2">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-[#D4AF37]/70">
+              <p className="text-xs uppercase tracking-[0.2em] text-[#E0B15C]/70">
                 Current Group
               </p>
               <h3 className="text-lg font-semibold text-white">
@@ -115,7 +115,7 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                 max={3}
                 total={members.length}
                 renderCount={(count) => (
-                  <p className="text-xs text-[#A0A0A0] font-medium ms-2">
+                  <p className="text-xs text-[#D9C7A8] font-medium ms-2">
                     +{count} others
                   </p>
                 )}
@@ -127,7 +127,7 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                     name={
                       member.display_name ?? member.username ?? member.email
                     }
-                    className="bg-[#D4AF37]/20 text-[#D4AF37]"
+                    className="bg-[#E0B15C]/20 text-[#E0B15C]"
                   />
                 ))}
               </AvatarGroup>
@@ -137,10 +137,10 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
       ) : null}
 
       {/* Friends List Card */}
-      <Card className="border border-[#D4AF37]/20 bg-[#0F0F10]">
+      <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
         <CardHeader>
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-[#D4AF37]/70">
+            <p className="text-xs uppercase tracking-[0.2em] text-[#E0B15C]/70">
               Friends
             </p>
             <h3 className="text-lg font-semibold text-white">
@@ -162,14 +162,14 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                 return (
                   <li
                     key={friend.id}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-black/30 p-2"
+                    className="flex items-center justify-between gap-3 rounded-lg border border-[#E0B15C]/10 bg-[#1C110F]/70 p-2"
                   >
                     <div className="flex items-center gap-2">
                       <Avatar
                         size="sm"
                         src={friend.avatar_url ?? undefined}
                         name={label}
-                        className="bg-[#D4AF37]/20 text-[#D4AF37]"
+                        className="bg-[#E0B15C]/20 text-[#E0B15C]"
                       />
                       <span className="text-sm text-white">{label}</span>
                     </div>
@@ -177,7 +177,7 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                       <Button
                         size="sm"
                         variant="bordered"
-                        className="border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 uppercase"
+                        className="border-[#E0B15C]/40 text-[#E0B15C] hover:bg-[#E0B15C]/10 uppercase"
                         onPress={() => addMemberMutation.mutate(friend.id)}
                         isDisabled={addDisabled}
                         isLoading={pendingAddId === friend.id}
@@ -187,7 +187,7 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                       <Button
                         size="sm"
                         variant="bordered"
-                        className="border-[#7B1E2B]/40 text-[#7B1E2B] hover:bg-[#7B1E2B]/10 uppercase"
+                        className="border-[#D77B69]/40 text-[#D77B69] hover:bg-[#D77B69]/10 uppercase"
                         onPress={() =>
                           openConfirm({
                             type: "unfriend",
@@ -205,7 +205,7 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
               })}
             </ul>
           ) : (
-            <p className="text-sm text-[#A0A0A0]">
+            <p className="text-sm text-[#D9C7A8]">
               No friends yet. Add some via the account menu!
             </p>
           )}

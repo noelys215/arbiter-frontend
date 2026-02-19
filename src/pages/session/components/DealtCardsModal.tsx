@@ -33,18 +33,18 @@ export default function DealtCardsModal({
       isDismissable={false}
       hideCloseButton
       classNames={{
-        base: "border border-[#D4AF37]/25 bg-[#0B0B0B]",
-        header: "border-b border-[#D4AF37]/15",
-        footer: "border-t border-[#D4AF37]/15",
+        base: "border border-[#E0B15C]/25 bg-[#1C110F]",
+        header: "border-b border-[#E0B15C]/15",
+        footer: "border-t border-[#E0B15C]/15",
       }}
     >
       <ModalContent>
         {() => (
           <>
-            <ModalHeader className="text-[#F0DFA7]">Your Dealt Cards</ModalHeader>
+            <ModalHeader className="text-[#F5D9A5]">Your Dealt Cards</ModalHeader>
             <ModalBody>
               {cards.length === 0 ? (
-                <p className="text-sm text-[#A0A0A0]">No cards selected yet.</p>
+                <p className="text-sm text-[#D9C7A8]">No cards selected yet.</p>
               ) : (
                 <div className="space-y-2">
                   {cards.map((card) => (
@@ -62,14 +62,14 @@ export default function DealtCardsModal({
             <ModalFooter>
               <Button
                 variant="bordered"
-                className="border-[#D4AF37]/35 text-[#D4AF37]"
+                className="border-[#E0B15C]/35 text-[#E0B15C]"
                 isDisabled={isSubmitting}
                 onPress={onBack}
               >
                 Back
               </Button>
               <Button
-                className="border border-[#D4AF37]/55 bg-[#D4AF37] text-[#171717]"
+                className="border border-[#E0B15C]/55 bg-[#E0B15C] text-[#171717]"
                 isLoading={isSubmitting}
                 onPress={onContinue}
               >

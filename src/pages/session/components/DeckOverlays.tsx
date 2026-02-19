@@ -49,13 +49,13 @@ export function WaitingForOthersCard() {
       className="absolute inset-0 flex items-center justify-center"
     >
       <div className="session-deck-card-size session-waiting-card rounded-2xl p-6 text-center">
-        <p className="session-title-micro text-xs text-[#D4AF37]/70">Session Sync</p>
-        <h4 className="mt-3 text-xl text-[#F2E2AE]">Waiting for others...</h4>
+        <p className="session-title-micro text-xs text-[#E0B15C]/70">Session Sync</p>
+        <h4 className="mt-3 text-xl text-[#F5D9A5]">Waiting for others...</h4>
         <p className="mt-2 text-sm text-[#CFCFCF]">
           Your deck is in. We&apos;ll merge both users&apos; decks once everyone
           clicks Continue.
         </p>
-        <p className="mt-5 text-xs uppercase tracking-[0.12em] text-[#A0A0A0]">
+        <p className="mt-5 text-xs uppercase tracking-[0.12em] text-[#D9C7A8]">
           Waiting For All Confirmations
         </p>
       </div>
@@ -72,8 +72,8 @@ export function TieBreakCard({ isGroupLeader }: { isGroupLeader: boolean }) {
       className="absolute inset-0 z-30 flex items-center justify-center bg-black/30"
     >
       <div className="session-deck-card-size session-waiting-card rounded-2xl p-6 text-center">
-        <p className="session-title-micro text-xs text-[#D4AF37]/70">Tie-Break</p>
-        <h4 className="mt-3 text-xl text-[#F2E2AE]">No distinct winner yet</h4>
+        <p className="session-title-micro text-xs text-[#E0B15C]/70">Tie-Break</p>
+        <h4 className="mt-3 text-xl text-[#F5D9A5]">No distinct winner yet</h4>
         {isGroupLeader ? (
           <p className="mt-2 text-sm text-[#CFCFCF]">
             You&apos;re the group leader. Use shuffle to auto-pick the winner.
@@ -97,14 +97,14 @@ export function LeaderEndedCard({ onGoHome }: { onGoHome: () => void }) {
       className="absolute inset-0 z-30 flex items-center justify-center"
     >
       <div className="session-deck-card-size session-waiting-card rounded-2xl p-6 text-center">
-        <p className="session-title-micro text-xs text-[#D4AF37]/70">Session Ended</p>
-        <h4 className="mt-3 text-xl text-[#F2E2AE]">Leader has ended the session</h4>
+        <p className="session-title-micro text-xs text-[#E0B15C]/70">Session Ended</p>
+        <h4 className="mt-3 text-xl text-[#F5D9A5]">Leader has ended the session</h4>
         <p className="mt-2 text-sm text-[#CFCFCF]">
           Return to home to start or join a new session.
         </p>
         <Button
           size="sm"
-          className="mt-5 border border-[#D4AF37]/55 bg-[#D4AF37] text-[#171717]"
+          className="mt-5 border border-[#E0B15C]/55 bg-[#E0B15C] text-[#171717]"
           onPress={onGoHome}
         >
           Back to Home

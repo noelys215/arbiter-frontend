@@ -32,6 +32,12 @@ export default function LoginPage() {
     ? OAUTH_ERROR_MESSAGES[oauthErrorCode] ??
       "Social sign-in failed. Please try again."
     : null;
+  const inputClassNames = {
+    label: "text-[#D9C7A8]",
+    input: "!text-[#F7F1E3] placeholder:text-[#D9C7A8]/70",
+    inputWrapper:
+      "border-[#E0B15C]/30 bg-[#1C110F] data-[hover=true]:border-[#E0B15C]/50 data-[focus=true]:border-[#F2C16E]",
+  };
 
   const loginMutation = useMutation({
     mutationFn: login,
@@ -48,11 +54,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white text-black">
+    <div className="min-h-screen w-full bg-[#140C0A] text-[#F7F1E3]">
       <div className="mx-auto flex min-h-screen max-w-md items-center px-6 py-12">
-        <Card className="w-full border border-black/10 bg-white shadow-none">
+        <Card className="w-full border border-[#E0B15C]/25 bg-[#22130F] shadow-none">
           <CardHeader className="px-6 pt-6">
-            <h1 className="text-2xl font-semibold">Login</h1>
+            <h1 className="text-3xl font-semibold text-[#F5D9A5]">Login</h1>
           </CardHeader>
           <CardBody className="px-6 pb-6">
             <form className="space-y-4" onSubmit={handleSubmit}>
@@ -65,6 +71,7 @@ export default function LoginPage() {
                 autoComplete="email"
                 isRequired
                 variant="bordered"
+                classNames={inputClassNames}
               />
               <Input
                 type="password"
@@ -75,18 +82,19 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 isRequired
                 variant="bordered"
+                classNames={inputClassNames}
               />
               {loginMutation.isError ? (
-                <p className="text-sm text-red-600">
+                <p className="text-sm text-[#D77B69]">
                   Unable to login. Check your credentials.
                 </p>
               ) : null}
               {oauthErrorMessage ? (
-                <p className="text-sm text-red-600">{oauthErrorMessage}</p>
+                <p className="text-sm text-[#D77B69]">{oauthErrorMessage}</p>
               ) : null}
               <Button
                 type="submit"
-                className="w-full bg-black text-white"
+                className="w-full border border-[#E0B15C]/50 bg-[#E0B15C] text-[#1C110F]"
                 isLoading={loginMutation.isPending}
               >
                 Sign in
@@ -95,17 +103,17 @@ export default function LoginPage() {
               {googleLoginUrl || facebookLoginUrl ? (
                 <>
                   <div className="flex items-center gap-3 py-1">
-                    <span className="h-px flex-1 bg-black/15" />
-                    <span className="text-xs uppercase tracking-wide text-black/50">
+                    <span className="h-px flex-1 bg-[#E0B15C]/20" />
+                    <span className="text-xs uppercase tracking-wide text-[#D9C7A8]">
                       or
                     </span>
-                    <span className="h-px flex-1 bg-black/15" />
+                    <span className="h-px flex-1 bg-[#E0B15C]/20" />
                   </div>
                   {googleLoginUrl ? (
                     <Button
                       type="button"
                       variant="bordered"
-                      className="w-full"
+                      className="w-full border-[#E0B15C]/45 text-[#E0B15C] hover:bg-[#E0B15C]/10"
                       onPress={() => window.location.assign(googleLoginUrl)}
                     >
                       Continue with Google
@@ -115,7 +123,7 @@ export default function LoginPage() {
                     <Button
                       type="button"
                       variant="bordered"
-                      className="w-full"
+                      className="w-full border-[#E0B15C]/45 text-[#E0B15C] hover:bg-[#E0B15C]/10"
                       onPress={() => window.location.assign(facebookLoginUrl)}
                     >
                       Continue with Facebook
@@ -124,9 +132,9 @@ export default function LoginPage() {
                 </>
               ) : null}
             </form>
-            <p className="mt-4 text-sm text-black/70">
+            <p className="mt-4 text-sm text-[#D9C7A8]">
               Need an account?{" "}
-              <Link className="font-semibold text-black" to="/register">
+              <Link className="font-semibold text-[#F5D9A5]" to="/register">
                 Register
               </Link>
             </p>

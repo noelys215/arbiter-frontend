@@ -33,18 +33,18 @@ export default function ShortlistModal({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       classNames={{
-        base: "border border-[#D4AF37]/25 bg-[#0B0B0B]",
-        header: "border-b border-[#D4AF37]/15",
-        footer: "border-t border-[#D4AF37]/15",
+        base: "border border-[#E0B15C]/25 bg-[#1C110F]",
+        header: "border-b border-[#E0B15C]/15",
+        footer: "border-t border-[#E0B15C]/15",
       }}
     >
       <ModalContent>
         {(onClose) => (
           <>
-            <ModalHeader className="text-[#F0DFA7]">Shortlist</ModalHeader>
+            <ModalHeader className="text-[#F5D9A5]">Shortlist</ModalHeader>
             <ModalBody>
               {shortlist.length === 0 ? (
-                <p className="text-sm text-[#A0A0A0]">
+                <p className="text-sm text-[#D9C7A8]">
                   No shortlist yet. Swipe yes/maybe or finish the deck.
                 </p>
               ) : (
@@ -68,8 +68,8 @@ export default function ShortlistModal({
                               size="sm"
                               variant="flat"
                               classNames={{
-                                base: "bg-[#D4AF37]/20",
-                                content: "text-[#F4DE9E]",
+                                base: "bg-[#E0B15C]/20",
+                                content: "text-[#F5D9A5]",
                               }}
                             >
                               Winner
@@ -79,8 +79,8 @@ export default function ShortlistModal({
                               size="sm"
                               variant="bordered"
                               classNames={{
-                                base: "border-[#D4AF37]/40",
-                                content: "text-[#D4AF37]",
+                                base: "border-[#E0B15C]/40",
+                                content: "text-[#E0B15C]",
                               }}
                             >
                               {getReadableVote(vote)}
@@ -96,7 +96,7 @@ export default function ShortlistModal({
             <ModalFooter>
               <Button
                 variant="bordered"
-                className="border-[#D4AF37]/35 text-[#D4AF37]"
+                className="border-[#E0B15C]/35 text-[#E0B15C]"
                 onPress={onClose}
               >
                 Close

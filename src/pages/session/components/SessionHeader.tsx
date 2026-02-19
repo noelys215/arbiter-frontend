@@ -27,12 +27,12 @@ export default function SessionHeader({
   onGoHome,
 }: SessionHeaderProps) {
   return (
-    <header className="sticky top-0 z-40 border-b border-[#D4AF37]/20 bg-[#070707]/90 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 border-b border-[#E0B15C]/20 bg-[#140C0A]/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <button
           type="button"
           aria-label="Go to home"
-          className="flex items-center gap-3 rounded-lg p-1 text-left transition hover:bg-[#D4AF37]/10"
+          className="flex items-center gap-3 rounded-lg p-1 text-left transition hover:bg-[#E0B15C]/10"
           onClick={onGoHome}
         >
           <img
@@ -41,10 +41,10 @@ export default function SessionHeader({
             className="h-10 w-10 object-contain"
           />
           <div>
-            <p className="session-title-micro text-xs text-[#D4AF37]/80">
+            <p className="session-title-micro text-xs text-[#E0B15C]/80">
               Tonight Session
             </p>
-            <h1 className="text-lg text-[#D4AF37]">Arbiter</h1>
+            <h1 className="text-lg text-[#E0B15C]">Arbiter</h1>
           </div>
         </button>
 
@@ -62,10 +62,10 @@ export default function SessionHeader({
             className="min-w-[180px]"
             classNames={{
               trigger:
-                "border-[#D4AF37]/25 bg-[#0F0F10] text-[#D4AF37] data-[focus=true]:border-[#D4AF37]",
-              value: "!text-[#D4AF37]",
-              popoverContent: "border border-[#D4AF37]/20 bg-[#0F0F10]",
-              selectorIcon: "text-[#D4AF37]/80",
+                "border-[#E0B15C]/25 bg-[#22130F] text-[#E0B15C] data-[focus=true]:border-[#E0B15C]",
+              value: "!text-[#E0B15C]",
+              popoverContent: "border border-[#E0B15C]/20 bg-[#22130F]",
+              selectorIcon: "text-[#E0B15C]/80",
             }}
           >
             {groups.map((group) => (
@@ -73,7 +73,7 @@ export default function SessionHeader({
             ))}
           </Select>
 
-          <div className="hidden text-right text-xs text-[#A0A0A0] sm:block">
+          <div className="hidden text-right text-xs text-[#D9C7A8] sm:block">
             <p className="text-white">{userName}</p>
             <p>{userEmail}</p>
           </div>
@@ -82,7 +82,7 @@ export default function SessionHeader({
             <Button
               size="sm"
               variant="bordered"
-              className="border-[#7B1E2B]/45 px-8 text-[#E0919B]"
+              className="border-[#D77B69]/45 px-8 text-[#F1A799]"
               isLoading={isEndingSession}
               onPress={onEndSession}
             >

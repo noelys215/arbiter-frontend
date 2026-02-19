@@ -103,12 +103,12 @@ export default function WatchlistCard({
   };
 
   return (
-    <Card className="border border-[#D4AF37]/20 bg-[#0F0F10]">
+    <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
       <CardHeader>
         <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <h2 className="text-lg font-semibold text-white">Watchlist</h2>
-            <p className="text-sm text-[#A0A0A0]">
+            <p className="text-sm text-[#D9C7A8]">
               {selectedGroupName ?? "Select a group"} watchlist.
             </p>
           </div>
@@ -116,7 +116,7 @@ export default function WatchlistCard({
           <Button
             size="sm"
             variant="bordered"
-            className="uppercase border-[#D4AF37]/60 text-[#0B0B0B] bg-[#D4AF37] hover:bg-[#D4AF37]/90"
+            className="uppercase border-[#E0B15C]/60 text-[#1C110F] bg-[#E0B15C] hover:bg-[#E0B15C]/90"
             isDisabled={!selectedGroupId || totalCount < 2}
             onPress={() => {
               if (!selectedGroupId) return;

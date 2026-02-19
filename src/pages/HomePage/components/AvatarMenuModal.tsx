@@ -40,10 +40,10 @@ type AvatarMenuModalProps = {
 };
 
 const inputClassNames: InputClassNames = {
-  label: "text-[#D4AF37]/80",
+  label: "text-[#E0B15C]/80",
   input: "text-white placeholder:text-white/40",
   inputWrapper:
-    "border-[#D4AF37]/20 bg-[#0F0F10] focus-within:border-[#D4AF37]",
+    "border-[#E0B15C]/20 bg-[#22130F] focus-within:border-[#E0B15C]",
 };
 
 export default function AvatarMenuModal({
@@ -189,10 +189,10 @@ export default function AvatarMenuModal({
         size="2xl"
         scrollBehavior="inside"
         classNames={{
-          base: "bg-[#0B0B0B] border border-[#D4AF37]/20",
-          header: "border-b border-[#D4AF37]/10",
+          base: "bg-[#1C110F] border border-[#E0B15C]/20",
+          header: "border-b border-[#E0B15C]/10",
           body: "py-6",
-          footer: "border-t border-[#D4AF37]/10",
+          footer: "border-t border-[#E0B15C]/10",
         }}
       >
         <ModalContent>
@@ -205,36 +205,36 @@ export default function AvatarMenuModal({
                   isBordered
                   src={me?.avatar_url ?? undefined}
                   name={me?.display_name ?? me?.username ?? "User"}
-                  className="bg-[#D4AF37] text-black"
+                  className="bg-[#E0B15C] text-[#1C110F]"
                 />
                 <div>
                   <h2 className="text-lg font-semibold text-white">Account</h2>
-                  <p className="text-sm text-[#A0A0A0]">
+                  <p className="text-sm text-[#D9C7A8]">
                     Manage your profile, invites, and groups
                   </p>
                 </div>
               </ModalHeader>
               <ModalBody className="space-y-6">
                 {/* User Summary */}
-                <section className="rounded-xl border border-white/10 bg-[#0F0F10] p-4">
-                  <h3 className="mb-3 text-xs uppercase tracking-[0.2em] text-[#D4AF37]">
+                <section className="rounded-xl border border-[#E0B15C]/15 bg-[#22130F] p-4">
+                  <h3 className="mb-3 text-xs uppercase tracking-[0.2em] text-[#E0B15C]">
                     User Info
                   </h3>
                   <div className="grid gap-3 text-sm text-white/90 sm:grid-cols-3">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.15em] text-[#A0A0A0]">
+                      <p className="text-xs uppercase tracking-[0.15em] text-[#D9C7A8]">
                         Name
                       </p>
                       <p>{me?.display_name ?? "-"}</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-[0.15em] text-[#A0A0A0]">
+                      <p className="text-xs uppercase tracking-[0.15em] text-[#D9C7A8]">
                         Username
                       </p>
                       <p>{me?.username ?? "-"}</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-[0.15em] text-[#A0A0A0]">
+                      <p className="text-xs uppercase tracking-[0.15em] text-[#D9C7A8]">
                         Email
                       </p>
                       <p>{me?.email ?? "-"}</p>
@@ -242,17 +242,17 @@ export default function AvatarMenuModal({
                   </div>
                 </section>
 
-                <Divider className="bg-[#D4AF37]/10" />
+                <Divider className="bg-[#E0B15C]/10" />
 
                 {/* Friend Invites */}
-                <section className="rounded-xl border border-white/10 bg-[#0F0F10] p-4">
-                  <h3 className="mb-3 text-xs uppercase tracking-[0.2em] text-[#D4AF37]">
+                <section className="rounded-xl border border-[#E0B15C]/15 bg-[#22130F] p-4">
+                  <h3 className="mb-3 text-xs uppercase tracking-[0.2em] text-[#E0B15C]">
                     Friend Invites
                   </h3>
                   <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-3">
                       <Button
-                        className="border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                        className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10"
                         variant="bordered"
                         onPress={() => createFriendInviteMutation.mutate()}
                         isLoading={createFriendInviteMutation.isPending}
@@ -264,8 +264,8 @@ export default function AvatarMenuModal({
                           <Chip
                             variant="bordered"
                             classNames={{
-                              base: "border-[#D4AF37]/50",
-                              content: "text-[#D4AF37]",
+                              base: "border-[#E0B15C]/50",
+                              content: "text-[#E0B15C]",
                             }}
                           >
                             {createdFriendCode}
@@ -273,7 +273,7 @@ export default function AvatarMenuModal({
                           <Button
                             size="sm"
                             variant="bordered"
-                            className="border-[#D4AF37]/30 text-[#D4AF37]"
+                            className="border-[#E0B15C]/30 text-[#E0B15C]"
                             onPress={() => handleCopy(createdFriendCode)}
                           >
                             {copiedCode === createdFriendCode
@@ -294,7 +294,7 @@ export default function AvatarMenuModal({
                         className="max-w-xs"
                       />
                       <Button
-                        className="border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                        className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10"
                         variant="bordered"
                         onPress={() => acceptFriendInviteMutation.mutate()}
                         isDisabled={!friendInviteCode.trim()}
@@ -306,17 +306,17 @@ export default function AvatarMenuModal({
                   </div>
                 </section>
 
-                <Divider className="bg-[#D4AF37]/10" />
+                <Divider className="bg-[#E0B15C]/10" />
 
                 {/* Group Invites */}
-                <section className="rounded-xl border border-white/10 bg-[#0F0F10] p-4">
-                  <h3 className="mb-3 text-xs uppercase tracking-[0.2em] text-[#D4AF37]">
+                <section className="rounded-xl border border-[#E0B15C]/15 bg-[#22130F] p-4">
+                  <h3 className="mb-3 text-xs uppercase tracking-[0.2em] text-[#E0B15C]">
                     Group Invites
                   </h3>
                   <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-3">
                       <Button
-                        className="border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                        className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10"
                         variant="bordered"
                         onPress={() => createGroupInviteMutation.mutate()}
                         isDisabled={!selectedGroup}
@@ -331,8 +331,8 @@ export default function AvatarMenuModal({
                             size="lg"
                             variant="flat"
                             classNames={{
-                              base: "border-[#D4AF37]/50",
-                              content: "text-[#D4AF37]",
+                              base: "border-[#E0B15C]/50",
+                              content: "text-[#E0B15C]",
                             }}
                           >
                             {createdGroupCode}
@@ -340,7 +340,7 @@ export default function AvatarMenuModal({
                           <Button
                             size="sm"
                             variant="bordered"
-                            className="border-[#D4AF37]/30 text-[#D4AF37]"
+                            className="border-[#E0B15C]/30 text-[#E0B15C]"
                             onPress={() => handleCopy(createdGroupCode)}
                           >
                             {copiedCode === createdGroupCode
@@ -361,7 +361,7 @@ export default function AvatarMenuModal({
                         className="max-w-xs"
                       />
                       <Button
-                        className="border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                        className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10"
                         variant="bordered"
                         onPress={() => acceptGroupInviteMutation.mutate()}
                         isDisabled={!groupInviteCode.trim()}
@@ -373,11 +373,11 @@ export default function AvatarMenuModal({
                   </div>
                 </section>
 
-                <Divider className="bg-[#D4AF37]/10" />
+                <Divider className="bg-[#E0B15C]/10" />
 
                 {/* Create Group */}
-                <section className="rounded-xl border border-white/10 bg-[#0F0F10] p-4">
-                  <h3 className="mb-3 text-xs uppercase tracking-[0.2em] text-[#D4AF37]">
+                <section className="rounded-xl border border-[#E0B15C]/15 bg-[#22130F] p-4">
+                  <h3 className="mb-3 text-xs uppercase tracking-[0.2em] text-[#E0B15C]">
                     Create New Group
                   </h3>
                   <div className="flex flex-wrap items-end gap-3">
@@ -391,7 +391,7 @@ export default function AvatarMenuModal({
                       className="max-w-xs"
                     />
                     <Button
-                      className="border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                      className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10"
                       variant="bordered"
                       onPress={() => createGroupMutation.mutate()}
                       isDisabled={!groupName.trim()}
@@ -405,15 +405,15 @@ export default function AvatarMenuModal({
                 {/* Group Actions (only if group selected) */}
                 {selectedGroup ? (
                   <>
-                    <Divider className="bg-[#D4AF37]/10" />
-                    <section className="rounded-xl border border-[#7B1E2B]/30 bg-[#0F0F10] p-4">
-                      <h3 className="mb-3 text-xs uppercase tracking-[0.2em] text-[#7B1E2B]">
+                    <Divider className="bg-[#E0B15C]/10" />
+                    <section className="rounded-xl border border-[#D77B69]/30 bg-[#22130F] p-4">
+                      <h3 className="mb-3 text-xs uppercase tracking-[0.2em] text-[#D77B69]">
                         Group Actions — {selectedGroup.name}
                       </h3>
                       <div className="flex flex-wrap gap-3">
                         {isOwner ? (
                           <Button
-                            className="border-[#7B1E2B]/50 text-[#7B1E2B] hover:bg-[#7B1E2B]/10"
+                            className="border-[#D77B69]/50 text-[#D77B69] hover:bg-[#D77B69]/10"
                             variant="bordered"
                             onPress={() =>
                               openConfirm({
@@ -428,7 +428,7 @@ export default function AvatarMenuModal({
                           </Button>
                         ) : (
                           <Button
-                            className="border-[#7B1E2B]/50 text-[#7B1E2B] hover:bg-[#7B1E2B]/10"
+                            className="border-[#D77B69]/50 text-[#D77B69] hover:bg-[#D77B69]/10"
                             variant="bordered"
                             onPress={() =>
                               openConfirm({
@@ -450,13 +450,13 @@ export default function AvatarMenuModal({
               <ModalFooter className="justify-between">
                 <Button
                   variant="light"
-                  className="text-[#A0A0A0] hover:text-white"
+                  className="text-[#D9C7A8] hover:text-white"
                   onPress={onClose}
                 >
                   Close
                 </Button>
                 <Button
-                  className="border-[#7B1E2B]/50 text-[#7B1E2B] hover:bg-[#7B1E2B]/10"
+                  className="border-[#D77B69]/50 text-[#D77B69] hover:bg-[#D77B69]/10"
                   variant="bordered"
                   onPress={() => logoutMutation.mutate()}
                   isLoading={logoutMutation.isPending}

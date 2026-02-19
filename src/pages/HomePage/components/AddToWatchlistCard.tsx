@@ -53,11 +53,11 @@ export default function AddToWatchlistCard({
   });
 
   return (
-    <Card className="border border-[#D4AF37]/20 bg-[#0F0F10]">
+    <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
       <CardHeader>
         <div>
           <h2 className="text-lg font-semibold text-white">Add to Watchlist</h2>
-          <p className="text-sm text-[#A0A0A0]">Search TMDB or add manually.</p>
+          <p className="text-sm text-[#D9C7A8]">Search TMDB or add manually.</p>
         </div>
       </CardHeader>
       <CardBody className="space-y-4">
@@ -71,16 +71,16 @@ export default function AddToWatchlistCard({
             classNames={inputClassNames}
           />
           {isSearching ? (
-            <div className="flex items-center gap-2 text-sm text-[#A0A0A0]">
+            <div className="flex items-center gap-2 text-sm text-[#D9C7A8]">
               <Spinner size="sm" color="warning" /> Searching...
             </div>
           ) : null}
           {tmdbResults.length > 0 ? (
-            <div className="space-y-2 rounded-2xl border border-[#D4AF37]/10 bg-black/40 p-2">
+            <div className="space-y-2 rounded-2xl border border-[#E0B15C]/10 bg-black/40 p-2">
               {tmdbResults.map((item) => (
                 <button
                   key={`${item.tmdb_id}-${item.media_type}`}
-                  className="flex w-full items-center gap-3 rounded-xl border border-transparent p-2 text-left transition hover:border-[#D4AF37]/30 hover:bg-[#D4AF37]/5"
+                  className="flex w-full items-center gap-3 rounded-xl border border-transparent p-2 text-left transition hover:border-[#E0B15C]/30 hover:bg-[#E0B15C]/5"
                   onClick={() => {
                     if (!selectedGroupId) return;
                     addTmdbMutation.mutate(item);
@@ -91,12 +91,12 @@ export default function AddToWatchlistCard({
                     <p className="text-sm font-semibold text-white">
                       {item.title}
                     </p>
-                    <p className="text-xs text-[#A0A0A0]">
+                    <p className="text-xs text-[#D9C7A8]">
                       {item.media_type.toUpperCase()}{" "}
                       {item.year ? `• ${item.year}` : ""}
                     </p>
                   </div>
-                  <span className="text-xs text-[#D4AF37]">Add</span>
+                  <span className="text-xs text-[#E0B15C]">Add</span>
                 </button>
               ))}
             </div>
@@ -105,14 +105,14 @@ export default function AddToWatchlistCard({
         <div className="flex flex-wrap items-center gap-3">
           <Button
             variant="bordered"
-            className="border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/10 uppercase"
+            className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10 uppercase"
             onPress={onOpenManual}
             isDisabled={isManualDisabled}
           >
             Add manually
           </Button>
           {addTmdbMutation.isError ? (
-            <p className="text-sm text-[#7B1E2B]">
+            <p className="text-sm text-[#D77B69]">
               Unable to add to watchlist.
             </p>
           ) : null}

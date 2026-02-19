@@ -92,11 +92,11 @@ export default function FriendInvitesCard({
   };
 
   return (
-    <Card className="border border-white/10 bg-black">
+    <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
       <CardHeader>
         <div>
           <h2 className="text-lg font-semibold">Friend Invites</h2>
-          <p className="text-sm text-white/70">
+          <p className="text-sm text-[#D9C7A8]">
             Share codes to connect with friends.
           </p>
         </div>
@@ -104,7 +104,7 @@ export default function FriendInvitesCard({
       <CardBody className="space-y-4">
         <div className="flex flex-wrap items-center gap-3">
           <Button
-            className="bg-white text-black"
+            className="bg-[#E0B15C] text-[#1C110F]"
             onPress={() => createInviteMutation.mutate()}
             isLoading={createInviteMutation.isPending}
           >
@@ -133,7 +133,7 @@ export default function FriendInvitesCard({
             classNames={inputClassNames}
           />
           <Button
-            className="bg-white text-black"
+            className="bg-[#E0B15C] text-[#1C110F]"
             onPress={() => acceptInviteMutation.mutate()}
             isDisabled={!friendInviteCode.trim()}
             isLoading={acceptInviteMutation.isPending}
@@ -142,8 +142,8 @@ export default function FriendInvitesCard({
           </Button>
         </div>
         {friends && friends.length > 0 ? (
-          <div className="space-y-2 text-sm text-white/80">
-            <p className="text-xs uppercase tracking-[0.2em] text-white/70">
+          <div className="space-y-2 text-sm text-[#F7F1E3]">
+            <p className="text-xs uppercase tracking-[0.2em] text-[#D9C7A8]">
               Friends
             </p>
             <ul className="space-y-1">

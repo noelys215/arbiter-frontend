@@ -61,10 +61,10 @@ export default function GroupActionsCard({
   const isConfirmPending = leaveMutation.isPending || deleteMutation.isPending;
 
   return (
-    <Card className="border border-white/10 bg-black">
+    <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
       <CardHeader className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/70">
+          <p className="text-xs uppercase tracking-[0.3em] text-[#D9C7A8]">
             Group actions
           </p>
           <h2 className="text-lg font-semibold">{selectedGroup.name}</h2>
@@ -72,7 +72,7 @@ export default function GroupActionsCard({
         <div className="flex flex-wrap gap-3">
           {isOwner ? (
             <Button
-              className="bg-white text-black"
+              className="bg-[#E0B15C] text-[#1C110F]"
               onPress={() =>
                 openConfirm({
                   type: "delete",
@@ -86,7 +86,7 @@ export default function GroupActionsCard({
             </Button>
           ) : (
             <Button
-              className="bg-white text-black"
+              className="bg-[#E0B15C] text-[#1C110F]"
               onPress={() =>
                 openConfirm({
                   type: "leave",
@@ -101,8 +101,8 @@ export default function GroupActionsCard({
           )}
         </div>
       </CardHeader>
-      <Divider className="bg-white/10" />
-      <CardBody className="text-sm text-white/70">
+      <Divider className="bg-[#E0B15C]/15" />
+      <CardBody className="text-sm text-[#D9C7A8]">
         {isOwner
           ? "Owners can delete their group."
           : "Leaving will remove you from this group."}

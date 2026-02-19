@@ -38,7 +38,7 @@ export default function WatchlistControls({
   onClearFilters,
 }: WatchlistControlsProps) {
   return (
-    <div className="space-y-3 rounded-xl border border-[#D4AF37]/15 bg-black/20 p-3">
+    <div className="space-y-3 rounded-xl border border-[#E0B15C]/15 bg-[#1C110F]/70 p-3">
       <Input
         aria-label="Search watchlist"
         placeholder="Search watchlist..."
@@ -47,9 +47,9 @@ export default function WatchlistControls({
         onValueChange={onQChange}
         classNames={{
           input:
-            "!text-[#F5F5F5] placeholder:text-white/35 caret-[#D4AF37]",
+            "!text-[#F5F5F5] placeholder:text-white/35 caret-[#E0B15C]",
           inputWrapper:
-            "!bg-[#090909] !text-[#F5F5F5] border-[#D4AF37]/20 data-[hover=true]:border-[#D4AF37]/45 data-[focus=true]:!bg-[#090909] data-[focus=true]:border-[#D4AF37]/55",
+            "!bg-[#1A100E] !text-[#F5F5F5] border-[#E0B15C]/20 data-[hover=true]:border-[#E0B15C]/45 data-[focus=true]:!bg-[#1A100E] data-[focus=true]:border-[#E0B15C]/55",
         }}
       />
 
@@ -59,8 +59,8 @@ export default function WatchlistControls({
           variant={mediaType === "all" ? "solid" : "bordered"}
           className={
             mediaType === "all"
-              ? "bg-[#D4AF37] text-[#161616]"
-              : "border-[#D4AF37]/35 text-[#D4AF37]"
+              ? "bg-[#E0B15C] text-[#161616]"
+              : "border-[#E0B15C]/35 text-[#E0B15C]"
           }
           onPress={() => onMediaTypeChange("all")}
         >
@@ -71,8 +71,8 @@ export default function WatchlistControls({
           variant={mediaType === "movie" ? "solid" : "bordered"}
           className={
             mediaType === "movie"
-              ? "bg-[#D4AF37] text-[#161616]"
-              : "border-[#D4AF37]/35 text-[#D4AF37]"
+              ? "bg-[#E0B15C] text-[#161616]"
+              : "border-[#E0B15C]/35 text-[#E0B15C]"
           }
           onPress={() => onMediaTypeChange("movie")}
         >
@@ -83,8 +83,8 @@ export default function WatchlistControls({
           variant={mediaType === "tv" ? "solid" : "bordered"}
           className={
             mediaType === "tv"
-              ? "bg-[#D4AF37] text-[#161616]"
-              : "border-[#D4AF37]/35 text-[#D4AF37]"
+              ? "bg-[#E0B15C] text-[#161616]"
+              : "border-[#E0B15C]/35 text-[#E0B15C]"
           }
           onPress={() => onMediaTypeChange("tv")}
         >
@@ -109,11 +109,11 @@ export default function WatchlistControls({
           }}
           classNames={{
             trigger:
-              "border-[#D4AF37]/30 bg-[#0F0F10] text-[#D4AF37] data-[focus=true]:border-[#D4AF37]",
-            value: "!text-[#D4AF37] data-[placeholder=true]:text-[#D4AF37]/70",
-            listbox: "bg-[#0F0F10] text-[#D4AF37]",
-            popoverContent: "bg-[#0F0F10] border border-[#D4AF37]/20",
-            selectorIcon: "text-[#D4AF37]/70",
+              "border-[#E0B15C]/30 bg-[#22130F] text-[#E0B15C] data-[focus=true]:border-[#E0B15C]",
+            value: "!text-[#E0B15C] data-[placeholder=true]:text-[#E0B15C]/70",
+            listbox: "bg-[#22130F] text-[#E0B15C]",
+            popoverContent: "bg-[#22130F] border border-[#E0B15C]/20",
+            selectorIcon: "text-[#E0B15C]/70",
           }}
         >
           {genreOptions.map((option) => (
@@ -133,11 +133,11 @@ export default function WatchlistControls({
           }}
           classNames={{
             trigger:
-              "border-[#D4AF37]/30 bg-[#0F0F10] text-[#D4AF37] data-[focus=true]:border-[#D4AF37]",
-            value: "!text-[#D4AF37]",
-            listbox: "bg-[#0F0F10] text-[#D4AF37]",
-            popoverContent: "bg-[#0F0F10] border border-[#D4AF37]/20",
-            selectorIcon: "text-[#D4AF37]/70",
+              "border-[#E0B15C]/30 bg-[#22130F] text-[#E0B15C] data-[focus=true]:border-[#E0B15C]",
+            value: "!text-[#E0B15C]",
+            listbox: "bg-[#22130F] text-[#E0B15C]",
+            popoverContent: "bg-[#22130F] border border-[#E0B15C]/20",
+            selectorIcon: "text-[#E0B15C]/70",
           }}
         >
           <SelectItem key="recent">Recent added</SelectItem>
@@ -146,14 +146,14 @@ export default function WatchlistControls({
       </div>
 
       <div className="flex items-center justify-between gap-2 text-xs">
-        <span className="uppercase tracking-[0.08em] text-[#A0A0A0]">
+        <span className="uppercase tracking-[0.08em] text-[#D9C7A8]">
           Showing {showingCount} of {totalCount}
         </span>
         {hasActiveFilters ? (
           <Button
             size="sm"
             variant="light"
-            className="text-[#D4AF37]"
+            className="text-[#E0B15C]"
             onPress={onClearFilters}
           >
             Clear filters

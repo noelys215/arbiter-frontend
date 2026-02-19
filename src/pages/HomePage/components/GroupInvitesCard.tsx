@@ -48,11 +48,11 @@ export default function GroupInvitesCard({
   };
 
   return (
-    <Card className="border border-white/10 bg-black">
+    <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
       <CardHeader>
         <div>
           <h2 className="text-lg font-semibold">Group Invites</h2>
-          <p className="text-sm text-white/70">
+          <p className="text-sm text-[#D9C7A8]">
             Share or join groups with a code.
           </p>
         </div>
@@ -60,7 +60,7 @@ export default function GroupInvitesCard({
       <CardBody className="space-y-4">
         <div className="flex flex-wrap items-center gap-3">
           <Button
-            className="bg-white text-black"
+            className="bg-[#E0B15C] text-[#1C110F]"
             onPress={() => createInviteMutation.mutate()}
             isDisabled={!selectedGroupId}
             isLoading={createInviteMutation.isPending}
@@ -90,7 +90,7 @@ export default function GroupInvitesCard({
             classNames={inputClassNames}
           />
           <Button
-            className="bg-white text-black"
+            className="bg-[#E0B15C] text-[#1C110F]"
             onPress={() => acceptInviteMutation.mutate()}
             isDisabled={!groupInviteCode.trim()}
             isLoading={acceptInviteMutation.isPending}

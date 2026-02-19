@@ -58,13 +58,13 @@ export default function SessionDeckCard({
             <span />
             <span />
           </div>
-          <p className="session-title-micro text-sm text-[#F2E2AE]">{card.title.name}</p>
-          <p className="session-title-micro text-[10px] text-[#D4AF37]/80">
+          <p className="session-title-micro text-sm text-[#F5D9A5]">{card.title.name}</p>
+          <p className="session-title-micro text-[10px] text-[#E0B15C]/80">
             {card.title.release_year ?? "Unknown year"}
           </p>
           <p className="session-micro-kicker truncate">{whyLine}</p>
           {voteLabel ? (
-            <p className="session-title-micro text-[10px] text-[#D4AF37]">
+            <p className="session-title-micro text-[10px] text-[#E0B15C]">
               VOTED {voteLabel}
             </p>
           ) : null}

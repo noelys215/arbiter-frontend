@@ -33,11 +33,11 @@ export default function NoGroupsCard({ inputClassNames }: NoGroupsCardProps) {
   });
 
   return (
-    <Card className="border border-[#D4AF37]/20 bg-[#0F0F10]">
+    <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
       <CardHeader>
         <div>
           <h2 className="text-lg font-semibold text-white">No groups yet</h2>
-          <p className="text-sm text-[#A0A0A0]">
+          <p className="text-sm text-[#D9C7A8]">
             Create a group or join with an invite code.
           </p>
         </div>
@@ -53,7 +53,7 @@ export default function NoGroupsCard({ inputClassNames }: NoGroupsCardProps) {
             classNames={inputClassNames}
           />
           <Button
-            className="border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/10"
+            className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10"
             variant="bordered"
             onPress={() => createGroupMutation.mutate()}
             isDisabled={!groupName.trim()}
@@ -72,7 +72,7 @@ export default function NoGroupsCard({ inputClassNames }: NoGroupsCardProps) {
             classNames={inputClassNames}
           />
           <Button
-            className="border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/10"
+            className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10"
             variant="bordered"
             onPress={() => acceptInviteMutation.mutate()}
             isDisabled={!groupInviteCode.trim()}

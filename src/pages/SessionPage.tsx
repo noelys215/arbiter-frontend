@@ -87,7 +87,7 @@ export default function SessionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070707] text-white">
+    <div className="min-h-screen bg-[#140C0A] text-white">
       <SessionHeader
         groups={groups}
         resolvedGroupId={resolvedGroupId}

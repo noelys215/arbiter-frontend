@@ -42,10 +42,10 @@ export default function HomePage() {
   const avatarModal = useDisclosure();
 
   const inputClassNames: InputClassNames = {
-    label: "text-[#D4AF37]/80",
+    label: "text-[#E0B15C]/80",
     input: "text-white placeholder:text-white/40",
     inputWrapper:
-      "border-[#D4AF37]/20 bg-[#0F0F10] focus-within:border-[#D4AF37]",
+      "border-[#E0B15C]/20 bg-[#22130F] focus-within:border-[#E0B15C]",
   };
 
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: getMe });
@@ -129,7 +129,7 @@ export default function HomePage() {
       );
     }
     return (
-      <div className="flex h-16 w-12 items-center justify-center rounded-md border border-[#D4AF37]/20 bg-[#0F0F10] text-xs text-[#A0A0A0]">
+      <div className="flex h-16 w-12 items-center justify-center rounded-md border border-[#E0B15C]/20 bg-[#22130F] text-xs text-[#D9C7A8]">
         N/A
       </div>
     );
@@ -238,7 +238,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070707] text-white">
+    <div className="min-h-screen bg-[#140C0A] text-white">
       {/* Sticky Top Bar */}
       <TopBar
         groups={groups}
@@ -251,12 +251,12 @@ export default function HomePage() {
       {/* Main Content Area */}
       <div className="mx-auto max-w-7xl px-6 py-8">
         {groupsLoading ? (
-          <div className="flex items-center gap-3 text-[#A0A0A0]">
-            <span className="inline-flex h-4 w-4 animate-pulse rounded-full bg-[#D4AF37]/40" />
+          <div className="flex items-center gap-3 text-[#D9C7A8]">
+            <span className="inline-flex h-4 w-4 animate-pulse rounded-full bg-[#E0B15C]/40" />
             Loading groups...
           </div>
         ) : groupsError ? (
-          <p className="text-sm text-[#7B1E2B]">
+          <p className="text-sm text-[#D77B69]">
             Unable to load groups. Please refresh.
           </p>
         ) : groups && groups.length === 0 ? (

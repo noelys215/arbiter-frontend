@@ -28,10 +28,10 @@ export default function ConfirmActionModal({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       classNames={{
-        base: "bg-[#0B0B0B] border border-[#7B1E2B]/30",
-        header: "border-b border-[#7B1E2B]/20",
+        base: "bg-[#1C110F] border border-[#D77B69]/30",
+        header: "border-b border-[#D77B69]/20",
         body: "py-6",
-        footer: "border-t border-[#7B1E2B]/20",
+        footer: "border-t border-[#D77B69]/20",
       }}
     >
       <ModalContent>
@@ -46,18 +46,18 @@ export default function ConfirmActionModal({
                     ? "You will be removed from this group."
                     : "This will remove the friendship."}
               </p>
-              <p className="text-sm text-[#A0A0A0]">{confirmAction?.label}</p>
+              <p className="text-sm text-[#D9C7A8]">{confirmAction?.label}</p>
             </ModalBody>
             <ModalFooter>
               <Button
                 variant="bordered"
-                className="border-[#A0A0A0]/30 text-[#A0A0A0]"
+                className="border-[#D9C7A8]/30 text-[#D9C7A8]"
                 onPress={onClose}
               >
                 Cancel
               </Button>
               <Button
-                className="border-[#7B1E2B]/50 text-[#7B1E2B] hover:bg-[#7B1E2B]/10"
+                className="border-[#D77B69]/50 text-[#D77B69] hover:bg-[#D77B69]/10"
                 variant="bordered"
                 onPress={onConfirm}
                 isLoading={isLoading}

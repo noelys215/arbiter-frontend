@@ -22,8 +22,17 @@
 
 :root {
   font-family: "Space Grotesk", system-ui, sans-serif;
-  color: #ffffff !;
-  background-color: #000000;
+  --theater-bg: #140c0a;
+  --theater-surface: #22130f;
+  --theater-surface-elevated: #2b1713;
+  --theater-accent: #e0b15c;
+  --theater-accent-soft: #f5d9a5;
+  --theater-text: #f7f1e3;
+  --theater-text-muted: #d9c7a8;
+  --theater-danger: #d77b69;
+  --theater-focus: #f2c16e;
+  color: var(--theater-text);
+  background-color: var(--theater-bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -36,7 +45,10 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #000000;
+  background:
+    radial-gradient(circle at top, rgb(76 18 11 / 0.32), transparent 48%),
+    linear-gradient(170deg, #160c0a 0%, #120908 48%, #140c0a 100%);
+  color: var(--theater-text);
 }
 
 h1 {
@@ -56,4 +68,24 @@ pre {
 
 #root {
   min-height: 100vh;
+}
+
+::selection {
+  background: rgb(224 177 92 / 0.35);
+  color: var(--theater-text);
+}
+
+:where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    [role="button"],
+    [tabindex]:not([tabindex="-1"])
+  ):focus-visible {
+  outline: 3px solid var(--theater-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px rgb(20 12 10 / 0.9);
+  border-radius: 0.5rem;
 }

@@ -19,7 +19,7 @@ export default function TopBar({
 }: TopBarProps) {
   console.log(groups);
   return (
-    <nav className="sticky top-0 z-50 flex flex-wrap items-center justify-between border-b border-[#D4AF37]/20 bg-[#070707]/95 px-6 py-3 backdrop-blur-sm">
+    <nav className="sticky top-0 z-50 flex flex-wrap items-center justify-between border-b border-[#E0B15C]/20 bg-[#140C0A]/95 px-6 py-3 backdrop-blur-sm">
       {/* Left: Logo */}
       <div className="flex items-center">
         <img
@@ -27,7 +27,7 @@ export default function TopBar({
           alt="Arbiter"
           className="h-34 w-34 rounded-sm object-contain"
         />
-        <h1 className="text-6xl font-semibold text-[#D4AF37]">Arbiter</h1>
+        <h1 className="text-6xl font-semibold text-[#E0B15C]">Arbiter</h1>
       </div>
 
       {/* Center: Group Dropdown */}
@@ -38,7 +38,7 @@ export default function TopBar({
           selectedKeys={selectedGroupId ? [selectedGroupId] : []}
           renderValue={(items) =>
             items.map((item) => (
-              <span key={item.key} className="text-[#D4AF37]">
+              <span key={item.key} className="text-[#E0B15C]">
                 {item.textValue}
               </span>
             ))
@@ -55,11 +55,11 @@ export default function TopBar({
           className="max-w-xs min-w-55"
           classNames={{
             trigger:
-              "border-[#D4AF37]/30 bg-[#0F0F10] text-[#D4AF37] data-[focus=true]:border-[#D4AF37] data-[focus=true]:ring-1 data-[focus=true]:ring-[#D4AF37]/50",
-            value: "!text-[#D4AF37] data-[placeholder=true]:text-[#D4AF37]/70",
-            listbox: "bg-[#0F0F10] text-[#D4AF37]",
-            popoverContent: "bg-[#0F0F10] border border-[#D4AF37]/20",
-            selectorIcon: "text-[#D4AF37]/70",
+              "border-[#E0B15C]/30 bg-[#22130F] text-[#E0B15C] data-[focus=true]:border-[#E0B15C] data-[focus=true]:ring-1 data-[focus=true]:ring-[#E0B15C]/50",
+            value: "!text-[#E0B15C] data-[placeholder=true]:text-[#E0B15C]/70",
+            listbox: "bg-[#22130F] text-[#E0B15C]",
+            popoverContent: "bg-[#22130F] border border-[#E0B15C]/20",
+            selectorIcon: "text-[#E0B15C]/70",
           }}
         >
           {(groups ?? []).map((group) => (
@@ -74,13 +74,13 @@ export default function TopBar({
           <p className="font-semibold text-white">
             {me?.display_name ?? me?.username ?? "User"}
           </p>
-          <p className="text-[#A0A0A0]">{me?.email ?? ""}</p>
+          <p className="text-[#D9C7A8]">{me?.email ?? ""}</p>
         </div>
         <Tooltip content="Account settings" placement="bottom">
           <Button
             isIconOnly
             variant="light"
-            className="rounded-full border border-[#D4AF37]/30 p-0 transition hover:border-[#D4AF37]"
+            className="rounded-full border border-[#E0B15C]/30 p-0 transition hover:border-[#E0B15C]"
             onPress={onAvatarClick}
             aria-label="Open account menu"
           >
@@ -88,7 +88,7 @@ export default function TopBar({
               size="sm"
               src={me?.avatar_url ?? undefined}
               name={me?.display_name ?? me?.username ?? "User"}
-              className="bg-[#D4AF37] text-black"
+              className="bg-[#E0B15C] text-[#1C110F]"
             />
           </Button>
         </Tooltip>

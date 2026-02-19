@@ -59,10 +59,10 @@ export default function ManualAddModal({
       isOpen={isOpen}
       onOpenChange={handleOpenChange}
       classNames={{
-        base: "bg-[#0B0B0B] border border-[#D4AF37]/20",
-        header: "border-b border-[#D4AF37]/10",
+        base: "bg-[#1C110F] border border-[#E0B15C]/20",
+        header: "border-b border-[#E0B15C]/10",
         body: "py-6",
-        footer: "border-t border-[#D4AF37]/10",
+        footer: "border-t border-[#E0B15C]/10",
       }}
     >
       <ModalContent>
@@ -90,19 +90,19 @@ export default function ManualAddModal({
             </ModalBody>
             <ModalFooter>
               {addManualMutation.isError ? (
-                <p className="mr-auto text-sm text-[#7B1E2B]">
+                <p className="mr-auto text-sm text-[#D77B69]">
                   Unable to add to watchlist.
                 </p>
               ) : null}
               <Button
                 variant="bordered"
-                className="border-[#A0A0A0]/30 text-[#A0A0A0]"
+                className="border-[#D9C7A8]/30 text-[#D9C7A8]"
                 onPress={onClose}
               >
                 Cancel
               </Button>
               <Button
-                className="border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10"
                 variant="bordered"
                 onPress={() => addManualMutation.mutate()}
                 isDisabled={!title.trim() || !selectedGroupId}

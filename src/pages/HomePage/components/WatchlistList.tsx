@@ -38,25 +38,27 @@ export default function WatchlistList({
 }: WatchlistListProps) {
   if (!selectedGroupId) {
     return (
-      <p className="text-sm text-[#A0A0A0]">Select a group to view its watchlist.</p>
+      <p className="text-sm text-[#D9C7A8]">
+        Select a group to view its watchlist.
+      </p>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 text-[#A0A0A0]">
+      <div className="flex items-center gap-2 text-[#D9C7A8]">
         <Spinner size="sm" color="warning" /> Loading watchlist...
       </div>
     );
   }
 
   if (isError) {
-    return <p className="text-sm text-[#7B1E2B]">Unable to load watchlist.</p>;
+    return <p className="text-sm text-[#D77B69]">Unable to load watchlist.</p>;
   }
 
   if (isPagePending) {
     return (
-      <div className="flex items-center gap-2 text-[#A0A0A0]">
+      <div className="flex items-center gap-2 text-[#D9C7A8]">
         <Spinner size="sm" color="warning" /> Loading page...
       </div>
     );
@@ -64,7 +66,7 @@ export default function WatchlistList({
 
   if (items.length === 0) {
     return (
-      <p className="text-sm text-[#A0A0A0]">
+      <p className="text-sm text-[#D9C7A8]">
         {hasActiveFilters ? "No matches found" : "Your watchlist is empty"}
       </p>
     );
@@ -78,16 +80,16 @@ export default function WatchlistList({
         return (
           <div
             key={item.id ?? `${meta.name}-${meta.year ?? ""}`}
-            className="flex items-center gap-4 rounded-2xl border border-[#D4AF37]/10 bg-black/30 p-3"
+            className="flex items-center gap-4 rounded-2xl border border-[#E0B15C]/10 bg-black/30 p-3"
           >
             {renderPoster(meta.poster, meta.name)}
             <div className="flex-1">
               <p className="text-sm font-semibold text-white">{meta.name}</p>
-              <p className="text-xs text-[#A0A0A0]">
+              <p className="text-xs text-[#D9C7A8]">
                 {meta.year ? meta.year : "Unknown year"}
               </p>
               {addedBy ? (
-                <p className="text-xs text-[#A0A0A0]">Added by {addedBy}</p>
+                <p className="text-xs text-[#D9C7A8]">Added by {addedBy}</p>
               ) : null}
             </div>
             <div className="flex items-center gap-2 uppercase">
@@ -96,8 +98,8 @@ export default function WatchlistList({
                   variant="bordered"
                   radius="sm"
                   classNames={{
-                    base: "border-[#D4AF37]/50",
-                    content: "text-[#D4AF37]",
+                    base: "border-[#E0B15C]/50",
+                    content: "text-[#E0B15C]",
                   }}
                 >
                   {item.status}
@@ -106,7 +108,7 @@ export default function WatchlistList({
               <Button
                 size="sm"
                 variant="bordered"
-                className="border-[#7B1E2B]/40 text-[#7B1E2B] hover:bg-[#7B1E2B]/10 uppercase"
+                className="border-[#D77B69]/40 text-[#D77B69] hover:bg-[#D77B69]/10 uppercase"
                 onPress={() => onRemove(item.id)}
                 isLoading={pendingRemoveId === item.id}
               >
@@ -123,13 +125,17 @@ export default function WatchlistList({
             page={currentPage}
             total={totalPages}
             onChange={onPageChange}
+            isCompact
             showControls
+            variant="bordered"
             size="sm"
             classNames={{
-              item: "text-[#D4AF37]",
-              cursor: "bg-[#D4AF37] text-[#111111]",
-              prev: "text-[#D4AF37]",
-              next: "text-[#D4AF37]",
+              base: "rounded-2xl border border-[#E0B15C]/25 bg-[#22130F] px-2 py-1",
+              wrapper: "gap-1",
+              item: "border-none bg-transparent text-[#F7F1E3] data-[hover=true]:bg-[#2B1713]",
+              cursor: "bg-[#E0B15C] text-[#1C110F]",
+              prev: "border-none bg-transparent text-[#F7F1E3] data-[hover=true]:bg-[#2B1713]",
+              next: "border-none bg-transparent text-[#F7F1E3] data-[hover=true]:bg-[#2B1713]",
             }}
           />
         </div>

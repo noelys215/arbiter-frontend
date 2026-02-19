@@ -33,16 +33,16 @@ export default function VibeSelectionCard({
   onGenerate,
 }: VibeSelectionCardProps) {
   return (
-    <Card className="border border-[#D4AF37]/20 bg-[#0F0F10]">
+    <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
       <CardHeader className="flex flex-col items-start gap-3">
         <div>
-          <p className="session-title-micro text-xs text-[#D4AF37]/70">
+          <p className="session-title-micro text-xs text-[#E0B15C]/70">
             Select a Vibe
           </p>
-          <h2 className="text-2xl text-[#F2E2AE]">
+          <h2 className="text-2xl text-[#F5D9A5]">
             Curate the mood before the deal
           </h2>
-          <p className="mt-1 text-sm text-[#A0A0A0]">
+          <p className="mt-1 text-sm text-[#D9C7A8]">
             Tags are generated from TMDB genres and runtime buckets currently
             in {selectedGroupName}&apos;s watchlist. Use tags or AI mood text
             to build the deck.
@@ -56,8 +56,8 @@ export default function VibeSelectionCard({
             variant={vibeInputMode === "tags" ? "solid" : "bordered"}
             className={
               vibeInputMode === "tags"
-                ? "bg-[#D4AF37] text-[#161616]"
-                : "border-[#D4AF37]/35 text-[#D4AF37]"
+                ? "bg-[#E0B15C] text-[#161616]"
+                : "border-[#E0B15C]/35 text-[#E0B15C]"
             }
             onPress={() => onVibeInputModeChange("tags")}
           >
@@ -68,8 +68,8 @@ export default function VibeSelectionCard({
             variant={vibeInputMode === "ai" ? "solid" : "bordered"}
             className={
               vibeInputMode === "ai"
-                ? "bg-[#D4AF37] text-[#161616]"
-                : "border-[#D4AF37]/35 text-[#D4AF37]"
+                ? "bg-[#E0B15C] text-[#161616]"
+                : "border-[#E0B15C]/35 text-[#E0B15C]"
             }
             onPress={() => onVibeInputModeChange("ai")}
           >
@@ -89,8 +89,8 @@ export default function VibeSelectionCard({
                     variant={selected ? "solid" : "bordered"}
                     className={
                       selected
-                        ? "bg-[#D4AF37] text-[#161616]"
-                        : "border-[#D4AF37]/35 text-[#D4AF37]"
+                        ? "bg-[#E0B15C] text-[#161616]"
+                        : "border-[#E0B15C]/35 text-[#E0B15C]"
                     }
                     onPress={() => onToggleTag(tag)}
                   >
@@ -100,20 +100,20 @@ export default function VibeSelectionCard({
               })}
             </div>
           ) : (
-            <div className="rounded-xl border border-[#D4AF37]/20 bg-black/30 p-4">
-              <p className="text-sm text-[#D4AF37]">
+            <div className="rounded-xl border border-[#E0B15C]/20 bg-black/30 p-4">
+              <p className="text-sm text-[#E0B15C]">
                 No vibe tags available yet
               </p>
-              <p className="mt-1 text-xs text-[#A0A0A0]">
+              <p className="mt-1 text-xs text-[#D9C7A8]">
                 Add more TMDB titles with genre/runtime metadata, or use AI
                 mood input to infer a match.
               </p>
             </div>
           )
         ) : (
-          <div className="rounded-xl border border-[#D4AF37]/20 bg-black/40 p-4">
-            <p className="text-sm text-[#D4AF37]">Arbiter AI Mood Input</p>
-            <p className="mt-1 text-xs text-[#A0A0A0]">
+          <div className="rounded-xl border border-[#E0B15C]/20 bg-black/40 p-4">
+            <p className="text-sm text-[#E0B15C]">Arbiter AI Mood Input</p>
+            <p className="mt-1 text-xs text-[#D9C7A8]">
               Describe your mood. Arbiter uses backend OpenAI parsing to infer
               tags and build your deck.
             </p>
@@ -125,11 +125,11 @@ export default function VibeSelectionCard({
               minRows={3}
               className="mt-3"
               classNames={{
-                label: "text-[#D4AF37]/80",
+                label: "text-[#E0B15C]/80",
                 input:
-                  "!text-[#F5F5F5] placeholder:text-white/35 caret-[#D4AF37]",
+                  "!text-[#F5F5F5] placeholder:text-white/35 caret-[#E0B15C]",
                 inputWrapper:
-                  "!bg-[#090909] !text-[#F5F5F5] border-[#D4AF37]/20 data-[hover=true]:border-[#D4AF37]/45 data-[focus=true]:!bg-[#090909] data-[focus-visible=true]:!bg-[#090909] data-[focus=true]:border-[#D4AF37]/55",
+                  "!bg-[#1A100E] !text-[#F5F5F5] border-[#E0B15C]/20 data-[hover=true]:border-[#E0B15C]/45 data-[focus=true]:!bg-[#1A100E] data-[focus-visible=true]:!bg-[#1A100E] data-[focus=true]:border-[#E0B15C]/55",
               }}
             />
           </div>
@@ -142,8 +142,8 @@ export default function VibeSelectionCard({
                 key={tag}
                 variant="bordered"
                 classNames={{
-                  base: "border-[#D4AF37]/40",
-                  content: "text-[#D4AF37]",
+                  base: "border-[#E0B15C]/40",
+                  content: "text-[#E0B15C]",
                 }}
               >
                 {tag}
@@ -153,13 +153,13 @@ export default function VibeSelectionCard({
         ) : null}
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-xs uppercase tracking-[0.1em] text-[#A0A0A0]">
+          <div className="text-xs uppercase tracking-[0.1em] text-[#D9C7A8]">
             {selectedTags.length} selected · {availableGenreTags.length}{" "}
             available · {sessionContext.tags.length} AI inferred
           </div>
           <Button
             size="lg"
-            className="session-title-micro border border-[#D4AF37]/50 bg-[#D4AF37] text-[#111111]"
+            className="session-title-micro border border-[#E0B15C]/50 bg-[#E0B15C] text-[#111111]"
             isLoading={isGenerating}
             isDisabled={isGenerateDisabled}
             onPress={onGenerate}

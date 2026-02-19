@@ -39,11 +39,11 @@ export default function TopNav({
         <span className="text-xl font-semibold">Arbiter</span>
       </div>
       <div className="flex flex-1 flex-wrap items-center gap-3">
-        <label className="text-xs uppercase tracking-[0.3em] text-white/70">
+        <label className="text-xs uppercase tracking-[0.3em] text-[#D9C7A8]">
           Group
         </label>
         <select
-          className="min-w-[220px] rounded-md border border-white/30 bg-black px-3 py-2 text-sm text-white"
+          className="min-w-[220px] rounded-md border border-[#E0B15C]/35 bg-[#1C110F] px-3 py-2 text-sm text-white"
           value={selectedGroupId ?? ""}
           onChange={(event) => onSelectGroup(event.target.value)}
           disabled={!groups || groups.length === 0}
@@ -60,16 +60,16 @@ export default function TopNav({
           size="sm"
           src={me?.avatar_url ?? undefined}
           name={me?.display_name ?? me?.username ?? "User"}
-          className="bg-white text-black"
+          className="bg-[#E0B15C] text-[#1C110F]"
         />
         <div className="text-right text-xs">
           <p className="font-semibold">
             {me?.display_name ?? me?.username ?? "User"}
           </p>
-          <p className="text-white/80">{me?.email ?? ""}</p>
+          <p className="text-[#F7F1E3]">{me?.email ?? ""}</p>
         </div>
         <Button
-          className="bg-white text-black"
+          className="bg-[#E0B15C] text-[#1C110F]"
           size="sm"
           onPress={() => logoutMutation.mutate()}
           isLoading={logoutMutation.isPending}

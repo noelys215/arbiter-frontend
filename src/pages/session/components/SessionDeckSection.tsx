@@ -86,10 +86,10 @@ export default function SessionDeckSection({
     <section ref={deckSectionRef} className="space-y-4">
       <div className="flex items-end justify-center">
         <div className="w-full">
-          <p className="session-title-micro text-left text-xs text-[#D4AF37]/65">
+          <p className="session-title-micro text-left text-xs text-[#E0B15C]/65">
             Deck
           </p>
-          <h3 className="text-center text-xl text-[#F2E2AE]">
+          <h3 className="text-center text-xl text-[#F5D9A5]">
             {showLeaderEndedCard
               ? "Leader has ended the session."
               : winnerWatchlistItemId
@@ -161,7 +161,7 @@ export default function SessionDeckSection({
         <div className="flex w-full items-center justify-center gap-2">
           <Button
             variant="bordered"
-            className="border-[#7B1E2B]/45 text-[#E0919B]"
+            className="border-[#D77B69]/45 text-[#F1A799]"
             isDisabled={!canSwipe}
             onPress={() => {
               void onProgrammaticSwipe("left");
@@ -171,7 +171,7 @@ export default function SessionDeckSection({
           </Button>
           <Button
             variant="bordered"
-            className="border-[#D4AF37]/45 text-[#D4AF37]"
+            className="border-[#E0B15C]/45 text-[#E0B15C]"
             isDisabled={!canSwipe}
             onPress={() => {
               void onProgrammaticSwipe("up");
@@ -180,7 +180,7 @@ export default function SessionDeckSection({
             Maybe
           </Button>
           <Button
-            className="border border-[#D4AF37]/55 bg-[#D4AF37] text-[#171717]"
+            className="border border-[#E0B15C]/55 bg-[#E0B15C] text-[#171717]"
             isDisabled={!canSwipe}
             onPress={() => {
               void onProgrammaticSwipe("right");
@@ -190,13 +190,13 @@ export default function SessionDeckSection({
           </Button>
         </div>
 
-        <div className="flex w-full items-center justify-between text-xs text-[#A0A0A0]">
+        <div className="flex w-full items-center justify-between text-xs text-[#D9C7A8]">
           <div className="flex flex-col">
             <span>
               {Math.max(0, swipedCount)} / {Math.max(0, totalCards)}
             </span>
             {sessionStatus === "active" ? (
-              <span className="text-[10px] uppercase tracking-[0.1em] text-[#D4AF37]/75">
+              <span className="text-[10px] uppercase tracking-[0.1em] text-[#E0B15C]/75">
                 {sessionPhase === "swiping"
                   ? `Swipe Timer · ${userSecondsLeft}s`
                   : "Setup · Waiting For Confirmations"}
@@ -208,7 +208,7 @@ export default function SessionDeckSection({
               <Button
                 size="sm"
                 variant="bordered"
-                className="border-[#D4AF37]/45 text-[#D4AF37]"
+                className="border-[#E0B15C]/45 text-[#E0B15C]"
                 onPress={onOpenShortlist}
               >
                 View Shortlist
@@ -218,7 +218,7 @@ export default function SessionDeckSection({
               <Button
                 size="sm"
                 variant="bordered"
-                className="border-[#D4AF37]/45 text-[#D4AF37]"
+                className="border-[#E0B15C]/45 text-[#E0B15C]"
                 isLoading={shuffleIsPending || deckPhase === "revealingWinner"}
                 isDisabled={sortedCardsLength === 0}
                 onPress={() => {
@@ -232,9 +232,9 @@ export default function SessionDeckSection({
         </div>
 
         {isDeckComplete && !showWaitingCard && sessionPhase === "swiping" ? (
-          <Card className="w-full border border-[#D4AF37]/25 bg-[#0F0F10]">
+          <Card className="w-full border border-[#E0B15C]/25 bg-[#22130F]">
             <CardBody className="flex flex-col gap-3">
-              <p className="session-title-micro text-xs text-[#D4AF37]/65">
+              <p className="session-title-micro text-xs text-[#E0B15C]/65">
                 Deck complete
               </p>
               <p className="text-sm text-[#E8E8E8]">
@@ -245,14 +245,14 @@ export default function SessionDeckSection({
                 <Button
                   size="sm"
                   variant="bordered"
-                  className="border-[#D4AF37]/45 text-[#D4AF37]"
+                  className="border-[#E0B15C]/45 text-[#E0B15C]"
                   onPress={onOpenShortlist}
                 >
                   Shortlist
                 </Button>
                 <Button
                   size="sm"
-                  className="border border-[#D4AF37]/55 bg-[#D4AF37] text-[#171717]"
+                  className="border border-[#E0B15C]/55 bg-[#E0B15C] text-[#171717]"
                   onPress={onGoHome}
                 >
                   Back to Home
