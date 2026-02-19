@@ -78,11 +78,9 @@ pre {
 :where(
     a,
     button,
-    input,
-    select,
-    textarea,
-    [role="button"],
-    [tabindex]:not([tabindex="-1"])
+    input:not([data-slot]),
+    select:not([data-slot]),
+    textarea:not([data-slot])
   ):focus-visible {
   outline: 3px solid var(--theater-focus);
   outline-offset: 2px;

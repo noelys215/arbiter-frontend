@@ -94,6 +94,7 @@ export default function SessionPage() {
         onSelectGroupId={setSelectedGroupId}
         userName={me?.display_name ?? me?.username ?? "User"}
         userEmail={me?.email ?? ""}
+        userAvatarUrl={me?.avatar_url}
         isGroupLeader={isGroupLeader}
         activeSessionId={activeSessionId}
         isEndingSession={endSessionMutation.isPending}
