@@ -1,32 +1,24 @@
 import { Button, Card, CardBody, CardHeader, Input } from "@heroui/react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { type FormEvent, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { login } from "../features/auth/auth.api";
+import { useSearchParams } from "react-router-dom";
+import { requestMagicLink } from "../features/auth/auth.api";
 import SkipLink from "../components/SkipLink";
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   google_oauth_failed: "Google sign-in failed. Please try again.",
   google_email_required:
     "Google did not provide an email address. Try another sign-in method.",
-  facebook_oauth_failed: "Facebook sign-in failed. Please try again.",
-  facebook_profile_failed:
-    "Facebook profile data could not be loaded. Please try again.",
-  facebook_email_required:
-    "Facebook did not provide an email address. Try another sign-in method.",
+  magic_link_invalid: "That magic link is invalid. Request a new one.",
+  magic_link_expired: "That magic link expired. Request a new one.",
 };
 
 export default function LoginPage() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [magicSentTo, setMagicSentTo] = useState<string | null>(null);
   const googleLoginUrl = (
     import.meta.env.VITE_OAUTH_GOOGLE_LOGIN_URL as string | undefined
-  )?.trim();
-  const facebookLoginUrl = (
-    import.meta.env.VITE_OAUTH_FACEBOOK_LOGIN_URL as string | undefined
   )?.trim();
   const oauthErrorCode = searchParams.get("oauth_error");
   const oauthErrorMessage = oauthErrorCode
@@ -40,18 +32,27 @@ export default function LoginPage() {
       "border-[#E0B15C]/30 bg-[#1C110F] data-[hover=true]:border-[#E0B15C]/50 data-[focus=true]:border-[#F2C16E]",
   };
 
-  const loginMutation = useMutation({
-    mutationFn: login,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["me"] });
-      navigate("/app", { replace: true });
-    },
-  });
+  const magicLinkMutation = useMutation({ mutationFn: requestMagicLink });
+  const magicLinkErrorDetail =
+    magicLinkMutation.error &&
+    typeof magicLinkMutation.error === "object" &&
+    "detail" in magicLinkMutation.error &&
+    typeof (magicLinkMutation.error as { detail?: unknown }).detail === "string"
+      ? (magicLinkMutation.error as { detail?: string }).detail
+      : null;
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!email.trim() || !password) return;
-    loginMutation.mutate({ email: email.trim(), password });
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail) return;
+    magicLinkMutation.mutate(
+      { email: normalizedEmail },
+      {
+        onSuccess: () => {
+          setMagicSentTo(normalizedEmail);
+        },
+      },
+    );
   };
 
   return (
@@ -79,20 +80,12 @@ export default function LoginPage() {
                 variant="bordered"
                 classNames={inputClassNames}
               />
-              <Input
-                type="password"
-                label="Password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete="current-password"
-                isRequired
-                variant="bordered"
-                classNames={inputClassNames}
-              />
-              {loginMutation.isError ? (
+              <p className="text-xs text-[#D9C7A8]">
+                We&apos;ll email you a secure sign-in link.
+              </p>
+              {magicLinkMutation.isError ? (
                 <p className="text-sm text-[#D77B69]" role="alert">
-                  Unable to login. Check your credentials.
+                  {magicLinkErrorDetail || "Unable to send magic link right now."}
                 </p>
               ) : null}
               {oauthErrorMessage ? (
@@ -100,15 +93,20 @@ export default function LoginPage() {
                   {oauthErrorMessage}
                 </p>
               ) : null}
+              {magicSentTo ? (
+                <p className="text-sm text-[#D9C7A8]" role="status" aria-live="polite">
+                  Magic link sent to {magicSentTo}. Open your email to continue.
+                </p>
+              ) : null}
               <Button
                 type="submit"
                 className="w-full border border-[#E0B15C]/50 bg-[#E0B15C] text-[#1C110F]"
-                isLoading={loginMutation.isPending}
+                isLoading={magicLinkMutation.isPending}
               >
-                Sign in
+                Send Magic Link
               </Button>
 
-              {googleLoginUrl || facebookLoginUrl ? (
+              {googleLoginUrl ? (
                 <>
                   <div className="flex items-center gap-3 py-1">
                     <span className="h-px flex-1 bg-[#E0B15C]/20" />
@@ -127,24 +125,11 @@ export default function LoginPage() {
                       Continue with Google
                     </Button>
                   ) : null}
-                  {facebookLoginUrl ? (
-                    <Button
-                      type="button"
-                      variant="bordered"
-                      className="w-full border-[#E0B15C]/45 text-[#E0B15C] hover:bg-[#E0B15C]/10"
-                      onPress={() => window.location.assign(facebookLoginUrl)}
-                    >
-                      Continue with Facebook
-                    </Button>
-                  ) : null}
                 </>
               ) : null}
             </form>
-            <p className="mt-4 text-sm text-[#D9C7A8]">
-              Need an account?{" "}
-              <Link className="font-semibold text-[#F5D9A5]" to="/register">
-                Register
-              </Link>
+            <p className="mt-4 text-xs text-[#D9C7A8]">
+              Your link expires quickly for security.
             </p>
           </CardBody>
         </Card>

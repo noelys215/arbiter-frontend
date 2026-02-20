@@ -13,6 +13,10 @@ export type LoginPayload = {
   password: string;
 };
 
+export type MagicLinkRequestPayload = {
+  email: string;
+};
+
 export type RegisterPayload = {
   email: string;
   username: string;
@@ -48,6 +52,13 @@ export async function register(payload: RegisterPayload) {
     throw error;
   }
   return response;
+}
+
+export async function requestMagicLink(payload: MagicLinkRequestPayload) {
+  return apiJson<{ ok: boolean }>("/auth/magic-link/request", {
+    method: "POST",
+    ...jsonBody(payload),
+  });
 }
 
 export async function logout() {

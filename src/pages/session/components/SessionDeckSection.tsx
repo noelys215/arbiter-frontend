@@ -124,7 +124,9 @@ export default function SessionDeckSection({
 }: SessionDeckSectionProps) {
   const watchPartyInputId = "watch-party-url-input";
   const winnerCard = winnerWatchlistItemId
-    ? stackCards.find((card) => card.watchlist_item_id === winnerWatchlistItemId) ?? null
+    ? (stackCards.find(
+        (card) => card.watchlist_item_id === winnerWatchlistItemId,
+      ) ?? null)
     : null;
   const isTmdbWinner = winnerCard?.title.source === "tmdb";
   const winnerStreamingOptions = normalizeStreamingOptions(
@@ -178,16 +180,21 @@ export default function SessionDeckSection({
         </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-[540px] flex-col items-center gap-4">
-        <div className="relative h-[510px] w-full">
+      <div className="mx-auto flex w-full max-w-135 flex-col items-center gap-4">
+        <div className="relative h-127.5 w-full">
           {showPlaceholderDeck ? (
             <div className="absolute inset-0">
-              <DeckPlaceholderStack deckPhase={deckPhase} shuffleSeed={shuffleSeed} />
+              <DeckPlaceholderStack
+                deckPhase={deckPhase}
+                shuffleSeed={shuffleSeed}
+              />
             </div>
           ) : null}
           {showWaitingCard ? <WaitingForOthersCard /> : null}
           {showLeaderEndedCard ? <LeaderEndedCard onGoHome={onGoHome} /> : null}
-          {tieBreakRequired ? <TieBreakCard isGroupLeader={isGroupLeader} /> : null}
+          {tieBreakRequired ? (
+            <TieBreakCard isGroupLeader={isGroupLeader} />
+          ) : null}
           {stackCards.length > 0 && !showWaitingCard ? (
             <motion.div
               className="absolute inset-0"
@@ -213,7 +220,8 @@ export default function SessionDeckSection({
                 renderCard={({ card, index, isTopCard, isVisibleCard }) => {
                   const whyLine = buildWhyLine(card, sessionContext);
                   const vote = localVotes[card.watchlist_item_id];
-                  const isWinner = winnerWatchlistItemId === card.watchlist_item_id;
+                  const isWinner =
+                    winnerWatchlistItemId === card.watchlist_item_id;
                   const voteLabel = getReadableVote(vote);
 
                   return (
@@ -278,7 +286,7 @@ export default function SessionDeckSection({
               {Math.max(0, swipedCount)} / {Math.max(0, totalCards)}
             </span>
             {sessionStatus === "active" ? (
-              <span className="text-[10px] uppercase tracking-[0.1em] text-[#E0B15C]/75">
+              <span className="text-[10px] uppercase tracking-widest text-[#E0B15C]/75">
                 {sessionPhase === "swiping"
                   ? `Swipe Timer · ${userSecondsLeft}s`
                   : "Setup · Waiting For Confirmations"}
@@ -324,7 +332,10 @@ export default function SessionDeckSection({
                   <p className="text-sm text-[#E8E8E8]">
                     {`Streaming options for ${winnerCard.title.name}.`}
                   </p>
-                  <ul className="flex flex-wrap gap-2" aria-label="Streaming providers">
+                  <ul
+                    className="flex flex-wrap gap-2"
+                    aria-label="Streaming providers"
+                  >
                     {winnerStreamingOptions.map((provider) =>
                       provider.streaming_url ? (
                         <li key={provider.provider_name}>
@@ -369,7 +380,11 @@ export default function SessionDeckSection({
 
               {hasWatchPartyUrl ? (
                 <>
-                  <p className="text-sm text-[#E8E8E8]" role="status" aria-live="polite">
+                  <p
+                    className="text-sm text-[#E8E8E8]"
+                    role="status"
+                    aria-live="polite"
+                  >
                     Party link is ready. Join to watch together.
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -396,7 +411,11 @@ export default function SessionDeckSection({
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-[#E8E8E8]" role="status" aria-live="polite">
+                <p
+                  className="text-sm text-[#E8E8E8]"
+                  role="status"
+                  aria-live="polite"
+                >
                   {isGroupLeader
                     ? "Start Teleparty in your streaming tab, then paste the Teleparty URL below."
                     : "Waiting for the group leader to share the Teleparty link."}
@@ -462,8 +481,8 @@ export default function SessionDeckSection({
                 Deck complete
               </p>
               <p className="text-sm text-[#E8E8E8]">
-                You reached the end of the shared deck. Review shortlist while the
-                session resolves.
+                You reached the end of the shared deck. Review shortlist while
+                the session resolves.
               </p>
               <div className="flex flex-wrap gap-2">
                 <Button
