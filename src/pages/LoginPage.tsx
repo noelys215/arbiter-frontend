@@ -1,8 +1,9 @@
 import { Button, Card, CardBody, CardHeader, Input } from "@heroui/react";
-import { useMutation } from "@tanstack/react-query";
-import { type FormEvent, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { type FormEvent, useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { requestMagicLink } from "../features/auth/auth.api";
+import { subscribeToAuthSuccess } from "../features/auth/authHandoff";
 import SkipLink from "../components/SkipLink";
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -14,6 +15,8 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
 };
 
 export default function LoginPage() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
   const [magicSentTo, setMagicSentTo] = useState<string | null>(null);
@@ -22,8 +25,8 @@ export default function LoginPage() {
   )?.trim();
   const oauthErrorCode = searchParams.get("oauth_error");
   const oauthErrorMessage = oauthErrorCode
-    ? OAUTH_ERROR_MESSAGES[oauthErrorCode] ??
-      "Social sign-in failed. Please try again."
+    ? (OAUTH_ERROR_MESSAGES[oauthErrorCode] ??
+      "Social sign-in failed. Please try again.")
     : null;
   const inputClassNames = {
     label: "!text-[#F5D9A5]",
@@ -40,6 +43,15 @@ export default function LoginPage() {
     typeof (magicLinkMutation.error as { detail?: unknown }).detail === "string"
       ? (magicLinkMutation.error as { detail?: string }).detail
       : null;
+
+  useEffect(() => {
+    if (!magicSentTo) return;
+    const unsubscribe = subscribeToAuthSuccess(() => {
+      void queryClient.invalidateQueries({ queryKey: ["me"] });
+      void navigate("/app", { replace: true });
+    });
+    return unsubscribe;
+  }, [magicSentTo, navigate, queryClient]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -80,12 +92,10 @@ export default function LoginPage() {
                 variant="bordered"
                 classNames={inputClassNames}
               />
-              <p className="text-xs text-[#D9C7A8]">
-                We&apos;ll email you a secure sign-in link.
-              </p>
               {magicLinkMutation.isError ? (
                 <p className="text-sm text-[#D77B69]" role="alert">
-                  {magicLinkErrorDetail || "Unable to send magic link right now."}
+                  {magicLinkErrorDetail ||
+                    "Unable to send magic link right now."}
                 </p>
               ) : null}
               {oauthErrorMessage ? (
@@ -94,8 +104,12 @@ export default function LoginPage() {
                 </p>
               ) : null}
               {magicSentTo ? (
-                <p className="text-sm text-[#D9C7A8]" role="status" aria-live="polite">
-                  Magic link sent to {magicSentTo}. Open your email to continue.
+                <p
+                  className="text-sm text-[#D9C7A8]"
+                  role="status"
+                  aria-live="polite"
+                >
+                  Check your email to enter Arbiter.
                 </p>
               ) : null}
               <Button
@@ -128,9 +142,6 @@ export default function LoginPage() {
                 </>
               ) : null}
             </form>
-            <p className="mt-4 text-xs text-[#D9C7A8]">
-              Your link expires quickly for security.
-            </p>
           </CardBody>
         </Card>
       </main>
