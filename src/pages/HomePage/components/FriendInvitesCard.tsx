@@ -50,9 +50,12 @@ export default function FriendInvitesCard({
 
   const acceptInviteMutation = useMutation({
     mutationFn: () => acceptFriendInvite(friendInviteCode.trim()),
-    onSuccess: () => {
+    onSuccess: async () => {
       setFriendInviteCode("");
-      queryClient.invalidateQueries({ queryKey: ["friends"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["friends"],
+        refetchType: "all",
+      });
     },
   });
   const acceptInviteErrorDetail =

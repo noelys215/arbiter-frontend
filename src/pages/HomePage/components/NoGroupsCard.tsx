@@ -1,10 +1,11 @@
 import { Button, Card, CardBody, CardHeader, Input } from "@heroui/react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   acceptGroupInvite,
   createGroup,
 } from "../../../features/groups/groups.api";
+import { getFriends } from "../../../features/friends/friends.api";
 import type { InputClassNames } from "../types";
 
 type NoGroupsCardProps = {
@@ -15,6 +16,10 @@ export default function NoGroupsCard({ inputClassNames }: NoGroupsCardProps) {
   const queryClient = useQueryClient();
   const [groupName, setGroupName] = useState("");
   const [groupInviteCode, setGroupInviteCode] = useState("");
+  const { data: friends } = useQuery({
+    queryKey: ["friends"],
+    queryFn: getFriends,
+  });
 
   const createGroupMutation = useMutation({
     mutationFn: () => createGroup({ name: groupName.trim() }),
@@ -80,6 +85,25 @@ export default function NoGroupsCard({ inputClassNames }: NoGroupsCardProps) {
           >
             Accept Invite
           </Button>
+        </div>
+        <div className="space-y-2 md:col-span-2">
+          <p className="text-xs uppercase tracking-[0.2em] text-[#D9C7A8]">
+            Friends Connected
+          </p>
+          {friends && friends.length > 0 ? (
+            <ul className="space-y-1 text-sm text-[#F7F1E3]">
+              {friends.map((friend) => (
+                <li key={friend.id}>
+                  {friend.display_name || friend.username || friend.email}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-[#D9C7A8]">
+              No friends yet. Open account menu to generate or accept friend
+              invites.
+            </p>
+          )}
         </div>
       </CardBody>
     </Card>
