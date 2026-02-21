@@ -104,6 +104,14 @@ export default function AvatarMenuModal({
       queryClient.invalidateQueries({ queryKey: ["friends"] });
     },
   });
+  const acceptFriendInviteErrorDetail =
+    acceptFriendInviteMutation.error &&
+    typeof acceptFriendInviteMutation.error === "object" &&
+    "detail" in acceptFriendInviteMutation.error &&
+    typeof (acceptFriendInviteMutation.error as { detail?: unknown })
+      .detail === "string"
+      ? (acceptFriendInviteMutation.error as { detail?: string }).detail
+      : null;
 
   // Group invite mutations
   const createGroupInviteMutation = useMutation({
@@ -303,6 +311,12 @@ export default function AvatarMenuModal({
                         Accept
                       </Button>
                     </div>
+                    {acceptFriendInviteMutation.isError ? (
+                      <p className="text-sm text-[#D77B69]" role="alert">
+                        {acceptFriendInviteErrorDetail ||
+                          "Unable to accept friend invite right now."}
+                      </p>
+                    ) : null}
                   </div>
                 </section>
 

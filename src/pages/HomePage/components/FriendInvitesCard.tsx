@@ -55,6 +55,14 @@ export default function FriendInvitesCard({
       queryClient.invalidateQueries({ queryKey: ["friends"] });
     },
   });
+  const acceptInviteErrorDetail =
+    acceptInviteMutation.error &&
+    typeof acceptInviteMutation.error === "object" &&
+    "detail" in acceptInviteMutation.error &&
+    typeof (acceptInviteMutation.error as { detail?: unknown }).detail ===
+      "string"
+      ? (acceptInviteMutation.error as { detail?: string }).detail
+      : null;
 
   const unfriendMutation = useMutation({
     mutationFn: (userId: string) => unfriend(userId),
@@ -141,6 +149,12 @@ export default function FriendInvitesCard({
             Accept
           </Button>
         </div>
+        {acceptInviteMutation.isError ? (
+          <p className="text-sm text-[#D77B69]" role="alert">
+            {acceptInviteErrorDetail ||
+              "Unable to accept friend invite right now."}
+          </p>
+        ) : null}
         {friends && friends.length > 0 ? (
           <div className="space-y-2 text-sm text-[#F7F1E3]">
             <p className="text-xs uppercase tracking-[0.2em] text-[#D9C7A8]">

@@ -1,4 +1,4 @@
-import { api, apiJson, jsonBody } from "../../lib/api";
+import { apiJson, jsonBody } from "../../lib/api";
 
 export type Friend = {
   id: string;
@@ -22,27 +22,15 @@ export async function createFriendInvite() {
 }
 
 export async function acceptFriendInvite(code: string) {
-  const response = await api("/friends/accept", {
+  return apiJson<{ ok: boolean }>("/friends/accept", {
     method: "POST",
     ...jsonBody({ code }),
   });
-  if (!response.ok) {
-    const error = new Error("Accept friend invite failed");
-    (error as Error & { status?: number }).status = response.status;
-    throw error;
-  }
-  return response;
 }
 
 export async function unfriend(userId: string) {
-  const response = await api("/friends/unfriend", {
+  return apiJson<{ ok: boolean; removed: boolean }>("/friends/unfriend", {
     method: "POST",
     ...jsonBody({ user_id: userId }),
   });
-  if (!response.ok) {
-    const error = new Error("Unfriend failed");
-    (error as Error & { status?: number }).status = response.status;
-    throw error;
-  }
-  return response;
 }
