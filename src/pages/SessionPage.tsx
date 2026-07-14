@@ -79,6 +79,7 @@ export default function SessionPage() {
     handleSetWatchPartyUrl,
     goHome,
     handleEndSession,
+    handleLeaveSession,
     getReadableVote,
     watchPartyMutation,
   } = useSessionFlow();
@@ -105,6 +106,7 @@ export default function SessionPage() {
         activeSessionId={activeSessionId}
         isEndingSession={endSessionMutation.isPending}
         onEndSession={handleEndSession}
+        onLeaveSession={handleLeaveSession}
         onGoHome={goHome}
       />
 

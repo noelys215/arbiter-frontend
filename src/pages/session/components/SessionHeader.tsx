@@ -14,6 +14,7 @@ type SessionHeaderProps = {
   activeSessionId: string | null;
   isEndingSession: boolean;
   onEndSession: () => void;
+  onLeaveSession: () => void;
   onGoHome: () => void;
 };
 
@@ -28,6 +29,7 @@ export default function SessionHeader({
   activeSessionId,
   isEndingSession,
   onEndSession,
+  onLeaveSession,
   onGoHome,
 }: SessionHeaderProps) {
   const groupLabelId = "session-header-group-label";
@@ -49,15 +51,15 @@ export default function SessionHeader({
           </button>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            {isGroupLeader && activeSessionId ? (
+            {activeSessionId ? (
               <Button
                 size="sm"
                 variant="bordered"
                 className="border-[#D77B69]/45 px-3 text-[#F1A799] sm:px-6"
-                isLoading={isEndingSession}
-                onPress={onEndSession}
+                isLoading={isGroupLeader ? isEndingSession : false}
+                onPress={isGroupLeader ? onEndSession : onLeaveSession}
               >
-                End Session
+                {isGroupLeader ? "End Session" : "Leave Session"}
               </Button>
             ) : null}
 

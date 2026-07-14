@@ -673,31 +673,35 @@ export function useSessionFlow() {
     mutationFn: (sessionId: string) => shuffleSession(sessionId),
   });
 
+  const clearLocalSessionState = () => {
+    if (activeSessionStorageKey) {
+      localStorage.removeItem(activeSessionStorageKey);
+    }
+    if (activeSessionId) {
+      queryClient.removeQueries({
+        queryKey: ["session-state", activeSessionId],
+      });
+      localStorage.removeItem(getDealSubmittedStorageKey(activeSessionId));
+    }
+    setActiveSessionId(null);
+    setHasSubmittedDeck(false);
+    setDeckCards([]);
+    setCurrentIndex(-1);
+    setSessionStatus("active");
+    setSessionPhase("collecting");
+    setSessionRound(0);
+    setWinnerWatchlistItemId(null);
+    setDeckPhase("idle");
+    setLocalVotes({});
+    setLeaderEndedSessionNotice(false);
+    processedVotesRef.current = new Set();
+    joinAttemptRef.current = null;
+  };
+
   const endSessionMutation = useMutation({
     mutationFn: (sessionId: string) => endSession(sessionId),
     onSuccess: () => {
-      if (activeSessionStorageKey) {
-        localStorage.removeItem(activeSessionStorageKey);
-      }
-      if (activeSessionId) {
-        queryClient.removeQueries({
-          queryKey: ["session-state", activeSessionId],
-        });
-      }
-      setActiveSessionId(null);
-      setDeckCards([]);
-      setCurrentIndex(-1);
-      setSessionStatus("active");
-      setSessionPhase("collecting");
-      setSessionRound(0);
-      setWinnerWatchlistItemId(null);
-      setDeckPhase("idle");
-      setLocalVotes({});
-      processedVotesRef.current = new Set();
-      joinAttemptRef.current = null;
-      if (activeSessionId) {
-        localStorage.removeItem(getDealSubmittedStorageKey(activeSessionId));
-      }
+      clearLocalSessionState();
       navigate("/app");
     },
   });
@@ -1026,6 +1030,10 @@ export function useSessionFlow() {
     handleEndSession: () => {
       if (!activeSessionId) return;
       endSessionMutation.mutate(activeSessionId);
+    },
+    handleLeaveSession: () => {
+      clearLocalSessionState();
+      navigate("/app");
     },
     getReadableVote,
   };
