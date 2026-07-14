@@ -19,6 +19,7 @@ import NoGroupsCard from "./HomePage/components/NoGroupsCard";
 import RightRail from "./HomePage/components/RightRail";
 import TopBar from "./HomePage/components/TopBar";
 import WatchlistCard from "./HomePage/components/WatchlistCard";
+import { useWatchlistRealtime } from "./HomePage/hooks/useWatchlistRealtime";
 import type { InputClassNames, WatchlistMeta } from "./HomePage/types";
 import SkipLink from "../components/SkipLink";
 
@@ -117,6 +118,8 @@ export default function HomePage() {
     () => groups?.find((group) => group.id === resolvedSelectedGroupId) ?? null,
     [groups, resolvedSelectedGroupId],
   );
+
+  useWatchlistRealtime(resolvedSelectedGroupId);
 
   const renderPoster = (posterPath?: string | null, altText?: string) => {
     const poster = tmdbPosterUrl(posterPath ?? null);
