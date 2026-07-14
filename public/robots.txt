@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://arbiter.app/sitemap.xml
+Sitemap: https://arbitertv.com/sitemap.xml
