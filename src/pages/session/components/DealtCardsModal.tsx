@@ -44,7 +44,9 @@ export default function DealtCardsModal({
             <ModalHeader className="text-[#F5D9A5]">Your Dealt Cards</ModalHeader>
             <ModalBody>
               {cards.length === 0 ? (
-                <p className="text-sm text-[#D9C7A8]">No cards selected yet.</p>
+                <p className="text-sm text-[#D9C7A8]">
+                  No titles matched this request. Go back and try a broader vibe.
+                </p>
               ) : (
                 <div className="space-y-2">
                   {cards.map((card) => (
@@ -71,6 +73,7 @@ export default function DealtCardsModal({
               <Button
                 className="border border-[#E0B15C]/55 bg-[#E0B15C] text-[#171717]"
                 isLoading={isSubmitting}
+                isDisabled={cards.length === 0}
                 onPress={onContinue}
               >
                 Continue

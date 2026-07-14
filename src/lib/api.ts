@@ -1,7 +1,9 @@
 const DEFAULT_API_BASE = "http://localhost:8000";
+const RAW_API_BASE = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+export const IS_LOCAL_DEV = Boolean(import.meta.env.DEV);
 
 export const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? DEFAULT_API_BASE;
+  IS_LOCAL_DEV ? DEFAULT_API_BASE : (RAW_API_BASE || DEFAULT_API_BASE);
 
 type ApiOptions = RequestInit & { signal?: AbortSignal };
 type ApiErrorShape = Error & { status?: number; detail?: string };

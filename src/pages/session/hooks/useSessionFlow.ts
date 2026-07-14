@@ -552,7 +552,7 @@ export function useSessionFlow() {
     }: {
       groupId: string;
       payload: CreateSessionPayload;
-      intent: "join" | "deal" | "confirm";
+      intent: "join" | "deal" | "confirm" | "back";
     }) => createSession(groupId, payload),
     onSuccess: async (response, variables) => {
       const nextSessionId = response.session_id;
@@ -598,9 +598,7 @@ export function useSessionFlow() {
             ? response.personal_candidates
             : (response.candidates ?? []);
         setPersonalPreviewCards(previewCards);
-        if (previewCards.length > 0) {
-          personalPreviewModal.onOpen();
-        }
+        personalPreviewModal.onOpen();
         setHasSubmittedDeck(true);
         localStorage.setItem(getDealSubmittedStorageKey(nextSessionId), "1");
       }
@@ -861,7 +859,21 @@ export function useSessionFlow() {
       localStorage.removeItem(getDealSubmittedStorageKey(activeSessionId));
     }
     setHasSubmittedDeck(false);
+    setDeckPhase("idle");
     personalPreviewModal.onClose();
+
+    // Keep backend collecting state in sync with UI "Back": user is editing, not ready.
+    if (!resolvedGroupId) return;
+    generateDeckMutation.mutate({
+      groupId: resolvedGroupId,
+      intent: "back",
+      payload: {
+        constraints: {},
+        confirm_ready: false,
+        duration_seconds: ROUND_TIMER_SECONDS,
+        candidate_count: DEAL_CANDIDATE_COUNT,
+      },
+    });
   };
 
   const handleSwipe = (direction: SwipeDirection, card: SessionCandidate) => {

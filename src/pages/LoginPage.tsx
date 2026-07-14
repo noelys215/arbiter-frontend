@@ -5,7 +5,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { requestMagicLink } from "../features/auth/auth.api";
 import { subscribeToAuthSuccess } from "../features/auth/authHandoff";
 import SkipLink from "../components/SkipLink";
-import { API_BASE } from "../lib/api";
+import { API_BASE, IS_LOCAL_DEV } from "../lib/api";
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   google_oauth_failed: "Google sign-in failed. Please try again.",
@@ -24,8 +24,9 @@ export default function LoginPage() {
   const configuredGoogleLoginUrl = (
     import.meta.env.VITE_OAUTH_GOOGLE_LOGIN_URL as string | undefined
   )?.trim();
-  const googleLoginUrl =
-    configuredGoogleLoginUrl && configuredGoogleLoginUrl.length > 0
+  const googleLoginUrl = IS_LOCAL_DEV
+    ? `${API_BASE}/auth/google/login`
+    : configuredGoogleLoginUrl && configuredGoogleLoginUrl.length > 0
       ? configuredGoogleLoginUrl
       : `${API_BASE}/auth/google/login`;
   const oauthErrorCode = searchParams.get("oauth_error");
