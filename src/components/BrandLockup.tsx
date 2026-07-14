@@ -17,7 +17,7 @@ export default function BrandLockup({
   titleClassName,
   versionClassName,
   showVersion = true,
-  versionText = "v1.0",
+  versionText = "v1.1,0",
 }: BrandLockupProps) {
   return (
     <div className={cx("flex items-center", className)}>
@@ -31,7 +31,12 @@ export default function BrandLockup({
         )}
       />
       <div className="flex items-baseline gap-2">
-        <h1 className={cx("text-4xl font-semibold text-[#E0B15C] sm:text-5xl", titleClassName)}>
+        <h1
+          className={cx(
+            "text-4xl font-semibold text-[#E0B15C] sm:text-5xl",
+            titleClassName,
+          )}
+        >
           Arbiter
         </h1>
         {showVersion ? (
