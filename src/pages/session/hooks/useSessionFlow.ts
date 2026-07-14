@@ -25,6 +25,7 @@ import {
   revealWinnerAfterShuffle,
   type DeckPhase,
 } from "../animations";
+import { useSessionRealtime } from "./useSessionRealtime";
 import {
   ACTIVE_SESSION_STORAGE_PREFIX,
   CARD_INDEX_STORAGE_PREFIX,
@@ -92,12 +93,12 @@ function getSessionRefetchInterval(
       typeof data.watch_party_url === "string" &&
       data.watch_party_url.trim().length > 0;
     // Keep polling after a winner so non-leaders pick up the shared Teleparty URL.
-    if (hasWinner && !hasWatchPartyUrl && !data.ended_by_leader) return 2000;
+    if (hasWinner && !hasWatchPartyUrl && !data.ended_by_leader) return 5000;
     return false;
   }
   if (data?.status !== "active") return false;
-  if (data?.phase === "collecting" || data?.phase === "waiting") return 1000;
-  return 1500;
+  if (data?.phase === "collecting" || data?.phase === "waiting") return 5000;
+  return 2000;
 }
 
 function isDeckAnimating(deckPhase: DeckPhase): boolean {
@@ -367,6 +368,8 @@ export function useSessionFlow() {
       );
     },
   });
+
+  useSessionRealtime(activeSessionId);
 
   useEffect(() => {
     setSessionContext(readSessionContext(activeSessionId));

@@ -5,6 +5,10 @@ export const IS_LOCAL_DEV = Boolean(import.meta.env.DEV);
 export const API_BASE =
   IS_LOCAL_DEV ? DEFAULT_API_BASE : (RAW_API_BASE || DEFAULT_API_BASE);
 
+export const API_WS_BASE = API_BASE.replace(/^http/i, (protocol) =>
+  protocol.toLowerCase() === "https" ? "wss" : "ws",
+);
+
 type ApiOptions = RequestInit & { signal?: AbortSignal };
 type ApiErrorShape = Error & { status?: number; detail?: string };
 
