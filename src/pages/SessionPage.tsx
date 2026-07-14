@@ -56,6 +56,8 @@ export default function SessionPage() {
     currentIndex,
     setCurrentIndex,
     canSwipe,
+    canUndoSwipe,
+    undoSwipeIsPending,
     localVotes,
     swipedCount,
     totalCards,
@@ -74,6 +76,7 @@ export default function SessionPage() {
     handleConfirmDeal,
     handleBackToVibeSelection,
     handleSwipe,
+    handleUndoSwipe,
     handleProgrammaticSwipe,
     handleShuffleToDecide,
     handleSetWatchPartyUrl,
@@ -163,8 +166,11 @@ export default function SessionPage() {
           onCurrentIndexChange={setCurrentIndex}
           onSwipe={handleSwipe}
           canSwipe={canSwipe}
+          canUndoSwipe={canUndoSwipe}
+          undoSwipeIsPending={undoSwipeIsPending}
           sessionContext={sessionContext}
           localVotes={localVotes}
+          onUndoSwipe={handleUndoSwipe}
           onProgrammaticSwipe={handleProgrammaticSwipe}
           swipedCount={swipedCount}
           totalCards={totalCards}

@@ -12,6 +12,7 @@ import {
   setSessionWatchPartyLink,
   shuffleSession,
   submitSessionVote,
+  undoSessionVote,
   type CreateSessionPayload,
   type SessionCandidate,
   type SessionStateResponse,
@@ -108,6 +109,12 @@ function isDeckAnimating(deckPhase: DeckPhase): boolean {
 function buildStackCards(candidates: SessionCandidate[]): SessionCandidate[] {
   return [...candidates].sort((a, b) => a.position - b.position).reverse();
 }
+
+type LastSwipedCard = {
+  card: SessionCandidate;
+  index: number;
+  round: number;
+};
 
 function findWinnerIndex(
   cards: SessionCandidate[],
@@ -256,6 +263,9 @@ export function useSessionFlow() {
     string | null
   >(null);
   const [localVotes, setLocalVotes] = useState<Record<string, SwipeVote>>({});
+  const [lastSwipedCard, setLastSwipedCard] = useState<LastSwipedCard | null>(
+    null,
+  );
   const [sessionContext, setSessionContext] = useState<SessionContext>(
     () => createEmptySessionContext(),
   );
@@ -354,6 +364,7 @@ export function useSessionFlow() {
     if (activeSessionId) return;
     setSessionRound(0);
     setSessionPhase("collecting");
+    setLastSwipedCard(null);
     previousRoundRef.current = 0;
   }, [activeSessionId]);
 
@@ -389,6 +400,7 @@ export function useSessionFlow() {
       setSessionPhase("ended_by_leader");
       setDeckCards([]);
       setCurrentIndex(-1);
+      setLastSwipedCard(null);
       setDeckPhase("idle");
       localStorage.removeItem(activeSessionStorageKey);
       setActiveSessionId(null);
@@ -431,6 +443,7 @@ export function useSessionFlow() {
       previousRoundRef.current = nextRound;
       processedVotesRef.current = new Set();
       setLocalVotes({});
+      setLastSwipedCard(null);
 
       const startIndex = Math.max(-1, nextCandidates.length - 1);
       setCurrentIndex(startIndex);
@@ -548,6 +561,22 @@ export function useSessionFlow() {
     },
   });
 
+  const undoVoteMutation = useMutation({
+    mutationFn: ({
+      sessionId,
+      watchlistItemId,
+    }: {
+      sessionId: string;
+      watchlistItemId: string;
+    }) => undoSessionVote(sessionId, watchlistItemId),
+    onSuccess: () => {
+      if (!activeSessionId) return;
+      void queryClient.invalidateQueries({
+        queryKey: ["session-state", activeSessionId],
+      });
+    },
+  });
+
   const generateDeckMutation = useMutation({
     mutationFn: ({
       groupId,
@@ -565,6 +594,7 @@ export function useSessionFlow() {
 
       if (activeSessionId && activeSessionId !== nextSessionId) {
         setLocalVotes({});
+        setLastSwipedCard(null);
         processedVotesRef.current = new Set();
         setWinnerWatchlistItemId(null);
       }
@@ -693,6 +723,7 @@ export function useSessionFlow() {
     setWinnerWatchlistItemId(null);
     setDeckPhase("idle");
     setLocalVotes({});
+    setLastSwipedCard(null);
     setLeaderEndedSessionNotice(false);
     processedVotesRef.current = new Set();
     joinAttemptRef.current = null;
@@ -755,6 +786,12 @@ export function useSessionFlow() {
     !userLocked &&
     !showWaitingCard &&
     !shuffleMutation.isPending;
+  const canUndoSwipe =
+    Boolean(activeSessionId) &&
+    Boolean(lastSwipedCard) &&
+    sessionStatus !== "complete" &&
+    (sessionPhase === "swiping" || sessionPhase === "waiting") &&
+    !undoVoteMutation.isPending;
   const showPlaceholderDeck =
     !showWaitingCard &&
     !tieBreakRequired &&
@@ -883,7 +920,11 @@ export function useSessionFlow() {
     });
   };
 
-  const handleSwipe = (direction: SwipeDirection, card: SessionCandidate) => {
+  const handleSwipe = (
+    direction: SwipeDirection,
+    card: SessionCandidate,
+    cardIndex: number,
+  ) => {
     const vote = mapDirectionToVote(direction);
     const voteKey = `${sessionRound}:${card.watchlist_item_id}`;
 
@@ -893,12 +934,40 @@ export function useSessionFlow() {
 
     processedVotesRef.current.add(voteKey);
     setLocalVotes((prev) => ({ ...prev, [card.watchlist_item_id]: vote }));
+    setLastSwipedCard({ card, index: cardIndex, round: sessionRound });
 
     if (activeSessionId) {
       voteMutation.mutate({
         sessionId: activeSessionId,
         watchlistItemId: card.watchlist_item_id,
         vote,
+      });
+    }
+  };
+
+  const handleUndoSwipe = async () => {
+    if (!activeSessionId || !lastSwipedCard || undoVoteMutation.isPending) return;
+
+    const { card, index, round } = lastSwipedCard;
+    const voteKey = `${round}:${card.watchlist_item_id}`;
+
+    try {
+      await undoVoteMutation.mutateAsync({
+        sessionId: activeSessionId,
+        watchlistItemId: card.watchlist_item_id,
+      });
+      processedVotesRef.current.delete(voteKey);
+      setLocalVotes((prev) => {
+        const next = { ...prev };
+        delete next[card.watchlist_item_id];
+        return next;
+      });
+      setCurrentIndex(index);
+      setSessionPhase("swiping");
+      setLastSwipedCard(null);
+    } catch {
+      void queryClient.invalidateQueries({
+        queryKey: ["session-state", activeSessionId],
       });
     }
   };
@@ -1004,6 +1073,8 @@ export function useSessionFlow() {
     currentIndex,
     setCurrentIndex,
     canSwipe,
+    canUndoSwipe,
+    undoSwipeIsPending: undoVoteMutation.isPending,
     localVotes,
     swipedCount,
     totalCards,
@@ -1022,6 +1093,7 @@ export function useSessionFlow() {
     handleConfirmDeal,
     handleBackToVibeSelection,
     handleSwipe,
+    handleUndoSwipe,
     handleProgrammaticSwipe,
     handleShuffleToDecide,
     handleSetWatchPartyUrl,

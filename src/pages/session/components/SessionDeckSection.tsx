@@ -66,10 +66,17 @@ type SessionDeckSectionProps = {
   swipeDeckRef: RefObject<SwipeDeckHandle | null>;
   currentIndex: number;
   onCurrentIndexChange: (index: number) => void;
-  onSwipe: (direction: SwipeDirection, card: SessionCandidate) => void;
+  onSwipe: (
+    direction: SwipeDirection,
+    card: SessionCandidate,
+    cardIndex: number,
+  ) => void;
   canSwipe: boolean;
+  canUndoSwipe: boolean;
+  undoSwipeIsPending: boolean;
   sessionContext: SessionContext;
   localVotes: Record<string, SwipeVote>;
+  onUndoSwipe: () => Promise<void>;
   onProgrammaticSwipe: (direction: "left" | "up" | "right") => Promise<void>;
   swipedCount: number;
   totalCards: number;
@@ -105,8 +112,11 @@ export default function SessionDeckSection({
   onCurrentIndexChange,
   onSwipe,
   canSwipe,
+  canUndoSwipe,
+  undoSwipeIsPending,
   sessionContext,
   localVotes,
+  onUndoSwipe,
   onProgrammaticSwipe,
   swipedCount,
   totalCards,
@@ -252,6 +262,18 @@ export default function SessionDeckSection({
             }}
           >
             No
+          </Button>
+          <Button
+            variant="bordered"
+            className="border-[#E0B15C]/45 text-[#E0B15C]"
+            isDisabled={!canUndoSwipe}
+            isLoading={undoSwipeIsPending}
+            aria-label="Undo last vote"
+            onPress={() => {
+              void onUndoSwipe();
+            }}
+          >
+            Undo
           </Button>
           <Button
             variant="bordered"

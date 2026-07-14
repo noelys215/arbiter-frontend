@@ -123,6 +123,15 @@ export async function submitSessionVote(
   });
 }
 
+export async function undoSessionVote(sessionId: string, watchlistItemId: string) {
+  return apiJson<SubmitVoteResponse>(
+    `/sessions/${sessionId}/vote/${watchlistItemId}`,
+    {
+      method: "DELETE",
+    },
+  );
+}
+
 export async function shuffleSession(sessionId: string) {
   return apiJson<SessionStateResponse>(`/sessions/${sessionId}/shuffle`, {
     method: "POST",
