@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import RequireAuth from "./RequireAuth";
 import HomePage from "../pages/HomePage";
+import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import PrivacyPolicyPage from "../pages/PrivacyPolicyPage";
@@ -11,14 +12,11 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={
-            <RequireAuth>
-              <Navigate to="/app" replace />
-            </RequireAuth>
-          }
-        />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/about" element={<LandingPage />} />
+        <Route path="/how-it-works" element={<LandingPage />} />
+        <Route path="/movie-night-picker" element={<LandingPage />} />
+        <Route path="/watch-party-picker" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
@@ -41,7 +39,7 @@ export default function AppRouter() {
             </RequireAuth>
           }
         />
-        <Route path="*" element={<Navigate to="/app" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
