@@ -11,7 +11,7 @@ import {
   type Ref,
 } from "react";
 
-export type SwipeDirection = "left" | "right" | "up";
+export type SwipeDirection = "left" | "right";
 
 type SwipeDeckState = {
   index: number;
@@ -41,7 +41,6 @@ export type SwipeDeckProps<TCard> = {
 
 const SWIPE_OUT_MS = 220;
 const CARD_SWIPE_X = 560;
-const CARD_SWIPE_Y = 620;
 
 function toDirection(offsetX: number, offsetY: number, threshold: number) {
   const absX = Math.abs(offsetX);
@@ -49,10 +48,6 @@ function toDirection(offsetX: number, offsetY: number, threshold: number) {
 
   if (absX < threshold && absY < threshold) {
     return null;
-  }
-
-  if (absY > absX && offsetY < -threshold) {
-    return "up" as SwipeDirection;
   }
 
   if (absX >= absY) {
@@ -143,7 +138,7 @@ function SwipeDeckInner<TCard>(
                   : swiping.direction === "right"
                     ? CARD_SWIPE_X
                     : 0,
-              y: swiping.direction === "up" ? -CARD_SWIPE_Y : -40,
+              y: -40,
               rotate:
                 swiping.direction === "left"
                   ? -16

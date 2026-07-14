@@ -77,7 +77,7 @@ type SessionDeckSectionProps = {
   sessionContext: SessionContext;
   localVotes: Record<string, SwipeVote>;
   onUndoSwipe: () => Promise<void>;
-  onProgrammaticSwipe: (direction: "left" | "up" | "right") => Promise<void>;
+  onProgrammaticSwipe: (direction: SwipeDirection) => Promise<void>;
   swipedCount: number;
   totalCards: number;
   userSecondsLeft: number;
@@ -274,17 +274,6 @@ export default function SessionDeckSection({
             }}
           >
             Undo
-          </Button>
-          <Button
-            variant="bordered"
-            className="border-[#E0B15C]/45 text-[#E0B15C]"
-            isDisabled={!canSwipe}
-            aria-label="Vote maybe on current title"
-            onPress={() => {
-              void onProgrammaticSwipe("up");
-            }}
-          >
-            Maybe
           </Button>
           <Button
             className="border border-[#E0B15C]/55 bg-[#E0B15C] text-[#171717]"

@@ -817,12 +817,9 @@ export function useSessionFlow() {
     const yesCards = sortedCards.filter(
       (card) => localVotes[card.watchlist_item_id] === "yes",
     );
-    const maybeCards = sortedCards.filter(
-      (card) => localVotes[card.watchlist_item_id] === "maybe",
-    );
 
     const combined = uniqueStrings(
-      [...yesCards, ...maybeCards].map((card) => card.watchlist_item_id),
+      yesCards.map((card) => card.watchlist_item_id),
     )
       .map((id) => cardsById.get(id))
       .filter((card): card is SessionCandidate => Boolean(card));
@@ -972,7 +969,7 @@ export function useSessionFlow() {
     }
   };
 
-  const handleProgrammaticSwipe = async (direction: "left" | "right" | "up") => {
+  const handleProgrammaticSwipe = async (direction: SwipeDirection) => {
     if (!canSwipe || currentIndex < 0) return;
     await swipeDeckRef.current?.swipe(direction);
   };

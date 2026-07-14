@@ -45,7 +45,7 @@ export default function ShortlistModal({
             <ModalBody>
               {shortlist.length === 0 ? (
                 <p className="text-sm text-[#D9C7A8]">
-                  No shortlist yet. Swipe yes/maybe or finish the deck.
+                  No shortlist yet. Swipe yes or finish the deck.
                 </p>
               ) : (
                 <div className="space-y-2">

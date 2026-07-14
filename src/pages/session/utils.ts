@@ -37,10 +37,9 @@ export function toDisplayGenreLabel(value: string) {
 }
 
 export function mapDirectionToVote(
-  direction: "left" | "right" | "up" | "down",
+  direction: "left" | "right",
 ): SwipeVote {
   if (direction === "right") return "yes";
-  if (direction === "up") return "maybe";
   return "no";
 }
 
@@ -84,7 +83,6 @@ export function buildWhyLine(card: SessionCandidate, context: SessionContext) {
 
 export function getReadableVote(vote: SwipeVote | undefined) {
   if (vote === "yes") return "YES";
-  if (vote === "maybe") return "MAYBE";
   if (vote === "no") return "NO";
   return "";
 }

@@ -1,4 +1,4 @@
-export type SwipeVote = "yes" | "maybe" | "no";
+export type SwipeVote = "yes" | "no";
 export type VibeInputMode = "tags" | "ai";
 
 export type SessionContext = {
