@@ -15,9 +15,11 @@ type AddToWatchlistCardProps = {
   onOpenManual: () => void;
   isManualDisabled: boolean;
   inputClassNames: InputClassNames;
-  renderPoster: (posterPath?: string | null, altText?: string) => ReactNode;
-  isOpen: boolean;
-  onToggleOpen: () => void;
+  renderPoster: (
+    posterPath?: string | null,
+    altText?: string,
+    size?: "compact" | "row",
+  ) => ReactNode;
 };
 
 export default function AddToWatchlistCard({
@@ -31,8 +33,6 @@ export default function AddToWatchlistCard({
   isManualDisabled,
   inputClassNames,
   renderPoster,
-  isOpen,
-  onToggleOpen,
 }: AddToWatchlistCardProps) {
   const queryClient = useQueryClient();
   const addTmdbMutation = useMutation({
@@ -50,8 +50,8 @@ export default function AddToWatchlistCard({
   });
 
   return (
-    <section className="rounded-xl border border-[#E0B15C]/18 bg-[#21130F]/80" aria-labelledby="add-title-heading">
-      <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+    <section className="rounded-xl border border-[#E0B15C]/16 bg-[#21130F]/78" aria-labelledby="add-title-heading">
+      <div className="px-4 pt-4">
         <div className="min-w-0">
           <h3 id="add-title-heading" className="text-base font-semibold text-[#F7EAD2]">
             Add a title
@@ -60,33 +60,34 @@ export default function AddToWatchlistCard({
             Search movies and shows, or add one by hand.
           </p>
         </div>
-        <Button
-          variant="bordered"
-          className="app-outline-button w-full sm:w-auto"
-          onPress={onToggleOpen}
-          aria-expanded={isOpen}
-          aria-controls="add-title-tools"
-        >
-          {isOpen ? "Hide add tools" : "Add a title"}
-        </Button>
       </div>
       <div
         id="add-title-tools"
-        hidden={!isOpen}
-        className="space-y-4 border-t app-rule px-4 py-4"
+        className="space-y-4 px-4 py-4"
       >
         <div className="space-y-2">
-          <Input
-            label="Search TMDB"
-            placeholder="Search movies or TV shows"
-            value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-            variant="bordered"
-            classNames={inputClassNames}
-          />
+          <div className="flex flex-col gap-3 md:flex-row md:items-end">
+            <Input
+              label="Search TMDB"
+              placeholder="Search movies or TV shows"
+              value={search}
+              onChange={(event) => onSearchChange(event.target.value)}
+              variant="bordered"
+              className="md:flex-1"
+              classNames={inputClassNames}
+            />
+            <Button
+              variant="light"
+              className="app-secondary-button app-manual-button h-14 w-full md:w-44"
+              onPress={onOpenManual}
+              isDisabled={isManualDisabled}
+            >
+              Add by hand
+            </Button>
+          </div>
           {isSearching ? (
             <div
-              className="flex items-center gap-2 text-sm text-[#D9C7A8]"
+              className="flex items-center gap-2 text-sm app-text-secondary"
               role="status"
               aria-live="polite"
             >
@@ -111,36 +112,26 @@ export default function AddToWatchlistCard({
                   >
                     {renderPoster(item.poster_path ?? null, item.title)}
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-white">
+                      <p className="text-sm font-semibold app-text-primary">
                         {item.title}
                       </p>
-                      <p className="text-xs text-[#D9C7A8]">
+                      <p className="text-xs app-text-metadata">
                         {item.media_type.toUpperCase()}{" "}
                         {item.year ? `• ${item.year}` : ""}
                       </p>
                     </div>
-                    <span className="text-xs text-[#E0B15C]">Add</span>
+                    <span className="text-xs font-semibold text-[#F5D9A5]">Add</span>
                   </button>
                 </li>
               ))}
             </ul>
           ) : null}
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            variant="bordered"
-            className="app-outline-button"
-            onPress={onOpenManual}
-            isDisabled={isManualDisabled}
-          >
-            Add by hand
-          </Button>
-          {addTmdbMutation.isError ? (
-            <p className="text-sm text-[#D77B69]" role="alert">
-              Unable to add to watchlist.
-            </p>
-          ) : null}
-        </div>
+        {addTmdbMutation.isError ? (
+          <p className="text-sm app-text-destructive" role="alert">
+            Unable to add to watchlist.
+          </p>
+        ) : null}
       </div>
     </section>
   );

@@ -49,10 +49,10 @@ type AvatarMenuModalProps = {
 };
 
 const inputClassNames: InputClassNames = {
-  label: "text-[#E0B15C]/80",
-  input: "text-white placeholder:text-white/40",
+  label: "!text-[#EAD9BC]",
+  input: "text-[#F7F1E3] placeholder:text-[#C7B18D]",
   inputWrapper:
-    "border-[#E0B15C]/20 bg-[#22130F] focus-within:border-[#E0B15C]",
+    "border-[#E0B15C]/32 bg-[#22130F] focus-within:border-[#E0B15C] focus-within:ring-1 focus-within:ring-[#E0B15C]/60",
 };
 
 export default function AvatarMenuModal({
@@ -214,8 +214,11 @@ export default function AvatarMenuModal({
         size="2xl"
         scrollBehavior="inside"
         classNames={{
-          base: "border border-[#E0B15C]/24 bg-[#1C110F]",
-          backdrop: "bg-black/45",
+          base: "max-h-[calc(100dvh-2rem)] border border-[#E0B15C]/20 bg-[#1C110F]",
+          wrapper: "items-end pb-4 sm:items-center sm:pb-0",
+          backdrop: "bg-black/32",
+          closeButton:
+            "text-[#EAD9BC] hover:bg-[#E0B15C]/10 hover:text-[#F7EAD2] focus-visible:ring-2 focus-visible:ring-[#F2C16E]",
           header: "border-b border-[#E0B15C]/16",
           body: "py-5",
           footer: "border-t border-[#E0B15C]/16",
@@ -252,10 +255,12 @@ export default function AvatarMenuModal({
                   classNames={{
                     base: "w-full",
                     tabList:
-                      "w-full rounded-lg border border-[#E0B15C]/22 bg-[#120B09]/80 p-1",
-                    tab: "h-9 px-3 font-semibold text-[#E4D1B2] data-[hover=true]:text-[#F7EAD2] data-[selected=true]:text-[#160C0A]",
-                    cursor: "rounded-md bg-[#E0B15C] shadow-sm",
-                    panel: "pt-5",
+                      "w-full gap-5 rounded-none bg-transparent p-0",
+                    tab: "h-10 border-b-2 border-transparent px-0 font-semibold data-[hover=true]:border-[#E0B15C]/40 data-[selected=true]:border-[#E0B15C]",
+                    tabContent:
+                      "!text-[#EAD9BC] group-data-[selected=true]:!text-[#F7EAD2]",
+                    cursor: "hidden",
+                    panel: "min-h-56 pt-5 sm:min-h-60",
                   }}
                 >
                   <Tab key="profile" title="Profile">
@@ -416,7 +421,7 @@ export default function AvatarMenuModal({
                                   {group.name}
                                 </span>
                                 {group.id === selectedGroup?.id ? (
-                                  <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#E0B15C]/75">
+                                  <span className="text-xs font-semibold uppercase tracking-[0.12em] app-text-metadata">
                                     Current
                                   </span>
                                 ) : null}

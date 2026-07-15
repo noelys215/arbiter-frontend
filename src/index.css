@@ -31,6 +31,16 @@
   --theater-text-muted: #d9c7a8;
   --theater-danger: #d77b69;
   --theater-focus: #f2c16e;
+  --app-text-primary: #f7ead2;
+  --app-text-secondary: #ead9bc;
+  --app-text-metadata: #dac49f;
+  --app-text-tertiary: #bfa986;
+  --app-text-disabled: #907b61;
+  --app-text-destructive: #f0a494;
+  --app-placeholder: #c7b18d;
+  --app-border-subtle: rgb(224 177 92 / 0.14);
+  --app-border-control: rgb(224 177 92 / 0.34);
+  --app-control-surface: rgb(224 177 92 / 0.06);
   --landing-bg: #120b09;
   --landing-bg-deep: #0b0605;
   --landing-surface: rgb(28 17 15 / 0.72);
@@ -1562,19 +1572,19 @@ pre {
   }
 
   .app-surface {
-    border: 1px solid rgb(224 177 92 / 0.22);
+    border: 1px solid rgb(224 177 92 / 0.18);
     border-radius: 0.875rem;
     background: rgb(28 17 15 / 0.88);
   }
 
   .app-surface-soft {
-    border: 1px solid rgb(224 177 92 / 0.16);
+    border: 1px solid var(--app-border-subtle);
     border-radius: 0.75rem;
     background: rgb(28 17 15 / 0.68);
   }
 
   .app-rule {
-    border-color: rgb(224 177 92 / 0.12);
+    border-color: rgb(224 177 92 / 0.1);
   }
 
   .app-heading-serif {
@@ -1592,42 +1602,117 @@ pre {
   }
 
   .app-primary-button:hover {
-    background: #edc578;
+    background: #edc578 !important;
   }
 
   .app-secondary-button {
-    color: var(--theater-accent-soft);
+    border-color: transparent !important;
+    background: transparent !important;
+    color: var(--app-text-secondary) !important;
+    font-weight: 650;
   }
 
   .app-secondary-button:hover {
-    background: rgb(224 177 92 / 0.08);
+    background: rgb(224 177 92 / 0.08) !important;
+    color: var(--app-text-primary) !important;
+  }
+
+  .app-manual-button {
+    border: 1px solid rgb(224 177 92 / 0.2) !important;
+    background: rgb(224 177 92 / 0.035) !important;
+  }
+
+  .app-manual-button:hover {
+    border-color: rgb(224 177 92 / 0.34) !important;
   }
 
   .app-outline-button {
-    border-color: rgb(224 177 92 / 0.42);
-    color: var(--theater-accent-soft);
+    border-color: var(--app-border-control) !important;
+    background: var(--app-control-surface) !important;
+    color: var(--app-text-primary) !important;
+    font-weight: 650;
   }
 
   .app-outline-button:hover {
-    border-color: rgb(224 177 92 / 0.48);
-    background: rgb(224 177 92 / 0.07);
+    border-color: rgb(224 177 92 / 0.48) !important;
+    background: rgb(224 177 92 / 0.1) !important;
   }
 
   .app-danger-button {
-    border-color: rgb(215 123 105 / 0.34);
-    color: #f1a799;
+    border-color: rgb(240 164 148 / 0.24) !important;
+    background: transparent !important;
+    color: var(--app-text-destructive) !important;
+    font-weight: 650;
   }
 
   .app-danger-button:hover {
-    border-color: rgb(215 123 105 / 0.4);
-    background: rgb(215 123 105 / 0.08);
+    border-color: rgb(240 164 148 / 0.4) !important;
+    background: rgb(215 123 105 / 0.1) !important;
+    color: #ffd3c9 !important;
+  }
+
+  .app-primary-button[disabled],
+  .app-primary-button[data-disabled="true"],
+  .app-primary-button[aria-disabled="true"],
+  .app-secondary-button[disabled],
+  .app-secondary-button[data-disabled="true"],
+  .app-secondary-button[aria-disabled="true"],
+  .app-outline-button[disabled],
+  .app-outline-button[data-disabled="true"],
+  .app-outline-button[aria-disabled="true"],
+  .app-danger-button[disabled],
+  .app-danger-button[data-disabled="true"],
+  .app-danger-button[aria-disabled="true"] {
+    border-color: rgb(144 123 97 / 0.24) !important;
+    background: rgb(144 123 97 / 0.08) !important;
+    color: var(--app-text-disabled) !important;
+    box-shadow: none !important;
+    cursor: not-allowed;
+    opacity: 1 !important;
+  }
+
+  .app-primary-button:focus-visible,
+  .app-secondary-button:focus-visible,
+  .app-outline-button:focus-visible,
+  .app-danger-button:focus-visible {
+    outline: 3px solid var(--theater-focus) !important;
+    outline-offset: 2px;
+  }
+
+  .app-account-trigger[data-focus-visible="true"] {
+    outline: 3px solid var(--theater-focus) !important;
+    outline-offset: 2px;
   }
 
   .app-muted {
-    color: #e4d1b2;
+    color: var(--app-text-secondary);
   }
 
   .app-tertiary {
-    color: rgb(217 199 168 / 0.78);
+    color: var(--app-text-metadata);
+  }
+
+  .app-text-primary {
+    color: var(--app-text-primary);
+  }
+
+  .app-text-secondary {
+    color: var(--app-text-secondary);
+  }
+
+  .app-text-metadata {
+    color: var(--app-text-metadata);
+  }
+
+  .app-text-tertiary {
+    color: var(--app-text-tertiary);
+  }
+
+  .app-text-disabled {
+    color: var(--app-text-disabled);
+  }
+
+  .app-text-destructive {
+    color: var(--app-text-destructive);
   }
 }

@@ -18,6 +18,7 @@ export type WatchlistTitle = {
   name?: string;
   release_year?: number | null;
   runtime_minutes?: number | null;
+  season_count?: number | null;
   poster_path?: string | null;
   tmdb_genres?: string[];
   tmdb_genre_ids?: number[];

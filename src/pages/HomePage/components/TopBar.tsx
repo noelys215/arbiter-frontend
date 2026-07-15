@@ -35,7 +35,7 @@ export default function TopBar({
           <Button
             isIconOnly
             variant="light"
-            className="h-12 w-12 min-w-12 rounded-full border border-[#E0B15C]/20 p-0 transition hover:border-[#E0B15C]/55 sm:h-14 sm:w-14 sm:min-w-14"
+            className="app-account-trigger h-12 w-12 min-w-12 rounded-full border border-[#E0B15C]/20 p-0 transition hover:border-[#E0B15C]/55 sm:h-14 sm:w-14 sm:min-w-14"
             onPress={onAvatarClick}
             aria-label="Open account menu"
           >

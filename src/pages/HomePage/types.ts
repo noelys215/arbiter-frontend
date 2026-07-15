@@ -12,8 +12,8 @@ export type InputClassNames = {
 
 export type WatchlistMeta = {
   name: string;
-  year: number | null;
   poster: string | null;
+  editorialLine: string | null;
 };
 
 export type OnOpenChange = (isOpen: boolean) => void;

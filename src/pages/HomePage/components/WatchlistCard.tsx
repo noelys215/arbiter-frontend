@@ -35,7 +35,11 @@ type WatchlistCardProps = {
   onClearFilters: () => void;
   genreOptions: Array<{ id: number; label: string }>;
   addTitleSlot: ReactNode;
-  renderPoster: (posterPath?: string | null, altText?: string) => ReactNode;
+  renderPoster: (
+    posterPath?: string | null,
+    altText?: string,
+    size?: "compact" | "row",
+  ) => ReactNode;
   getWatchlistMeta: (item: WatchlistItem) => WatchlistMeta;
 };
 
@@ -95,13 +99,11 @@ export default function WatchlistCard({
 
   const getAddedByLabel = (item: WatchlistItem) => {
     const user = item.added_by_user ?? null;
-    const fallback =
-      user?.display_name ?? user?.username ?? user?.email ?? null;
-    const id = user?.id ?? null;
-    if (id && currentUserId && id === currentUserId) {
+    const label = user?.display_name ?? user?.username ?? user?.email ?? null;
+    if (user?.id && currentUserId && user.id === currentUserId) {
       return "You";
     }
-    return fallback;
+    return label;
   };
 
   return (
@@ -111,11 +113,11 @@ export default function WatchlistCard({
           <div className="min-w-0">
             <h3
               id="watchlist-heading"
-              className="text-xl font-semibold text-[#F7EAD2]"
+              className="sr-only text-xl font-semibold text-[#F7EAD2] sm:not-sr-only"
             >
               {selectedGroupName ?? "Select a group"}
             </h3>
-            <p className="mt-1 text-sm app-muted">
+            <p className="text-sm app-muted sm:mt-1">
               {totalCount === 1
                 ? "1 title ready for the group."
                 : `${totalCount} titles ready for the group.`}

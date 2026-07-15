@@ -10,7 +10,11 @@ type WatchlistListProps = {
   isError: boolean;
   isPagePending: boolean;
   hasActiveFilters: boolean;
-  renderPoster: (posterPath?: string | null, altText?: string) => ReactNode;
+  renderPoster: (
+    posterPath?: string | null,
+    altText?: string,
+    size?: "compact" | "row",
+  ) => ReactNode;
   getWatchlistMeta: (item: WatchlistItem) => WatchlistMeta;
   getAddedByLabel: (item: WatchlistItem) => string | null;
   onRemove: (itemId: string | number) => void;
@@ -38,7 +42,7 @@ export default function WatchlistList({
 }: WatchlistListProps) {
   if (!selectedGroupId) {
     return (
-      <p className="text-sm text-[#D9C7A8]" role="status" aria-live="polite">
+      <p className="text-sm app-text-secondary" role="status" aria-live="polite">
         Select a group to view its watchlist.
       </p>
     );
@@ -46,7 +50,7 @@ export default function WatchlistList({
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 text-[#D9C7A8]" role="status" aria-live="polite">
+      <div className="flex items-center gap-2 app-text-secondary" role="status" aria-live="polite">
         <Spinner size="sm" color="warning" /> Loading watchlist...
       </div>
     );
@@ -54,7 +58,7 @@ export default function WatchlistList({
 
   if (isError) {
     return (
-      <p className="text-sm text-[#D77B69]" role="alert">
+      <p className="text-sm app-text-destructive" role="alert">
         Unable to load watchlist.
       </p>
     );
@@ -62,7 +66,7 @@ export default function WatchlistList({
 
   if (isPagePending) {
     return (
-      <div className="flex items-center gap-2 text-[#D9C7A8]" role="status" aria-live="polite">
+      <div className="flex items-center gap-2 app-text-secondary" role="status" aria-live="polite">
         <Spinner size="sm" color="warning" /> Loading page...
       </div>
     );
@@ -70,38 +74,54 @@ export default function WatchlistList({
 
   if (items.length === 0) {
     return (
-      <p className="text-sm text-[#D9C7A8]" role="status" aria-live="polite">
+      <p className="text-sm app-text-secondary" role="status" aria-live="polite">
         {hasActiveFilters ? "No matches found" : "Your watchlist is empty"}
       </p>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <ul className="divide-y app-rule" aria-label="Watchlist titles">
-        {items.map((item) => {
+    <div className="space-y-2">
+      <ul aria-label="Watchlist titles">
+        {items.map((item, index) => {
           const meta = getWatchlistMeta(item);
           const addedBy = getAddedByLabel(item);
           return (
             <li
-              key={item.id ?? `${meta.name}-${meta.year ?? ""}`}
-              className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-4 py-5 transition-colors hover:bg-[#E0B15C]/[0.035] focus-within:bg-[#E0B15C]/[0.045] sm:grid-cols-[5rem_minmax(0,1fr)_auto] sm:items-center"
+              key={item.id ?? `${meta.name}-${index}`}
+              className="relative grid grid-cols-[5rem_minmax(0,1fr)] gap-4 py-5 transition-colors hover:bg-[#E0B15C]/[0.035] focus-within:bg-[#E0B15C]/[0.055] sm:grid-cols-[5.5rem_minmax(0,1fr)_5.25rem] sm:items-start sm:pr-8 lg:py-[1.125rem] xl:pr-12"
             >
-              {renderPoster(meta.poster, meta.name)}
+              {index > 0 ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute left-24 right-0 top-0 border-t border-[#E0B15C]/6 sm:left-[6.5rem] sm:right-8 xl:right-12"
+                />
+              ) : null}
+              {renderPoster(meta.poster, meta.name, "row")}
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xl font-bold leading-7 text-[#F7EAD2]">
+                <p className="text-[1.35rem] font-bold leading-7 text-[#F7EAD2] break-words">
                   {meta.name}
                 </p>
-                <p className="mt-1 text-sm app-muted">
-                  {meta.year ? meta.year : "Unknown year"}
-                  {addedBy ? ` · Added by ${addedBy}` : ""}
-                </p>
+                {meta.editorialLine || addedBy ? (
+                  <div className="mt-1 flex flex-col gap-1">
+                    {meta.editorialLine ? (
+                      <p className="break-words text-sm leading-5 app-text-secondary">
+                        {meta.editorialLine}
+                      </p>
+                    ) : null}
+                    {addedBy ? (
+                      <p className="text-sm leading-5 app-text-metadata">
+                        Added by {addedBy}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
-              <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 sm:col-span-1 sm:flex-col sm:items-end sm:justify-center">
+              <div className="col-span-2 flex flex-wrap items-center justify-start gap-2 pl-24 sm:col-span-1 sm:justify-end sm:pl-0 sm:pt-1">
                 <Button
                   size="sm"
                   variant="light"
-                  className="app-danger-button"
+                  className="app-danger-button min-w-0 px-2"
                   onPress={() => onRemove(item.id)}
                   isLoading={pendingRemoveId === item.id}
                   aria-label={`Remove ${meta.name} from watchlist`}
@@ -115,7 +135,7 @@ export default function WatchlistList({
       </ul>
 
       {totalPages > 1 ? (
-        <div className="flex justify-center pt-2">
+        <div className="flex justify-center pt-1">
           <Pagination
             page={currentPage}
             total={totalPages}

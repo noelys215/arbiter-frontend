@@ -10,6 +10,7 @@ import {
   type WatchlistSort,
 } from "../features/watchlist/watchlist.api";
 import type { WatchlistItem } from "../features/watchlist/watchlist.api";
+import { getWatchlistRowMetadata } from "../features/watchlist/watchlistMetadata";
 import { tmdbPosterUrl } from "../lib/tmdb";
 import { theaterSelectClassNames } from "../lib/selectTheme";
 import { TMDB_GENRE_LABEL_BY_ID } from "./session/constants";
@@ -41,15 +42,14 @@ export default function HomePage() {
   const [watchlistGenreId, setWatchlistGenreId] = useState<number | null>(null);
   const [watchlistSort, setWatchlistSort] = useState<WatchlistSort>("recent");
   const [watchlistPage, setWatchlistPage] = useState(1);
-  const [isAddTitleOpen, setIsAddTitleOpen] = useState(false);
   const manualModal = useDisclosure();
   const avatarModal = useDisclosure();
 
   const inputClassNames: InputClassNames = {
-    label: "text-[#F5D9A5]",
-    input: "text-[#F7F1E3] placeholder:text-[#D9C7A8]/65",
+    label: "!text-[#EAD9BC]",
+    input: "text-[#F7F1E3] placeholder:text-[#C7B18D]",
     inputWrapper:
-      "border-[#E0B15C]/35 bg-[#22130F] focus-within:border-[#E0B15C]",
+      "border-[#E0B15C]/35 bg-[#22130F] focus-within:border-[#E0B15C] focus-within:ring-1 focus-within:ring-[#E0B15C]/60",
   };
 
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: getMe });
@@ -123,19 +123,25 @@ export default function HomePage() {
 
   useWatchlistRealtime(resolvedSelectedGroupId);
 
-  const renderPoster = (posterPath?: string | null, altText?: string) => {
+  const renderPoster = (
+    posterPath?: string | null,
+    altText?: string,
+    size: "compact" | "row" = "compact",
+  ) => {
     const poster = tmdbPosterUrl(posterPath ?? null);
+    const dimensions =
+      size === "row" ? "h-[7.25rem] w-20" : "h-24 w-16";
     if (poster) {
       return (
         <img
           src={poster}
           alt={altText ?? "Poster"}
-          className="h-24 w-16 rounded-md object-cover shadow-[0_10px_24px_rgb(0_0_0/0.26)]"
+          className={`${dimensions} rounded-md object-cover shadow-[0_10px_24px_rgb(0_0_0/0.26)]`}
         />
       );
     }
     return (
-      <div className="flex h-24 w-16 items-center justify-center rounded-md border border-[#E0B15C]/25 bg-[#22130F] text-xs text-[#D9C7A8]">
+      <div className={`flex ${dimensions} items-center justify-center rounded-md border border-[#E0B15C]/25 bg-[#22130F] text-xs app-text-metadata`}>
         N/A
       </div>
     );
@@ -232,15 +238,12 @@ export default function HomePage() {
   const tmdbResults = Array.isArray(tmdbQuery.data) ? tmdbQuery.data : [];
 
   const getWatchlistMeta = (item: WatchlistItem): WatchlistMeta => {
-    const title = item.title ?? item.title_info ?? null;
-    const name =
-      title?.name ??
-      item.title_text ??
-      (typeof item.title === "string" ? item.title : "") ??
-      "Untitled";
-    const year = title?.release_year ?? item.year ?? null;
-    const poster = title?.poster_path ?? item.poster_path ?? null;
-    return { name, year, poster };
+    const metadata = getWatchlistRowMetadata(item);
+    return {
+      name: metadata.title,
+      poster: metadata.poster,
+      editorialLine: metadata.editorialLine,
+    };
   };
 
   return (
@@ -254,7 +257,7 @@ export default function HomePage() {
       <div id="main-content" tabIndex={-1} className="app-shell py-7 sm:py-9">
         {groupsLoading ? (
           <div
-            className="flex items-center gap-3 text-[#D9C7A8]"
+            className="flex items-center gap-3 app-text-secondary"
             role="status"
             aria-live="polite"
           >
@@ -262,7 +265,7 @@ export default function HomePage() {
             Loading groups...
           </div>
         ) : groupsError ? (
-          <p className="text-sm text-[#D77B69]" role="alert">
+          <p className="text-sm app-text-destructive" role="alert">
             Unable to load groups. Please refresh.
           </p>
         ) : groups && groups.length === 0 ? (
@@ -271,14 +274,14 @@ export default function HomePage() {
           <div className="space-y-7">
             <header className="flex flex-col gap-4 border-b app-rule pb-5 lg:flex-row lg:items-end lg:justify-between">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-[#E0B15C]/75">
+                <p className="hidden text-sm font-medium app-text-metadata sm:block">
                   {selectedGroup?.name ?? "Choose a group"}
                 </p>
                 <h2 className="app-heading-serif mt-1 text-4xl leading-none text-[#F7EAD2] sm:text-5xl">
                   Watchlist
                 </h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 app-muted sm:text-base">
-                  Add the contenders, keep the group together, and start the vote when there are enough titles.
+                  Add the contenders, invite the group, and start the vote when you’re ready.
                 </p>
               </div>
 
@@ -367,8 +370,6 @@ export default function HomePage() {
                     isManualDisabled={!resolvedSelectedGroupId}
                     inputClassNames={inputClassNames}
                     renderPoster={renderPoster}
-                    isOpen={isAddTitleOpen}
-                    onToggleOpen={() => setIsAddTitleOpen((value) => !value)}
                   />
                 }
                 renderPoster={renderPoster}
@@ -376,7 +377,7 @@ export default function HomePage() {
               />
             </main>
 
-            <div className="lg:pt-1">
+            <div>
               <RightRail friends={friends} selectedGroup={selectedGroup} />
             </div>
           </div>

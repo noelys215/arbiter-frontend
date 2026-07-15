@@ -94,16 +94,17 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
   };
 
   return (
-    <aside className="app-surface px-4 py-4" aria-label="Group and friends panel">
+    <aside className="rounded-xl border border-[#E0B15C]/10 bg-[#1C110F]/72 px-4 py-4" aria-label="Group and friends panel">
       <div className="space-y-5">
         {selectedGroup ? (
           <section>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#E0B15C]/65">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] app-text-metadata">
                 Current Group
               </p>
               <h3 className="mt-1 text-lg font-semibold text-[#F7EAD2]">
-                {selectedGroup.name}
+                <span className="sm:hidden">Members</span>
+                <span className="hidden sm:inline">{selectedGroup.name}</span>
               </h3>
             </div>
             <div className="mt-3">
@@ -113,7 +114,7 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                 max={3}
                 total={members.length}
                 renderCount={(count) => (
-                  <p className="text-xs text-[#D9C7A8] font-medium ms-2">
+                  <p className="text-xs font-medium app-text-metadata ms-2">
                     +{count} others
                   </p>
                 )}
@@ -133,7 +134,7 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
 
         <section className={selectedGroup ? "border-t app-rule pt-5" : ""}>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#E0B15C]/65">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] app-text-metadata">
               Friends
             </p>
             <h3 className="mt-1 text-lg font-semibold text-[#F7EAD2]">
@@ -163,7 +164,7 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                         label={label}
                         className="bg-[#E0B15C]/20 text-[#E0B15C]"
                       />
-                      <span className="text-sm text-white">{label}</span>
+                      <span className="text-sm app-text-primary">{label}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
