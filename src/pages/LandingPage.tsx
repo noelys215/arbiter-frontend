@@ -279,7 +279,7 @@ export default function LandingPage() {
                 <div className="landing-watchlist-thumb bg-gradient-to-br from-[#c4874f] via-[#67412c] to-[#17100f]" />
                 <div>
                   <p>Dune: Part Two</p>
-                  <span>Henry and Maya voted yes · Alex is choosing</span>
+                  <span>Henry and Janeiry voted yes · Alex is choosing</span>
                 </div>
                 <strong className="landing-activity-pulse">Leading 4–1</strong>
               </div>
