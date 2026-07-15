@@ -19,7 +19,6 @@ export default function SessionPage() {
     me,
     selectedGroup,
     resolvedGroupId,
-    setSelectedGroupId,
 
     isGroupLeader,
     activeSessionId,
@@ -99,9 +98,7 @@ export default function SessionPage() {
     <div className="min-h-screen bg-[#140C0A] text-white">
       <SkipLink />
       <SessionHeader
-        groups={groups}
-        resolvedGroupId={resolvedGroupId}
-        onSelectGroupId={setSelectedGroupId}
+        selectedGroupName={selectedGroup?.name ?? "Current group"}
         userName={me?.display_name ?? me?.username ?? "User"}
         userEmail={me?.email ?? ""}
         userAvatarUrl={me?.avatar_url}

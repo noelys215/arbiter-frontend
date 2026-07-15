@@ -1,12 +1,8 @@
-import { Avatar, Button, Select, SelectItem, Tooltip } from "@heroui/react";
+import { Avatar, Button, Tooltip } from "@heroui/react";
 import BrandLockup from "../../../components/BrandLockup";
-import type { Group } from "../../../features/groups/groups.api";
-import { theaterSelectClassNames } from "../../../lib/selectTheme";
 
 type SessionHeaderProps = {
-  groups: Group[];
-  resolvedGroupId: string | null;
-  onSelectGroupId: (groupId: string) => void;
+  selectedGroupName: string;
   userName: string;
   userEmail: string;
   userAvatarUrl?: string | null;
@@ -19,9 +15,7 @@ type SessionHeaderProps = {
 };
 
 export default function SessionHeader({
-  groups,
-  resolvedGroupId,
-  onSelectGroupId,
+  selectedGroupName,
   userName,
   userEmail,
   userAvatarUrl,
@@ -32,8 +26,6 @@ export default function SessionHeader({
   onLeaveSession,
   onGoHome,
 }: SessionHeaderProps) {
-  const groupLabelId = "session-header-group-label";
-
   return (
     <header
       className="sticky top-0 z-40 border-b border-[#E0B15C]/20 bg-[#140C0A]/95 backdrop-blur-sm"
@@ -83,30 +75,11 @@ export default function SessionHeader({
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-3">
-          <span
-            id={groupLabelId}
-            className="text-sm font-medium text-[#D9C7A8]"
-          >
-            Group:
+        <div className="flex items-center justify-center gap-2 text-sm">
+          <span className="font-medium text-[#A99577]">Group</span>
+          <span className="max-w-[16rem] truncate font-semibold text-[#F5D9A5]">
+            {selectedGroupName}
           </span>
-          <Select
-            size="sm"
-            aria-labelledby={groupLabelId}
-            selectedKeys={resolvedGroupId ? [resolvedGroupId] : []}
-            onSelectionChange={(keys) => {
-              const [value] = Array.from(keys);
-              if (typeof value === "string") {
-                onSelectGroupId(value);
-              }
-            }}
-            className="max-w-40 min-w-40 sm:max-w-44 sm:min-w-44"
-            classNames={theaterSelectClassNames}
-          >
-            {groups.map((group) => (
-              <SelectItem key={group.id}>{group.name}</SelectItem>
-            ))}
-          </Select>
         </div>
       </div>
     </header>
