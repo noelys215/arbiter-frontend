@@ -1,4 +1,4 @@
-import { Button, Chip, useDisclosure } from "@heroui/react";
+import { Button, Card, CardBody, CardHeader, Chip, Divider, useDisclosure } from "@heroui/react";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import BrandLockup from "../components/BrandLockup";
@@ -16,61 +16,55 @@ const pageCopy: Record<
 > = {
   "/movie-night-picker": {
     eyebrow: "Movie night picker",
-    title: "Pick what to watch without the group chat spiral.",
+    title: "Finally pick a movie everyone can agree on.",
     description:
-      "Arbiter turns movie night into a fast group vote, then narrows everyone down to a title people actually want to watch.",
+      "Add a few movies, invite your people, and let everyone vote. Arbiter shows you the best options so movie night can actually start.",
     pageTitle: "Movie Night Picker for Groups | Arbiter",
   },
   "/watch-party-picker": {
     eyebrow: "Watch party picker",
-    title: "Get the watch party aligned before the trailers start.",
+    title: "Stop asking “what should we watch?”",
     description:
-      "Build a shared watchlist, swipe through options together, and send the final watch link to the group in real time.",
+      "Arbiter helps your group make a quick choice, then keeps everyone on the same page with the final pick.",
     pageTitle: "Watch Party Picker | Arbiter",
   },
   "/how-it-works": {
     eyebrow: "How it works",
-    title: "Add the options, start a session, let the group decide.",
+    title: "Three easy steps. No arguing required.",
     description:
-      "Arbiter keeps the process simple: collect titles, vote yes or no, undo mistakes, and finish with a shortlist or winner.",
+      "Put the movie ideas in one place, vote as a group, and use the shortlist to choose what to watch.",
     pageTitle: "How Arbiter Works | Group Movie Voting",
   },
   "/about": {
     eyebrow: "About Arbiter",
-    title: "A calmer way to decide what the group is watching.",
+    title: "A simple way to pick what to watch.",
     description:
-      "Arbiter is built for friend groups, roommates, and watch parties that need a better answer than endless recommendations.",
+      "Arbiter is for friends, roommates, couples, and watch parties that are tired of scrolling forever.",
     pageTitle: "About Arbiter | Group Movie Picker",
   },
 };
 
 const steps = [
   {
-    title: "Build a shared watchlist",
-    text: "Add movies and shows from search or manual entry so every suggestion lives in one place.",
+    title: "Add choices",
+    text: "Put the movies and shows your group is considering into one shared list.",
   },
   {
-    title: "Start a live session",
-    text: "Everyone votes from the same group session, with updates landing in real time.",
+    title: "Everyone votes",
+    text: "Each person says yes or no. No long debate, no messy text thread.",
   },
   {
-    title: "Pick and watch",
-    text: "Use the shortlist, winner reveal, and watch-party link to move from deciding to watching.",
+    title: "Choose the winner",
+    text: "Arbiter narrows the list so your group can start watching sooner.",
   },
 ];
 
-const featureStats = [
-  { label: "Live sessions", value: "real-time" },
-  { label: "Vote options", value: "yes / no" },
-  { label: "Auth", value: "OAuth + magic links" },
-];
-
-const searchTargets = [
-  "movie night picker",
-  "group movie picker",
-  "watch party picker",
-  "movie voting app",
-  "what should we watch",
+const useCases = [
+  "Friends",
+  "Roommates",
+  "Couples",
+  "Watch parties",
+  "Family movie night",
 ];
 
 const AUTH_CTA_LABEL = "Sign in";
@@ -84,7 +78,7 @@ export default function LandingPage() {
     eyebrow: "Group movie picker",
     title: "Arbiter",
     description:
-      "A shared watchlist and live voting app that helps groups decide what movie or show to watch next.",
+      "A simple app that helps groups pick what movie or show to watch next.",
     pageTitle: "Arbiter | Movie Night Picker for Groups",
   };
 
@@ -144,15 +138,15 @@ export default function LandingPage() {
             className="absolute right-[-5rem] top-24 z-[-1] w-[min(78vw,42rem)] opacity-[0.18] sm:right-[3vw] sm:top-[4.5rem] sm:opacity-25"
           />
           <div className="absolute inset-0 z-[-2] bg-[linear-gradient(180deg,rgba(20,12,10,0.1)_0%,rgba(20,12,10,0.8)_62%,#140C0A_100%)]" />
-          <div className="mx-auto grid w-full max-w-6xl gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.78fr)] lg:items-end">
-            <div className="max-w-3xl">
+          <div className="mx-auto w-full max-w-6xl">
+            <div className="max-w-4xl">
               <p className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-[#E0B15C]">
                 {copy.eyebrow}
               </p>
               <h1 className="max-w-4xl text-5xl font-semibold leading-[1.03] text-[#F5D9A5] sm:text-7xl">
                 {copy.title}
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-[#D9C7A8] sm:text-xl">
+              <p className="mt-6 max-w-3xl text-lg leading-8 text-[#D9C7A8] sm:text-xl">
                 {copy.description}
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-4">
@@ -165,73 +159,24 @@ export default function LandingPage() {
                   {AUTH_CTA_LABEL}
                 </Button>
                 <p className="max-w-xs text-sm leading-6 text-[#D9C7A8]">
-                  Continue with Google or request a secure magic link. No
-                  passwords to create or manage.
+                  Use Google or a magic link. No password needed.
                 </p>
               </div>
-            </div>
-
-            <div className="border border-[#E0B15C]/18 bg-[#1C110F]/82 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-sm sm:p-6">
-              <div className="flex items-center justify-between gap-3 border-b border-[#E0B15C]/15 pb-4">
-                <div>
-                  <p className="text-sm uppercase tracking-[0.2em] text-[#E0B15C]/80">
-                    Tonight's session
-                  </p>
-                  <h2 className="mt-2 text-2xl font-semibold text-[#F7F1E3]">
-                    Movie night, settled
-                  </h2>
-                </div>
-                <Chip
-                  variant="flat"
-                  classNames={{
-                    base: "bg-[#E0B15C]/18",
-                    content: "text-[#F5D9A5]",
-                  }}
-                >
-                  Live
-                </Chip>
-              </div>
-              <dl className="mt-5 grid gap-3">
-                {featureStats.map((item) => (
-                  <div
-                    key={item.label}
-                    className="flex items-center justify-between gap-4 border-b border-[#E0B15C]/10 pb-3 last:border-b-0 last:pb-0"
+              <div className="mt-8 flex flex-wrap gap-2" aria-label="Common groups that use Arbiter">
+                {useCases.map((target) => (
+                  <Chip
+                    key={target}
+                    variant="flat"
+                    classNames={{
+                      base: "bg-[#E0B15C]/16",
+                      content: "text-[#F5D9A5]",
+                    }}
                   >
-                    <dt className="text-sm text-[#D9C7A8]">{item.label}</dt>
-                    <dd className="text-sm font-semibold text-[#F5D9A5]">
-                      {item.value}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-              <div className="mt-6 grid grid-cols-3 gap-2" aria-hidden="true">
-                {["No", "Undo", "Yes"].map((label) => (
-                  <div
-                    key={label}
-                    className="border border-[#E0B15C]/18 bg-[#140C0A] px-3 py-3 text-center text-sm font-semibold text-[#F7F1E3]"
-                  >
-                    {label}
-                  </div>
+                    {target}
+                  </Chip>
                 ))}
               </div>
             </div>
-          </div>
-        </section>
-
-        <section className="border-y border-[#E0B15C]/15 bg-[#1C110F] px-5 py-8 sm:px-8">
-          <div className="mx-auto flex max-w-6xl flex-wrap gap-3">
-            {searchTargets.map((target) => (
-              <Chip
-                key={target}
-                variant="bordered"
-                classNames={{
-                  base: "border-[#E0B15C]/25",
-                  content: "text-[#D9C7A8]",
-                }}
-              >
-                {target}
-              </Chip>
-            ))}
           </div>
         </section>
 
@@ -239,28 +184,81 @@ export default function LandingPage() {
           <div className="mx-auto max-w-6xl">
             <div className="max-w-2xl">
               <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#E0B15C]">
-                How Arbiter helps
+                How it works
               </p>
               <h2 className="mt-3 text-3xl font-semibold text-[#F5D9A5] sm:text-5xl">
-                Less debating. More watching.
+                You do not need to learn anything new.
               </h2>
+              <p className="mt-4 text-base leading-7 text-[#D9C7A8]">
+                If you can add a movie and tap yes or no, you can use Arbiter.
+              </p>
             </div>
             <div className="mt-10 grid gap-5 md:grid-cols-3">
               {steps.map((step, index) => (
-                <article
+                <Card
                   key={step.title}
-                  className="border-t border-[#E0B15C]/30 pt-5"
+                  className="border border-[#E0B15C]/20 bg-[#1C110F] shadow-none"
                 >
-                  <span className="text-sm font-semibold text-[#E0B15C]">
-                    0{index + 1}
-                  </span>
-                  <h3 className="mt-3 text-xl font-semibold text-[#F7F1E3]">
-                    {step.title}
-                  </h3>
-                  <p className="mt-3 leading-7 text-[#D9C7A8]">{step.text}</p>
-                </article>
+                  <CardHeader className="flex items-start gap-4 px-5 pt-5">
+                    <Chip
+                      variant="flat"
+                      classNames={{
+                        base: "bg-[#E0B15C]/18",
+                        content: "font-semibold text-[#F5D9A5]",
+                      }}
+                    >
+                      {index + 1}
+                    </Chip>
+                    <div>
+                      <h3 className="text-xl font-semibold text-[#F7F1E3]">
+                        {step.title}
+                      </h3>
+                    </div>
+                  </CardHeader>
+                  <CardBody className="px-5 pb-5 pt-1">
+                    <p className="leading-7 text-[#D9C7A8]">{step.text}</p>
+                  </CardBody>
+                </Card>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="border-y border-[#E0B15C]/15 bg-[#1C110F] px-5 py-14 sm:px-8">
+          <div className="mx-auto grid max-w-6xl gap-5 md:grid-cols-3">
+            <Card className="border border-[#E0B15C]/20 bg-[#140C0A] shadow-none">
+              <CardBody className="gap-3 p-5">
+                <h2 className="text-xl font-semibold text-[#F5D9A5]">
+                  For the person hosting
+                </h2>
+                <Divider className="bg-[#E0B15C]/15" />
+                <p className="leading-7 text-[#D9C7A8]">
+                  Add the options once. Everyone votes from the same list.
+                </p>
+              </CardBody>
+            </Card>
+            <Card className="border border-[#E0B15C]/20 bg-[#140C0A] shadow-none">
+              <CardBody className="gap-3 p-5">
+                <h2 className="text-xl font-semibold text-[#F5D9A5]">
+                  For the picky friend
+                </h2>
+                <Divider className="bg-[#E0B15C]/15" />
+                <p className="leading-7 text-[#D9C7A8]">
+                  Vote no when you are not feeling it. Vote yes when you are.
+                </p>
+              </CardBody>
+            </Card>
+            <Card className="border border-[#E0B15C]/20 bg-[#140C0A] shadow-none">
+              <CardBody className="gap-3 p-5">
+                <h2 className="text-xl font-semibold text-[#F5D9A5]">
+                  For everyone else
+                </h2>
+                <Divider className="bg-[#E0B15C]/15" />
+                <p className="leading-7 text-[#D9C7A8]">
+                  Stop scrolling, stop debating, and start the movie.
+                </p>
+              </CardBody>
+            </Card>
           </div>
         </section>
 
@@ -268,11 +266,10 @@ export default function LandingPage() {
           <div className="mx-auto max-w-6xl">
             <div className="max-w-2xl">
               <h2 className="text-3xl font-semibold sm:text-4xl">
-                Ready to settle the next watch night?
+                Movie night should not take all night to start.
               </h2>
               <p className="mt-3 text-base leading-7 text-[#4C3329]">
-                Sign in with Google or a magic link, add a few titles, and let
-                Arbiter turn the decision into a quick live vote.
+                Sign in, add your group, and let Arbiter handle the deciding.
               </p>
             </div>
           </div>
