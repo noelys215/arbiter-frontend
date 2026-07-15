@@ -257,9 +257,9 @@ export default function LandingPage() {
                 See where the group is leaning.
               </h2>
               <p className="landing-body mt-4">
-                Suggestions, votes, and the leading choice stay together in one
-                quiet view. No side chats. No scattered lists. No guessing where
-                the group stands.
+                Suggestions, votes, the leading choice, and the Teleparty link
+                stay together in one quiet view. No side chats. No scattered
+                lists. No guessing where the group stands.
               </p>
             </div>
             <div
@@ -292,8 +292,8 @@ export default function LandingPage() {
                 <strong>2–2</strong>
               </div>
               <div className="landing-activity-footer">
-                <span>Link ready when the group picks</span>
-                <strong>Send to group</strong>
+                <span>Teleparty link ready when the group picks</span>
+                <strong>Share link</strong>
               </div>
             </div>
           </div>
