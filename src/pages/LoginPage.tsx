@@ -1,7 +1,7 @@
-import { Button, Card, CardBody, CardHeader, Input } from "@heroui/react";
+import { Button, Input } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { type FormEvent, useEffect, useId, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { requestMagicLink } from "../features/auth/auth.api";
 import { subscribeToAuthSuccess } from "../features/auth/authHandoff";
 import SkipLink from "../components/SkipLink";
@@ -19,8 +19,13 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
+  const emailHelpId = useId();
+  const emailErrorId = useId();
+  const statusId = useId();
   const [email, setEmail] = useState("");
   const [magicSentTo, setMagicSentTo] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false);
   const configuredGoogleLoginUrl = (
     import.meta.env.VITE_OAUTH_GOOGLE_LOGIN_URL as string | undefined
   )?.trim();
@@ -40,10 +45,11 @@ export default function LoginPage() {
       "Social sign-in failed. Please try again.")
     : null;
   const inputClassNames = {
-    label: "!text-[#F5D9A5]",
-    input: "!text-[#F7F1E3] placeholder:text-[#D9C7A8]/70",
+    base: "login-field",
+    label: "login-field-label",
+    input: "login-field-input",
     inputWrapper:
-      "border-[#E0B15C]/30 bg-[#1C110F] data-[hover=true]:border-[#E0B15C]/50 data-[focus=true]:border-[#F2C16E]",
+      "login-field-wrapper group-data-[invalid=true]:!border-[#D77B69]/80 group-data-[focus=true]:!border-[#F2C16E]",
   };
 
   const magicLinkMutation = useMutation({ mutationFn: requestMagicLink });
@@ -67,7 +73,15 @@ export default function LoginPage() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const normalizedEmail = email.trim();
-    if (!normalizedEmail) return;
+    if (!normalizedEmail) {
+      setEmailError("Enter your email address.");
+      return;
+    }
+    if (!event.currentTarget.checkValidity()) {
+      setEmailError("Enter a valid email address.");
+      return;
+    }
+    setEmailError(null);
     magicLinkMutation.mutate(
       { email: normalizedEmail },
       {
@@ -79,82 +93,137 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#140C0A] text-[#F7F1E3]">
+    <div className="login-page">
       <SkipLink />
       <main
         id="main-content"
         tabIndex={-1}
-        className="mx-auto flex min-h-screen max-w-md items-center px-6 py-12"
+        className="login-main"
       >
-        <Card className="w-full border border-[#E0B15C]/25 bg-[#22130F] shadow-none">
-          <CardHeader className="px-6 pt-6">
-            <h1 className="text-3xl font-semibold text-[#F5D9A5]">Sign in</h1>
-          </CardHeader>
-          <CardBody className="px-6 pb-6">
-            <form className="space-y-4" onSubmit={handleSubmit}>
+        <section className="login-intro" aria-labelledby="login-title">
+          <Link to="/" className="login-brand" aria-label="Arbiter home">
+            <img src="/arbiter.png" alt="" aria-hidden="true" />
+            <span>Arbiter</span>
+          </Link>
+          <div className="login-copy">
+            <p className="landing-eyebrow">Ready when you are</p>
+            <h1 id="login-title" className="login-title">
+              Pick up where movie night begins.
+            </h1>
+            <p className="login-body">
+              Sign in to create a list, invite your group, and find the
+              favorite.
+            </p>
+          </div>
+        </section>
+
+        <section className="login-panel" aria-label="Sign in to Arbiter">
+          <div className="login-panel-header">
+            <h2>Sign in</h2>
+            <p>Choose how you’d like to continue.</p>
+          </div>
+
+          <form className="login-form" onSubmit={handleSubmit} noValidate>
+            <div className="login-field-block">
               <Input
                 type="email"
                 label="Email"
-                placeholder="you@company.com"
+                placeholder="you@example.com"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  if (emailError) setEmailError(null);
+                }}
+                onInvalid={(event) => {
+                  setEmailError(
+                    event.currentTarget.validity.valueMissing
+                      ? "Enter your email address."
+                      : "Enter a valid email address.",
+                  );
+                }}
                 autoComplete="email"
+                inputMode="email"
                 isRequired
+                isInvalid={Boolean(emailError)}
                 variant="bordered"
+                radius="sm"
+                aria-describedby={`${emailHelpId} ${emailErrorId} ${statusId}`}
                 classNames={inputClassNames}
               />
+              <p id={emailHelpId} className="login-help-text">
+                We’ll email you a secure sign-in link. No password needed.
+              </p>
+              <p
+                id={emailErrorId}
+                className="login-field-error"
+                role={emailError ? "alert" : undefined}
+              >
+                {emailError}
+              </p>
+            </div>
+
+            <Button
+              type="submit"
+              className="login-primary-button"
+              isLoading={magicLinkMutation.isPending}
+              isDisabled={magicLinkMutation.isPending || isGoogleRedirecting}
+            >
+              Continue with email
+            </Button>
+
+            {googleLoginUrl ? (
+              <>
+                <div className="login-divider" aria-hidden="true">
+                  <span />
+                  <span>or</span>
+                  <span />
+                </div>
+                <Button
+                  type="button"
+                  variant="bordered"
+                  className="login-secondary-button"
+                  isLoading={isGoogleRedirecting}
+                  isDisabled={magicLinkMutation.isPending || isGoogleRedirecting}
+                  onPress={() => {
+                    setIsGoogleRedirecting(true);
+                    window.location.assign(googleLoginUrl);
+                  }}
+                >
+                  Continue with Google
+                </Button>
+              </>
+            ) : null}
+
+            <div
+              id={statusId}
+              className="login-status"
+              aria-live="polite"
+              aria-atomic="true"
+            >
               {magicLinkMutation.isError ? (
-                <p className="text-sm text-[#D77B69]" role="alert">
+                <p className="login-message login-message-error" role="alert">
                   {magicLinkErrorDetail ||
-                    "Unable to send magic link right now."}
+                    "We couldn’t send the link. Please try again."}
                 </p>
               ) : null}
               {oauthErrorMessage ? (
-                <p className="text-sm text-[#D77B69]" role="alert">
+                <p className="login-message login-message-error" role="alert">
                   {oauthErrorMessage}
                 </p>
               ) : null}
               {magicSentTo ? (
                 <p
-                  className="text-sm text-[#D9C7A8]"
+                  className="login-message login-message-success"
                   role="status"
                   aria-live="polite"
                 >
-                  Check your email to enter Arbiter.
+                  <strong>Check your inbox.</strong> We sent a secure sign-in
+                  link to {magicSentTo}.
                 </p>
               ) : null}
-              <Button
-                type="submit"
-                className="w-full border border-[#E0B15C]/50 bg-[#E0B15C] text-[#1C110F]"
-                isLoading={magicLinkMutation.isPending}
-              >
-                Send Magic Link
-              </Button>
-
-              {googleLoginUrl ? (
-                <>
-                  <div className="flex items-center gap-3 py-1">
-                    <span className="h-px flex-1 bg-[#E0B15C]/20" />
-                    <span className="text-xs uppercase tracking-wide text-[#D9C7A8]">
-                      or
-                    </span>
-                    <span className="h-px flex-1 bg-[#E0B15C]/20" />
-                  </div>
-                  {googleLoginUrl ? (
-                    <Button
-                      type="button"
-                      variant="bordered"
-                      className="w-full border-[#E0B15C]/45 text-[#E0B15C] hover:bg-[#E0B15C]/10"
-                      onPress={() => window.location.assign(googleLoginUrl)}
-                    >
-                      Continue with Google
-                    </Button>
-                  ) : null}
-                </>
-              ) : null}
-            </form>
-          </CardBody>
-        </Card>
+            </div>
+          </form>
+        </section>
       </main>
     </div>
   );
