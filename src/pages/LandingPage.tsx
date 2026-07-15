@@ -66,6 +66,8 @@ const searchTargets = [
   "what should we watch",
 ];
 
+const AUTH_CTA_LABEL = "Sign in";
+
 export default function LandingPage() {
   const location = useLocation();
   const copy = pageCopy[location.pathname] ?? {
@@ -108,23 +110,13 @@ export default function LandingPage() {
             logoClassName="h-10 w-10 sm:h-12 sm:w-12"
             titleClassName="text-3xl sm:text-4xl"
           />
-          <div className="flex items-center gap-2">
-            <Button
-              as={Link}
-              to="/login"
-              variant="bordered"
-              className="border-[#E0B15C]/45 text-[#F5D9A5]"
-            >
-              Login
-            </Button>
-            <Button
-              as={Link}
-              to="/login"
-              className="border border-[#E0B15C]/60 bg-[#E0B15C] text-[#1C110F]"
-            >
-              Start
-            </Button>
-          </div>
+          <Button
+            as={Link}
+            to="/login"
+            className="border border-[#E0B15C]/60 bg-[#E0B15C] text-[#1C110F]"
+          >
+            {AUTH_CTA_LABEL}
+          </Button>
         </nav>
       </header>
 
@@ -155,16 +147,7 @@ export default function LandingPage() {
                   size="lg"
                   className="border border-[#E0B15C]/60 bg-[#E0B15C] text-[#1C110F]"
                 >
-                  Get started
-                </Button>
-                <Button
-                  as={Link}
-                  to="/login"
-                  size="lg"
-                  variant="bordered"
-                  className="border-[#E0B15C]/45 text-[#F5D9A5]"
-                >
-                  Open Arbiter
+                  {AUTH_CTA_LABEL}
                 </Button>
               </div>
             </div>
@@ -232,8 +215,8 @@ export default function LandingPage() {
                 Ready to settle the next watch night?
               </h2>
               <p className="mt-3 text-base leading-7 text-[#4C3329]">
-                Create a group, add a few titles, and let Arbiter turn the
-                decision into a quick live vote.
+                Sign in with Google or a magic link, add a few titles, and let
+                Arbiter turn the decision into a quick live vote.
               </p>
             </div>
             <Button
@@ -242,7 +225,7 @@ export default function LandingPage() {
               size="lg"
               className="w-full bg-[#1C110F] text-[#F7F1E3] md:w-auto"
             >
-              Start a session
+              {AUTH_CTA_LABEL}
             </Button>
           </div>
         </section>

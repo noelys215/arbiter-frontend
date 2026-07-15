@@ -24,9 +24,14 @@ export default function LoginPage() {
   const configuredGoogleLoginUrl = (
     import.meta.env.VITE_OAUTH_GOOGLE_LOGIN_URL as string | undefined
   )?.trim();
+  const configuredGoogleLoginUrlIsLocal =
+    configuredGoogleLoginUrl?.startsWith("http://localhost") ||
+    configuredGoogleLoginUrl?.startsWith("http://127.0.0.1");
   const googleLoginUrl = IS_LOCAL_DEV
     ? `${API_BASE}/auth/google/login`
-    : configuredGoogleLoginUrl && configuredGoogleLoginUrl.length > 0
+    : configuredGoogleLoginUrl &&
+        configuredGoogleLoginUrl.length > 0 &&
+        !configuredGoogleLoginUrlIsLocal
       ? configuredGoogleLoginUrl
       : `${API_BASE}/auth/google/login`;
   const oauthErrorCode = searchParams.get("oauth_error");
@@ -83,7 +88,7 @@ export default function LoginPage() {
       >
         <Card className="w-full border border-[#E0B15C]/25 bg-[#22130F] shadow-none">
           <CardHeader className="px-6 pt-6">
-            <h1 className="text-3xl font-semibold text-[#F5D9A5]">Login</h1>
+            <h1 className="text-3xl font-semibold text-[#F5D9A5]">Sign in</h1>
           </CardHeader>
           <CardBody className="px-6 pb-6">
             <form className="space-y-4" onSubmit={handleSubmit}>
