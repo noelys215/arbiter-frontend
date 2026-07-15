@@ -17,7 +17,7 @@ export default function BrandLockup({
   titleClassName,
   versionClassName,
   showVersion = true,
-  versionText = "v1.1,0",
+  versionText = "v1.1.1",
 }: BrandLockupProps) {
   return (
     <div className={cx("flex items-center", className)}>
