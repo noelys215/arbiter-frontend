@@ -119,7 +119,7 @@ export default function LandingPage() {
             </Button>
             <Button
               as={Link}
-              to="/register"
+              to="/login"
               className="border border-[#E0B15C]/60 bg-[#E0B15C] text-[#1C110F]"
             >
               Start
@@ -151,11 +151,11 @@ export default function LandingPage() {
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button
                   as={Link}
-                  to="/register"
+                  to="/login"
                   size="lg"
                   className="border border-[#E0B15C]/60 bg-[#E0B15C] text-[#1C110F]"
                 >
-                  Create a group
+                  Get started
                 </Button>
                 <Button
                   as={Link}
@@ -238,7 +238,7 @@ export default function LandingPage() {
             </div>
             <Button
               as={Link}
-              to="/register"
+              to="/login"
               size="lg"
               className="w-full bg-[#1C110F] text-[#F7F1E3] md:w-auto"
             >

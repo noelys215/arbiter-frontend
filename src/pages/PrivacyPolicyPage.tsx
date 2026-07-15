@@ -64,7 +64,7 @@ export default function PrivacyPolicyPage() {
           <h2 className="text-xl font-semibold text-[#F5D9A5]">Contact</h2>
           <p className="text-sm text-[#D9C7A8]">
             For privacy-related questions, contact:{" "}
-            <span className="font-medium text-[#F7F1E3]">privacy@yourdomain.com</span>
+            <span className="font-medium text-[#F7F1E3]">privacy@arbitertv.com</span>
           </p>
         </section>
       </main>

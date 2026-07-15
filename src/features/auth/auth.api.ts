@@ -8,50 +8,12 @@ export type MeResponse = {
   avatar_url: string | null;
 };
 
-export type LoginPayload = {
-  email: string;
-  password: string;
-};
-
 export type MagicLinkRequestPayload = {
   email: string;
 };
 
-export type RegisterPayload = {
-  email: string;
-  username: string;
-  display_name: string;
-  password: string;
-};
-
 export async function getMe() {
   return apiJson<MeResponse>("/me", { cache: "no-store" });
-}
-
-export async function login(payload: LoginPayload) {
-  const response = await api("/auth/login", {
-    method: "POST",
-    ...jsonBody(payload),
-  });
-  if (!response.ok) {
-    const error = new Error("Login failed");
-    (error as Error & { status?: number }).status = response.status;
-    throw error;
-  }
-  return response;
-}
-
-export async function register(payload: RegisterPayload) {
-  const response = await api("/auth/register", {
-    method: "POST",
-    ...jsonBody(payload),
-  });
-  if (!response.ok) {
-    const error = new Error("Registration failed");
-    (error as Error & { status?: number }).status = response.status;
-    throw error;
-  }
-  return response;
 }
 
 export async function requestMagicLink(payload: MagicLinkRequestPayload) {

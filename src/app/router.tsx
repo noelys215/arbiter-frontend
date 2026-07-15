@@ -3,7 +3,6 @@ import RequireAuth from "./RequireAuth";
 import HomePage from "../pages/HomePage";
 import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
-import RegisterPage from "../pages/RegisterPage";
 import PrivacyPolicyPage from "../pages/PrivacyPolicyPage";
 import DataDeletionPage from "../pages/DataDeletionPage";
 import SessionPage from "../pages/SessionPage";
@@ -18,7 +17,7 @@ export default function AppRouter() {
         <Route path="/movie-night-picker" element={<LandingPage />} />
         <Route path="/watch-party-picker" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/register" element={<Navigate to="/login" replace />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/data-deletion" element={<DataDeletionPage />} />

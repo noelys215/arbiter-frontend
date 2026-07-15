@@ -25,7 +25,7 @@ export default function DataDeletionPage() {
           <h2 className="text-xl font-semibold text-[#F5D9A5]">How to request deletion</h2>
           <p className="text-sm text-[#D9C7A8]">
             Send an email to{" "}
-            <span className="font-medium text-[#F7F1E3]">privacy@yourdomain.com</span> with the
+            <span className="font-medium text-[#F7F1E3]">privacy@arbitertv.com</span> with the
             subject line <span className="font-medium text-[#F7F1E3]">Data Deletion Request</span>
             . Include the email address associated with your account.
           </p>
@@ -54,7 +54,7 @@ export default function DataDeletionPage() {
             <Link className="font-semibold text-[#F5D9A5] underline" to="/privacy">
               Privacy Policy
             </Link>{" "}
-            or contact <span className="font-medium text-[#F7F1E3]">privacy@yourdomain.com</span>.
+            or contact <span className="font-medium text-[#F7F1E3]">privacy@arbitertv.com</span>.
           </p>
         </section>
       </main>
