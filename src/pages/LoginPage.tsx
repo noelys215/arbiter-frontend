@@ -18,6 +18,12 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   magic_link_expired: "That magic link expired. Request a new one.",
 };
 
+type LocalBypassAccount = {
+  key: string;
+  label: string;
+  token: string;
+};
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -45,7 +51,33 @@ export default function LoginPage() {
   const localAuthBypassToken = (
     import.meta.env.VITE_LOCAL_AUTH_BYPASS_TOKEN as string | undefined
   )?.trim();
-  const showLocalAuthBypass = Boolean(import.meta.env.DEV && localAuthBypassToken);
+  const localAuthBypassSecondaryToken = (
+    import.meta.env.VITE_LOCAL_AUTH_BYPASS_SECONDARY_TOKEN as string | undefined
+  )?.trim();
+  const localBypassAccounts: LocalBypassAccount[] = import.meta.env.DEV
+    ? [
+        localAuthBypassToken
+          ? {
+              key: "primary",
+              label:
+                (import.meta.env.VITE_LOCAL_AUTH_BYPASS_LABEL as string | undefined)
+                  ?.trim() || "Use test account A",
+              token: localAuthBypassToken,
+            }
+          : null,
+        localAuthBypassSecondaryToken
+          ? {
+              key: "secondary",
+              label:
+                (
+                  import.meta.env
+                    .VITE_LOCAL_AUTH_BYPASS_SECONDARY_LABEL as string | undefined
+                )?.trim() || "Use test account B",
+              token: localAuthBypassSecondaryToken,
+            }
+          : null,
+      ].filter((account): account is LocalBypassAccount => account !== null)
+    : [];
   const oauthErrorCode = searchParams.get("oauth_error");
   const oauthErrorMessage = oauthErrorCode
     ? (OAUTH_ERROR_MESSAGES[oauthErrorCode] ??
@@ -100,10 +132,9 @@ export default function LoginPage() {
     );
   };
 
-  const handleLocalAuthBypass = () => {
-    if (!localAuthBypassToken) return;
+  const handleLocalAuthBypass = (token: string) => {
     localAuthBypassMutation.mutate(
-      { token: localAuthBypassToken },
+      { token },
       {
         onSuccess: () => {
           void queryClient.invalidateQueries({ queryKey: ["me"] });
@@ -220,17 +251,22 @@ export default function LoginPage() {
               </>
             ) : null}
 
-            {showLocalAuthBypass ? (
-              <Button
-                type="button"
-                variant="light"
-                className="login-dev-button"
-                isLoading={localAuthBypassMutation.isPending}
-                isDisabled={isAuthActionPending}
-                onPress={handleLocalAuthBypass}
-              >
-                Use local test account
-              </Button>
+            {localBypassAccounts.length > 0 ? (
+              <div className="login-dev-actions" aria-label="Local test accounts">
+                {localBypassAccounts.map((account) => (
+                  <Button
+                    key={account.key}
+                    type="button"
+                    variant="light"
+                    className="login-dev-button"
+                    isLoading={localAuthBypassMutation.isPending}
+                    isDisabled={isAuthActionPending}
+                    onPress={() => handleLocalAuthBypass(account.token)}
+                  >
+                    {account.label}
+                  </Button>
+                ))}
+              </div>
             ) : null}
 
             <div

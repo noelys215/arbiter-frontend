@@ -1096,6 +1096,11 @@ pre {
     transform: translateY(-1px);
   }
 
+  .login-dev-actions {
+    display: grid;
+    gap: 0.5rem;
+  }
+
   .login-dev-button {
     min-height: 2.6rem;
     border: 1px dashed rgb(224 177 92 / 0.22) !important;
