@@ -1,5 +1,4 @@
 import {
-  Avatar,
   AvatarGroup,
   Button,
   Chip,
@@ -14,6 +13,7 @@ import type {
   SessionVoteParticipant,
   SessionVoteSummary,
 } from "../../../features/sessions/sessions.api";
+import ArbiterAvatar from "../../../components/ArbiterAvatar";
 import { tmdbPosterUrl } from "../../../lib/tmdb";
 import type { SwipeVote } from "../types";
 
@@ -67,13 +67,12 @@ function VoteAvatarGroup({
         )}
       >
         {voters.slice(0, 4).map((voter) => (
-          <Avatar
+          <ArbiterAvatar
             key={`${voter.user_id}-${voter.vote}`}
-            src={voter.avatar_url ?? undefined}
-            name={voter.display_name}
-            showFallback
+            user={voter}
+            label={voter.display_name}
+            size="sm"
             className="bg-[#E0B15C]/20 text-[#E0B15C]"
-            imgProps={{ referrerPolicy: "no-referrer" }}
           />
         ))}
       </AvatarGroup>

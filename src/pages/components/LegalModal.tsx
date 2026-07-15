@@ -7,11 +7,12 @@ import {
   ModalHeader,
 } from "@heroui/react";
 import {
+  CreditsContent,
   DataDeletionContent,
   PrivacyPolicyContent,
 } from "../legalContent";
 
-type LegalModalKind = "privacy" | "data-deletion";
+type LegalModalKind = "privacy" | "data-deletion" | "credits";
 
 type LegalModalProps = {
   kind: LegalModalKind;
@@ -26,7 +27,12 @@ export default function LegalModal({
   onOpenChange,
   onSwitchKind,
 }: LegalModalProps) {
-  const title = kind === "privacy" ? "Privacy Policy" : "User Data Deletion";
+  const title =
+    kind === "privacy"
+      ? "Privacy Policy"
+      : kind === "data-deletion"
+        ? "User Data Deletion"
+        : "Credits";
 
   return (
     <Modal
@@ -52,11 +58,13 @@ export default function LegalModal({
                   linkMode="modal"
                   onOpenDataDeletion={() => onSwitchKind("data-deletion")}
                 />
-              ) : (
+              ) : kind === "data-deletion" ? (
                 <DataDeletionContent
                   linkMode="modal"
                   onOpenPrivacy={() => onSwitchKind("privacy")}
                 />
+              ) : (
+                <CreditsContent />
               )}
             </ModalBody>
             <ModalFooter>

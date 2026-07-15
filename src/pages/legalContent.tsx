@@ -161,3 +161,40 @@ export function DataDeletionContent({
     </div>
   );
 }
+
+export function CreditsContent() {
+  return (
+    <div className="space-y-6">
+      <header className="space-y-3">
+        <h1 className="text-3xl font-semibold text-[#F5D9A5]">Credits</h1>
+        <p className="text-sm leading-7 text-[#D9C7A8]">
+          Arbiter uses open-source avatar libraries and illustration collections
+          for generated profile avatars.
+        </p>
+      </header>
+
+      <LegalSection title="DiceBear">
+        <p>
+          Generated avatar support uses DiceBear, licensed under MIT. The
+          Adventurer avatar style is by Lisa Wischofsky and is licensed under{" "}
+          <a
+            className="font-medium text-[#F7F1E3] underline"
+            href="https://creativecommons.org/licenses/by/4.0/"
+            rel="noreferrer"
+            target="_blank"
+          >
+            CC BY 4.0
+          </a>
+          .
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Boring Avatars">
+        <p>
+          Abstract generated avatars use Boring Avatars by Boring Designers,
+          licensed under MIT.
+        </p>
+      </LegalSection>
+    </div>
+  );
+}

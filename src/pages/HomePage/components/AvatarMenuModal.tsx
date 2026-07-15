@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Button,
   Chip,
   Divider,
@@ -12,8 +11,9 @@ import {
   useDisclosure,
 } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ArbiterAvatar from "../../../components/ArbiterAvatar";
 import { logout } from "../../../features/auth/auth.api";
 import type { MeResponse } from "../../../features/auth/auth.api";
 import {
@@ -30,6 +30,10 @@ import {
 import type { Group } from "../../../features/groups/groups.api";
 import type { ConfirmAction, InputClassNames, OnOpenChange } from "../types";
 import ConfirmActionModal from "./ConfirmActionModal";
+
+const AvatarSelectorModal = lazy(
+  () => import("../../../features/avatar/AvatarSelectorModal"),
+);
 
 type AvatarMenuModalProps = {
   isOpen: boolean;
@@ -56,6 +60,7 @@ export default function AvatarMenuModal({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const confirmModal = useDisclosure();
+  const avatarSelectorModal = useDisclosure();
 
   // Friend invite state
   const [friendInviteCode, setFriendInviteCode] = useState("");
@@ -210,12 +215,11 @@ export default function AvatarMenuModal({
           {(onClose) => (
             <>
               <ModalHeader className="flex items-center gap-3">
-                <Avatar
+                <ArbiterAvatar
+                  user={me}
                   size="md"
                   radius="sm"
                   isBordered
-                  src={me?.avatar_url ?? undefined}
-                  name={me?.display_name ?? me?.username ?? "User"}
                   className="bg-[#E0B15C] text-[#1C110F]"
                 />
                 <div>
@@ -228,9 +232,19 @@ export default function AvatarMenuModal({
               <ModalBody className="space-y-6">
                 {/* User Summary */}
                 <section className="rounded-xl border border-[#E0B15C]/15 bg-[#22130F] p-4">
-                  <h3 className="mb-3 text-xs uppercase tracking-[0.2em] text-[#E0B15C]">
-                    User Info
-                  </h3>
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="text-xs uppercase tracking-[0.2em] text-[#E0B15C]">
+                      User Info
+                    </h3>
+                    <Button
+                      size="sm"
+                      variant="bordered"
+                      className="border-[#E0B15C]/40 text-[#E0B15C] hover:bg-[#E0B15C]/10"
+                      onPress={avatarSelectorModal.onOpen}
+                    >
+                      Edit avatar
+                    </Button>
+                  </div>
                   <div className="grid gap-3 text-sm text-white/90 sm:grid-cols-3">
                     <div>
                       <p className="text-xs uppercase tracking-[0.15em] text-[#D9C7A8]">
@@ -493,6 +507,13 @@ export default function AvatarMenuModal({
         onConfirm={handleConfirm}
         isLoading={isConfirmPending}
       />
+      <Suspense fallback={null}>
+        <AvatarSelectorModal
+          isOpen={avatarSelectorModal.isOpen}
+          onOpenChange={avatarSelectorModal.onOpenChange}
+          me={me}
+        />
+      </Suspense>
     </>
   );
 }

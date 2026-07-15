@@ -1,5 +1,4 @@
 import {
-  Avatar,
   AvatarGroup,
   Button,
   Card,
@@ -9,6 +8,7 @@ import {
 } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import ArbiterAvatar from "../../../components/ArbiterAvatar";
 import { unfriend } from "../../../features/friends/friends.api";
 import type { Friend } from "../../../features/friends/friends.api";
 import { addGroupMembers, getGroup } from "../../../features/groups/groups.api";
@@ -36,7 +36,10 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
     queryFn: () => getGroup(selectedGroup?.id ?? ""),
     enabled: Boolean(selectedGroup?.id),
   });
-  const members = groupDetailsQuery.data?.members ?? [];
+  const members = useMemo(
+    () => groupDetailsQuery.data?.members ?? [],
+    [groupDetailsQuery.data?.members],
+  );
   const memberIds = useMemo(
     () => new Set(members.map((member) => member.id)),
     [members],
@@ -121,12 +124,9 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                 )}
               >
                 {members.slice(0, 3).map((member) => (
-                  <Avatar
+                  <ArbiterAvatar
                     key={member.id}
-                    src={member.avatar_url ?? undefined}
-                    name={
-                      member.display_name ?? member.username ?? member.email
-                    }
+                    user={member}
                     className="bg-[#E0B15C]/20 text-[#E0B15C]"
                   />
                 ))}
@@ -165,10 +165,10 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                     className="flex items-center justify-between gap-3 rounded-lg border border-[#E0B15C]/10 bg-[#1C110F]/70 p-2"
                   >
                     <div className="flex items-center gap-2">
-                      <Avatar
+                      <ArbiterAvatar
+                        user={friend}
                         size="sm"
-                        src={friend.avatar_url ?? undefined}
-                        name={label}
+                        label={label}
                         className="bg-[#E0B15C]/20 text-[#E0B15C]"
                       />
                       <span className="text-sm text-white">{label}</span>

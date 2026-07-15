@@ -193,7 +193,7 @@ export default function HomePage() {
   );
 
   useEffect(() => {
-    setWatchlistPage(1);
+    queueMicrotask(() => setWatchlistPage(1));
   }, [
     resolvedSelectedGroupId,
     debouncedWatchlistQ,
@@ -204,7 +204,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (watchlistPage > watchlistTotalPages) {
-      setWatchlistPage(watchlistTotalPages);
+      queueMicrotask(() => setWatchlistPage(watchlistTotalPages));
     }
   }, [watchlistPage, watchlistTotalPages]);
 

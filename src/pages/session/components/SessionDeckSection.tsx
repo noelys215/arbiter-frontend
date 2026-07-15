@@ -166,8 +166,10 @@ export default function SessionDeckSection({
           : "Session setup in progress.";
 
   useEffect(() => {
-    setWatchPartyDraft(watchPartyUrl ?? "");
-    setShowWatchPartyEditor(!watchPartyUrl && isGroupLeader);
+    queueMicrotask(() => {
+      setWatchPartyDraft(watchPartyUrl ?? "");
+      setShowWatchPartyEditor(!watchPartyUrl && isGroupLeader);
+    });
   }, [watchPartyUrl, isGroupLeader]);
 
   return (

@@ -1,4 +1,5 @@
-import { Avatar, Button, Select, SelectItem, Tooltip } from "@heroui/react";
+import { Button, Select, SelectItem, Tooltip } from "@heroui/react";
+import ArbiterAvatar from "../../../components/ArbiterAvatar";
 import BrandLockup from "../../../components/BrandLockup";
 import { theaterSelectClassNames } from "../../../lib/selectTheme";
 import type { MeResponse } from "../../../features/auth/auth.api";
@@ -48,11 +49,11 @@ export default function TopBar({
                 onPress={onAvatarClick}
                 aria-label="Open account menu"
               >
-                <Avatar
+                <ArbiterAvatar
+                  user={me}
                   size="lg"
-                  src={me?.avatar_url ?? undefined}
-                  name={me?.display_name ?? me?.username ?? "User"}
                   className="bg-[#E0B15C] text-[#1C110F]"
+                  decorative
                 />
               </Button>
             </Tooltip>

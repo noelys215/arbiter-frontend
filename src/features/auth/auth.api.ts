@@ -1,4 +1,5 @@
 import { api, apiJson, jsonBody } from "../../lib/api";
+import type { AvatarSource } from "../avatar/avatarTypes";
 
 export type MeResponse = {
   id: string;
@@ -6,6 +7,9 @@ export type MeResponse = {
   username: string;
   display_name: string;
   avatar_url: string | null;
+  avatar_source: AvatarSource | null;
+  avatar_style: string | null;
+  avatar_seed: string | null;
 };
 
 export type MagicLinkRequestPayload = {
@@ -16,8 +20,27 @@ export type LocalAuthBypassPayload = {
   token: string;
 };
 
+export type UpdateAvatarPayload =
+  | {
+      avatar_source: "generated";
+      avatar_style: string;
+      avatar_seed: string;
+    }
+  | {
+      avatar_source: "provider" | "initials";
+      avatar_style?: string | null;
+      avatar_seed?: string | null;
+    };
+
 export async function getMe() {
   return apiJson<MeResponse>("/me", { cache: "no-store" });
+}
+
+export async function updateAvatar(payload: UpdateAvatarPayload) {
+  return apiJson<MeResponse>("/me/avatar", {
+    method: "PATCH",
+    ...jsonBody(payload),
+  });
 }
 
 export async function requestMagicLink(payload: MagicLinkRequestPayload) {

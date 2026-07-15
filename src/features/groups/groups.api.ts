@@ -1,4 +1,5 @@
 import { api, apiJson, jsonBody } from "../../lib/api";
+import type { AvatarSource } from "../avatar/avatarTypes";
 
 export type Group = {
   id: string;
@@ -14,6 +15,9 @@ export type GroupMember = {
   username: string | null;
   email: string;
   avatar_url: string | null;
+  avatar_source: AvatarSource | null;
+  avatar_style: string | null;
+  avatar_seed: string | null;
 };
 
 export type GroupDetail = Group & {

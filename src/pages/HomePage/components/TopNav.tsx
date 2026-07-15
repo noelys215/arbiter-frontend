@@ -1,6 +1,7 @@
-import { Avatar, Button } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import ArbiterAvatar from "../../../components/ArbiterAvatar";
 import BrandLockup from "../../../components/BrandLockup";
 import { logout } from "../../../features/auth/auth.api";
 import type { MeResponse } from "../../../features/auth/auth.api";
@@ -60,10 +61,9 @@ export default function TopNav({
         </select>
       </div>
       <div className="flex items-center gap-3">
-        <Avatar
+        <ArbiterAvatar
+          user={me}
           size="sm"
-          src={me?.avatar_url ?? undefined}
-          name={me?.display_name ?? me?.username ?? "User"}
           className="bg-[#E0B15C] text-[#1C110F]"
         />
         <div className="text-right text-xs">

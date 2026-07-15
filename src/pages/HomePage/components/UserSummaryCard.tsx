@@ -1,4 +1,5 @@
-import { Avatar, Card, CardBody, CardHeader, Divider } from "@heroui/react";
+import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
+import ArbiterAvatar from "../../../components/ArbiterAvatar";
 import type { MeResponse } from "../../../features/auth/auth.api";
 
 type UserSummaryCardProps = {
@@ -15,10 +16,9 @@ export default function UserSummaryCard({ me }: UserSummaryCardProps) {
           </p>
           <h2 className="text-lg font-semibold">Signed in</h2>
         </div>
-        <Avatar
+        <ArbiterAvatar
+          user={me}
           size="md"
-          src={me?.avatar_url ?? undefined}
-          name={me?.display_name ?? me?.username ?? "User"}
           className="bg-[#E0B15C] text-[#1C110F]"
         />
       </CardHeader>

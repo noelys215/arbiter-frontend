@@ -80,7 +80,7 @@ const steps = [
 ];
 
 const AUTH_CTA_LABEL = "Sign in";
-type LegalModalKind = "privacy" | "data-deletion";
+type LegalModalKind = "privacy" | "data-deletion" | "credits";
 
 export default function LandingPage() {
   const location = useLocation();
@@ -331,6 +331,13 @@ export default function LandingPage() {
               onClick={() => openLegalModal("data-deletion")}
             >
               Data deletion
+            </button>
+            <button
+              type="button"
+              className="landing-text-link"
+              onClick={() => openLegalModal("credits")}
+            >
+              Credits
             </button>
           </div>
         </div>

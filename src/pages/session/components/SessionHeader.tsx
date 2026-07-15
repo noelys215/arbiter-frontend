@@ -1,11 +1,13 @@
-import { Avatar, Button, Tooltip } from "@heroui/react";
+import { Button, Tooltip } from "@heroui/react";
+import ArbiterAvatar from "../../../components/ArbiterAvatar";
 import BrandLockup from "../../../components/BrandLockup";
+import type { AvatarUser } from "../../../features/avatar/avatarTypes";
 
 type SessionHeaderProps = {
   selectedGroupName: string;
+  user: AvatarUser | null | undefined;
   userName: string;
   userEmail: string;
-  userAvatarUrl?: string | null;
   isGroupLeader: boolean;
   activeSessionId: string | null;
   isEndingSession: boolean;
@@ -16,9 +18,9 @@ type SessionHeaderProps = {
 
 export default function SessionHeader({
   selectedGroupName,
+  user,
   userName,
   userEmail,
-  userAvatarUrl,
   isGroupLeader,
   activeSessionId,
   isEndingSession,
@@ -64,10 +66,10 @@ export default function SessionHeader({
               }}
             >
               <div className="rounded-full border border-[#E0B15C]/30 p-0">
-                <Avatar
+                <ArbiterAvatar
+                  user={user}
                   size="lg"
-                  src={userAvatarUrl ?? undefined}
-                  name={userName}
+                  label={userName}
                   className="h-12 w-12 bg-[#E0B15C] text-[#1C110F]"
                 />
               </div>

@@ -1,4 +1,5 @@
 import { apiJson, jsonBody } from "../../lib/api";
+import type { AvatarSource } from "../avatar/avatarTypes";
 
 export type TmdbSearchResult = {
   tmdb_id: number;
@@ -34,6 +35,9 @@ export type WatchlistItem = {
     username?: string;
     display_name?: string;
     avatar_url?: string | null;
+    avatar_source?: AvatarSource | null;
+    avatar_style?: string | null;
+    avatar_seed?: string | null;
   } | null;
   title?: WatchlistTitle | null;
   title_info?: WatchlistTitle | null;

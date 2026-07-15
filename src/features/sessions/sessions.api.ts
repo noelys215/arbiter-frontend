@@ -1,4 +1,5 @@
 import { apiJson, jsonBody } from "../../lib/api";
+import type { AvatarSource } from "../avatar/avatarTypes";
 
 export type SessionTitle = {
   id: string;
@@ -95,6 +96,9 @@ export type SessionVoteParticipant = {
   user_id: string;
   display_name: string;
   avatar_url: string | null;
+  avatar_source: AvatarSource | null;
+  avatar_style: string | null;
+  avatar_seed: string | null;
   vote: SessionVote;
 };
 
