@@ -8,6 +8,8 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
+  Tab,
+  Tabs,
   useDisclosure,
 } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -20,6 +22,7 @@ import {
   acceptFriendInvite,
   createFriendInvite,
 } from "../../../features/friends/friends.api";
+import type { Friend } from "../../../features/friends/friends.api";
 import {
   acceptGroupInvite,
   createGroup,
@@ -39,6 +42,8 @@ type AvatarMenuModalProps = {
   isOpen: boolean;
   onOpenChange: OnOpenChange;
   me: MeResponse | undefined;
+  groups: Group[] | undefined;
+  friends: Friend[] | undefined;
   selectedGroup: Group | null;
   onGroupCleared: () => void;
 };
@@ -54,6 +59,8 @@ export default function AvatarMenuModal({
   isOpen,
   onOpenChange,
   me,
+  groups,
+  friends,
   selectedGroup,
   onGroupCleared,
 }: AvatarMenuModalProps) {
@@ -82,6 +89,7 @@ export default function AvatarMenuModal({
 
   // Copy state
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [selectedTab, setSelectedTab] = useState<"profile" | "friends" | "groups">("profile");
 
   const isOwner = selectedGroup?.owner_id === me?.id;
 
@@ -205,289 +213,393 @@ export default function AvatarMenuModal({
         size="2xl"
         scrollBehavior="inside"
         classNames={{
-          base: "bg-[#1C110F] border border-[#E0B15C]/20",
+          base: "border border-[#E0B15C]/18 bg-[#1C110F]",
           header: "border-b border-[#E0B15C]/10",
-          body: "py-6",
+          body: "py-5",
           footer: "border-t border-[#E0B15C]/10",
         }}
       >
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex items-center gap-3">
+              <ModalHeader className="flex items-center gap-4">
                 <ArbiterAvatar
                   user={me}
-                  size="md"
-                  radius="sm"
+                  size={56}
                   isBordered
                   className="bg-[#E0B15C] text-[#1C110F]"
                 />
                 <div>
-                  <h2 className="text-lg font-semibold text-white">Account</h2>
-                  <p className="text-sm text-[#D9C7A8]">
-                    Manage your profile, invites, and groups
+                  <h2 className="app-heading-serif text-3xl leading-none text-[#F7EAD2]">
+                    Account
+                  </h2>
+                  <p className="mt-1 text-sm app-muted">
+                    Your profile, friends, and movie-night groups.
                   </p>
                 </div>
               </ModalHeader>
-              <ModalBody className="space-y-6">
-                {/* User Summary */}
-                <section className="rounded-xl border border-[#E0B15C]/15 bg-[#22130F] p-4">
-                  <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                    <h3 className="text-xs uppercase tracking-[0.2em] text-[#E0B15C]">
-                      User Info
-                    </h3>
-                    <Button
-                      size="sm"
-                      variant="bordered"
-                      className="border-[#E0B15C]/40 text-[#E0B15C] hover:bg-[#E0B15C]/10"
-                      onPress={avatarSelectorModal.onOpen}
-                    >
-                      Edit avatar
-                    </Button>
-                  </div>
-                  <div className="grid gap-3 text-sm text-white/90 sm:grid-cols-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.15em] text-[#D9C7A8]">
-                        Name
-                      </p>
-                      <p>{me?.display_name ?? "-"}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.15em] text-[#D9C7A8]">
-                        Username
-                      </p>
-                      <p>{me?.username ?? "-"}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.15em] text-[#D9C7A8]">
-                        Email
-                      </p>
-                      <p>{me?.email ?? "-"}</p>
-                    </div>
-                  </div>
-                </section>
+              <ModalBody className="py-5">
+                <Tabs
+                  aria-label="Account sections"
+                  selectedKey={selectedTab}
+                  onSelectionChange={(key) =>
+                    setSelectedTab(key as "profile" | "friends" | "groups")
+                  }
+                  destroyInactiveTabPanel={false}
+                  variant="light"
+                  classNames={{
+                    base: "w-full",
+                    tabList:
+                      "w-full rounded-lg border border-[#E0B15C]/12 bg-[#120B09]/70 p-1",
+                    tab: "h-9 px-3 text-[#D9C7A8] data-[selected=true]:text-[#1C110F]",
+                    cursor: "rounded-md bg-[#E0B15C]",
+                    panel: "pt-5",
+                  }}
+                >
+                  <Tab key="profile" title="Profile">
+                    <section className="space-y-5">
+                      <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+                        <ArbiterAvatar
+                          user={me}
+                          size={88}
+                          isBordered
+                          className="bg-[#E0B15C] text-[#1C110F]"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-xl font-semibold text-[#F7EAD2]">
+                            {me?.display_name ?? me?.username ?? "Signed in"}
+                          </h3>
+                          <p className="mt-1 text-sm app-muted">
+                            @{me?.username ?? "user"}
+                          </p>
+                          <p className="mt-1 break-all text-sm app-muted">
+                            {me?.email ?? "-"}
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="bordered"
+                          className="app-outline-button w-full sm:w-auto"
+                          onPress={avatarSelectorModal.onOpen}
+                        >
+                          Edit avatar
+                        </Button>
+                      </div>
 
-                <Divider className="bg-[#E0B15C]/10" />
+                      <Divider className="bg-[#E0B15C]/10" />
 
-                {/* Friend Invites */}
-                <section className="rounded-xl border border-[#E0B15C]/15 bg-[#22130F] p-4">
-                  <h3 className="mb-3 text-xs uppercase tracking-[0.2em] text-[#E0B15C]">
-                    Friend Invites
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <Button
-                        className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10"
-                        variant="bordered"
-                        onPress={() => createFriendInviteMutation.mutate()}
-                        isLoading={createFriendInviteMutation.isPending}
-                      >
-                        Generate invite code
-                      </Button>
-                      {createdFriendCode ? (
-                        <div className="flex items-center gap-2">
-                          <Chip
-                            variant="bordered"
-                            classNames={{
-                              base: "border-[#E0B15C]/50",
-                              content: "text-[#E0B15C]",
-                            }}
-                          >
-                            {createdFriendCode}
-                          </Chip>
+                      <div className="grid gap-3 text-sm sm:grid-cols-3">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.14em] app-tertiary">
+                            Name
+                          </p>
+                          <p className="mt-1 text-[#F7EAD2]">
+                            {me?.display_name ?? "-"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.14em] app-tertiary">
+                            Username
+                          </p>
+                          <p className="mt-1 text-[#F7EAD2]">
+                            {me?.username ?? "-"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.14em] app-tertiary">
+                            Email
+                          </p>
+                          <p className="mt-1 break-all text-[#F7EAD2]">
+                            {me?.email ?? "-"}
+                          </p>
+                        </div>
+                      </div>
+                    </section>
+                  </Tab>
+
+                  <Tab key="friends" title="Friends">
+                    <section className="space-y-5">
+                      <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-[#F7EAD2]">
+                          Friend invites
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-3">
                           <Button
-                            size="sm"
+                            className="app-outline-button"
                             variant="bordered"
-                            className="border-[#E0B15C]/30 text-[#E0B15C]"
-                            onPress={() => handleCopy(createdFriendCode)}
+                            onPress={() => createFriendInviteMutation.mutate()}
+                            isLoading={createFriendInviteMutation.isPending}
                           >
-                            {copiedCode === createdFriendCode
-                              ? "Copied"
-                              : "Copy"}
+                            Create invite
+                          </Button>
+                          {createdFriendCode ? (
+                            <div className="flex items-center gap-2">
+                              <Chip
+                                variant="bordered"
+                                classNames={{
+                                  base: "border-[#E0B15C]/35",
+                                  content: "text-[#F5D9A5]",
+                                }}
+                              >
+                                {createdFriendCode}
+                              </Chip>
+                              <Button
+                                size="sm"
+                                variant="light"
+                                className="app-secondary-button"
+                                onPress={() => handleCopy(createdFriendCode)}
+                              >
+                                {copiedCode === createdFriendCode
+                                  ? "Copied"
+                                  : "Copy"}
+                              </Button>
+                            </div>
+                          ) : null}
+                        </div>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                          <Input
+                            label="Join with a code"
+                            placeholder="Enter code"
+                            value={friendInviteCode}
+                            onChange={(e) => setFriendInviteCode(e.target.value)}
+                            variant="bordered"
+                            classNames={inputClassNames}
+                            className="sm:max-w-xs"
+                          />
+                          <Button
+                            className="app-outline-button w-full sm:w-auto"
+                            variant="bordered"
+                            onPress={() => acceptFriendInviteMutation.mutate()}
+                            isDisabled={!friendInviteCode.trim()}
+                            isLoading={acceptFriendInviteMutation.isPending}
+                          >
+                            Join
                           </Button>
                         </div>
-                      ) : null}
-                    </div>
-                    <div className="flex flex-wrap items-end gap-3">
-                      <Input
-                        label="Accept friend invite"
-                        placeholder="Enter code"
-                        value={friendInviteCode}
-                        onChange={(e) => setFriendInviteCode(e.target.value)}
-                        variant="bordered"
-                        classNames={inputClassNames}
-                        className="max-w-xs"
-                      />
-                      <Button
-                        className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10"
-                        variant="bordered"
-                        onPress={() => acceptFriendInviteMutation.mutate()}
-                        isDisabled={!friendInviteCode.trim()}
-                        isLoading={acceptFriendInviteMutation.isPending}
-                      >
-                        Accept
-                      </Button>
-                    </div>
-                    {acceptFriendInviteMutation.isError ? (
-                      <p className="text-sm text-[#D77B69]" role="alert">
-                        {acceptFriendInviteErrorDetail ||
-                          "Unable to accept friend invite right now."}
-                      </p>
-                    ) : null}
-                  </div>
-                </section>
+                        {acceptFriendInviteMutation.isError ? (
+                          <p className="text-sm text-[#D77B69]" role="alert">
+                            {acceptFriendInviteErrorDetail ||
+                              "Unable to accept friend invite right now."}
+                          </p>
+                        ) : null}
+                      </div>
 
-                <Divider className="bg-[#E0B15C]/10" />
+                      <Divider className="bg-[#E0B15C]/10" />
 
-                {/* Group Invites */}
-                <section className="rounded-xl border border-[#E0B15C]/15 bg-[#22130F] p-4">
-                  <h3 className="mb-3 text-xs uppercase tracking-[0.2em] text-[#E0B15C]">
-                    Group Invites
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <Button
-                        className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10"
-                        variant="bordered"
-                        onPress={() => createGroupInviteMutation.mutate()}
-                        isDisabled={!selectedGroup}
-                        isLoading={createGroupInviteMutation.isPending}
-                      >
-                        Generate Group Invite
-                      </Button>
-                      {createdGroupCode ? (
-                        <div className="flex items-center gap-2">
-                          <Chip
-                            radius="sm"
-                            size="lg"
-                            variant="flat"
-                            classNames={{
-                              base: "border-[#E0B15C]/50",
-                              content: "text-[#E0B15C]",
-                            }}
-                          >
-                            {createdGroupCode}
-                          </Chip>
-                          <Button
-                            size="sm"
-                            variant="bordered"
-                            className="border-[#E0B15C]/30 text-[#E0B15C]"
-                            onPress={() => handleCopy(createdGroupCode)}
-                          >
-                            {copiedCode === createdGroupCode
-                              ? "Copied"
-                              : "Copy"}
-                          </Button>
-                        </div>
-                      ) : null}
-                    </div>
-                    <div className="flex flex-wrap items-end gap-3">
-                      <Input
-                        label="Join group via invite"
-                        placeholder="Enter code"
-                        value={groupInviteCode}
-                        onChange={(e) => setGroupInviteCode(e.target.value)}
-                        variant="bordered"
-                        classNames={inputClassNames}
-                        className="max-w-xs"
-                      />
-                      <Button
-                        className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10"
-                        variant="bordered"
-                        onPress={() => acceptGroupInviteMutation.mutate()}
-                        isDisabled={!groupInviteCode.trim()}
-                        isLoading={acceptGroupInviteMutation.isPending}
-                      >
-                        Join
-                      </Button>
-                    </div>
-                  </div>
-                </section>
-
-                <Divider className="bg-[#E0B15C]/10" />
-
-                {/* Create Group */}
-                <section className="rounded-xl border border-[#E0B15C]/15 bg-[#22130F] p-4">
-                  <h3 className="mb-3 text-xs uppercase tracking-[0.2em] text-[#E0B15C]">
-                    Create New Group
-                  </h3>
-                  <div className="flex flex-wrap items-end gap-3">
-                    <Input
-                      label="Group name"
-                      placeholder="Group Name"
-                      value={groupName}
-                      onChange={(e) => setGroupName(e.target.value)}
-                      variant="bordered"
-                      classNames={inputClassNames}
-                      className="max-w-xs"
-                    />
-                    <Button
-                      className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10"
-                      variant="bordered"
-                      onPress={() => createGroupMutation.mutate()}
-                      isDisabled={!groupName.trim()}
-                      isLoading={createGroupMutation.isPending}
-                    >
-                      Create Group
-                    </Button>
-                  </div>
-                </section>
-
-                {/* Group Actions (only if group selected) */}
-                {selectedGroup ? (
-                  <>
-                    <Divider className="bg-[#E0B15C]/10" />
-                    <section className="rounded-xl border border-[#D77B69]/30 bg-[#22130F] p-4">
-                      <h3 className="mb-3 text-xs uppercase tracking-[0.2em] text-[#D77B69]">
-                        Group Actions — {selectedGroup.name}
-                      </h3>
-                      <div className="flex flex-wrap gap-3">
-                        {isOwner ? (
-                          <Button
-                            className="border-[#D77B69]/50 text-[#D77B69] hover:bg-[#D77B69]/10"
-                            variant="bordered"
-                            onPress={() =>
-                              openConfirm({
-                                type: "delete",
-                                id: selectedGroup.id,
-                                label: `Delete ${selectedGroup.name}`,
-                              })
-                            }
-                            isLoading={deleteGroupMutation.isPending}
-                          >
-                            Delete group
-                          </Button>
+                      <div>
+                        <h3 className="text-lg font-semibold text-[#F7EAD2]">
+                          Your friends
+                        </h3>
+                        {friends && friends.length > 0 ? (
+                          <ul className="mt-3 divide-y app-rule">
+                            {friends.map((friend) => (
+                              <li
+                                key={friend.id}
+                                className="flex items-center gap-3 py-3"
+                              >
+                                <ArbiterAvatar
+                                  user={friend}
+                                  size="sm"
+                                  label={
+                                    friend.display_name ??
+                                    friend.username ??
+                                    friend.email ??
+                                    "Friend"
+                                  }
+                                  className="bg-[#E0B15C]/20 text-[#E0B15C]"
+                                />
+                                <span className="text-sm text-[#F7EAD2]">
+                                  {friend.display_name ??
+                                    friend.username ??
+                                    friend.email ??
+                                    "Friend"}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
                         ) : (
-                          <Button
-                            className="border-[#D77B69]/50 text-[#D77B69] hover:bg-[#D77B69]/10"
-                            variant="bordered"
-                            onPress={() =>
-                              openConfirm({
-                                type: "leave",
-                                id: selectedGroup.id,
-                                label: `Leave ${selectedGroup.name}`,
-                              })
-                            }
-                            isLoading={leaveGroupMutation.isPending}
-                          >
-                            Leave group
-                          </Button>
+                          <p className="mt-2 text-sm app-muted">
+                            Friends you add will appear here.
+                          </p>
                         )}
                       </div>
                     </section>
-                  </>
-                ) : null}
+                  </Tab>
+
+                  <Tab key="groups" title="Groups">
+                    <section className="space-y-5">
+                      <div>
+                        <h3 className="text-lg font-semibold text-[#F7EAD2]">
+                          Your groups
+                        </h3>
+                        {groups && groups.length > 0 ? (
+                          <ul className="mt-3 divide-y app-rule">
+                            {groups.map((group) => (
+                              <li
+                                key={group.id}
+                                className="flex items-center justify-between gap-3 py-3"
+                              >
+                                <span className="text-sm text-[#F7EAD2]">
+                                  {group.name}
+                                </span>
+                                {group.id === selectedGroup?.id ? (
+                                  <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#E0B15C]/75">
+                                    Current
+                                  </span>
+                                ) : null}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="mt-2 text-sm app-muted">
+                            Create a group or join one with a code.
+                          </p>
+                        )}
+                      </div>
+
+                      <Divider className="bg-[#E0B15C]/10" />
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-3">
+                          <h3 className="text-lg font-semibold text-[#F7EAD2]">
+                            Create a group
+                          </h3>
+                          <Input
+                            label="Group name"
+                            placeholder="Movie night"
+                            value={groupName}
+                            onChange={(e) => setGroupName(e.target.value)}
+                            variant="bordered"
+                            classNames={inputClassNames}
+                          />
+                          <Button
+                            className="app-outline-button"
+                            variant="bordered"
+                            onPress={() => createGroupMutation.mutate()}
+                            isDisabled={!groupName.trim()}
+                            isLoading={createGroupMutation.isPending}
+                          >
+                            Create group
+                          </Button>
+                        </div>
+
+                        <div className="space-y-3">
+                          <h3 className="text-lg font-semibold text-[#F7EAD2]">
+                            Group invites
+                          </h3>
+                          <Button
+                            className="app-outline-button"
+                            variant="bordered"
+                            onPress={() => createGroupInviteMutation.mutate()}
+                            isDisabled={!selectedGroup}
+                            isLoading={createGroupInviteMutation.isPending}
+                          >
+                            Create invite
+                          </Button>
+                          {createdGroupCode ? (
+                            <div className="flex items-center gap-2">
+                              <Chip
+                                radius="sm"
+                                size="lg"
+                                variant="flat"
+                                classNames={{
+                                  base: "border-[#E0B15C]/35 bg-[#E0B15C]/10",
+                                  content: "text-[#F5D9A5]",
+                                }}
+                              >
+                                {createdGroupCode}
+                              </Chip>
+                              <Button
+                                size="sm"
+                                variant="light"
+                                className="app-secondary-button"
+                                onPress={() => handleCopy(createdGroupCode)}
+                              >
+                                {copiedCode === createdGroupCode
+                                  ? "Copied"
+                                  : "Copy"}
+                              </Button>
+                            </div>
+                          ) : null}
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                            <Input
+                              label="Join with a code"
+                              placeholder="Enter code"
+                              value={groupInviteCode}
+                              onChange={(e) => setGroupInviteCode(e.target.value)}
+                              variant="bordered"
+                              classNames={inputClassNames}
+                            />
+                            <Button
+                              className="app-outline-button w-full sm:w-auto"
+                              variant="bordered"
+                              onPress={() => acceptGroupInviteMutation.mutate()}
+                              isDisabled={!groupInviteCode.trim()}
+                              isLoading={acceptGroupInviteMutation.isPending}
+                            >
+                              Join
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {selectedGroup ? (
+                        <>
+                          <Divider className="bg-[#D77B69]/15" />
+                          <section className="rounded-lg border border-[#D77B69]/20 p-4">
+                            <h3 className="text-sm font-semibold text-[#F1A799]">
+                              {selectedGroup.name}
+                            </h3>
+                            <div className="mt-3 flex flex-wrap gap-3">
+                              {isOwner ? (
+                                <Button
+                                  className="app-danger-button"
+                                  variant="bordered"
+                                  onPress={() =>
+                                    openConfirm({
+                                      type: "delete",
+                                      id: selectedGroup.id,
+                                      label: `Delete ${selectedGroup.name}`,
+                                    })
+                                  }
+                                  isLoading={deleteGroupMutation.isPending}
+                                >
+                                  Delete group
+                                </Button>
+                              ) : (
+                                <Button
+                                  className="app-danger-button"
+                                  variant="bordered"
+                                  onPress={() =>
+                                    openConfirm({
+                                      type: "leave",
+                                      id: selectedGroup.id,
+                                      label: `Leave ${selectedGroup.name}`,
+                                    })
+                                  }
+                                  isLoading={leaveGroupMutation.isPending}
+                                >
+                                  Leave group
+                                </Button>
+                              )}
+                            </div>
+                          </section>
+                        </>
+                      ) : null}
+                    </section>
+                  </Tab>
+                </Tabs>
               </ModalBody>
               <ModalFooter className="justify-between">
                 <Button
                   variant="light"
-                  className="text-[#D9C7A8] hover:text-white"
+                  className="app-secondary-button"
                   onPress={onClose}
                 >
                   Close
                 </Button>
                 <Button
-                  className="border-[#D77B69]/50 text-[#D77B69] hover:bg-[#D77B69]/10"
+                  className="app-danger-button"
                   variant="bordered"
                   onPress={() => logoutMutation.mutate()}
                   isLoading={logoutMutation.isPending}

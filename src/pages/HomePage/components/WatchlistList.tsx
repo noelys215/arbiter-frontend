@@ -77,27 +77,27 @@ export default function WatchlistList({
   }
 
   return (
-    <div className="space-y-3">
-      <ul className="space-y-3" aria-label="Watchlist titles">
+    <div className="space-y-4">
+      <ul className="divide-y app-rule" aria-label="Watchlist titles">
         {items.map((item) => {
           const meta = getWatchlistMeta(item);
           const addedBy = getAddedByLabel(item);
           return (
             <li
               key={item.id ?? `${meta.name}-${meta.year ?? ""}`}
-              className="flex flex-wrap items-center gap-4 rounded-2xl border border-[#E0B15C]/10 bg-black/30 p-3"
+              className="grid grid-cols-[4rem_minmax(0,1fr)] gap-4 py-4 sm:grid-cols-[4.5rem_minmax(0,1fr)_auto] sm:items-center"
             >
               {renderPoster(meta.poster, meta.name)}
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-white">{meta.name}</p>
-                <p className="text-xs text-[#D9C7A8]">
-                  {meta.year ? meta.year : "Unknown year"}
+                <p className="truncate text-lg font-semibold leading-6 text-[#F7EAD2]">
+                  {meta.name}
                 </p>
-                {addedBy ? (
-                  <p className="text-xs text-[#D9C7A8]">Added by {addedBy}</p>
-                ) : null}
+                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm app-muted">
+                  <span>{meta.year ? meta.year : "Unknown year"}</span>
+                  {addedBy ? <span>Added by {addedBy}</span> : null}
+                </div>
               </div>
-              <div className="ml-auto flex flex-wrap items-center justify-end gap-2 uppercase">
+              <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 sm:col-span-1 sm:flex-col sm:items-end sm:justify-center">
                 {item.status ? (
                   <Chip
                     variant="bordered"
@@ -112,8 +112,8 @@ export default function WatchlistList({
                 ) : null}
                 <Button
                   size="sm"
-                  variant="bordered"
-                  className="border-[#D77B69]/40 text-[#D77B69] hover:bg-[#D77B69]/10 uppercase"
+                  variant="light"
+                  className="app-danger-button"
                   onPress={() => onRemove(item.id)}
                   isLoading={pendingRemoveId === item.id}
                   aria-label={`Remove ${meta.name} from watchlist`}

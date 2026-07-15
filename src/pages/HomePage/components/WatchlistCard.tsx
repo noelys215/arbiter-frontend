@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardHeader } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
@@ -103,20 +103,26 @@ export default function WatchlistCard({
   };
 
   return (
-    <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
-      <CardHeader>
-        <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <section className="app-surface overflow-hidden" aria-labelledby="watchlist-heading">
+      <div className="border-b app-rule px-4 py-4 sm:px-5">
+        <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <h2 className="text-lg font-semibold text-white">Watchlist</h2>
-            <p className="text-sm text-[#D9C7A8]">
-              {selectedGroupName ?? "Select a group"} watchlist.
+            <h3
+              id="watchlist-heading"
+              className="text-xl font-semibold text-[#F7EAD2]"
+            >
+              {selectedGroupName ?? "Select a group"}
+            </h3>
+            <p className="mt-1 text-sm app-muted">
+              {totalCount === 1
+                ? "1 title ready for the group."
+                : `${totalCount} titles ready for the group.`}
             </p>
           </div>
 
           <Button
-            size="sm"
-            variant="bordered"
-            className="uppercase border-[#E0B15C]/60 text-[#1C110F] bg-[#E0B15C] hover:bg-[#E0B15C]/90"
+            size="md"
+            className="app-primary-button w-full sm:w-auto"
             isDisabled={!selectedGroupId || totalCount < 2}
             onPress={() => {
               if (!selectedGroupId) return;
@@ -126,8 +132,8 @@ export default function WatchlistCard({
             Start Session
           </Button>
         </div>
-      </CardHeader>
-      <CardBody className="space-y-3">
+      </div>
+      <div className="space-y-4 px-4 py-4 sm:px-5">
         <WatchlistControls
           q={q}
           onQChange={onQChange}
@@ -160,7 +166,7 @@ export default function WatchlistCard({
           totalPages={totalPages}
           onPageChange={onPageChange}
         />
-      </CardBody>
-    </Card>
+      </div>
+    </section>
   );
 }

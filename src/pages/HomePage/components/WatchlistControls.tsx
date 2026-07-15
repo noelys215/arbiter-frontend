@@ -39,7 +39,7 @@ export default function WatchlistControls({
   onClearFilters,
 }: WatchlistControlsProps) {
   return (
-    <div className="space-y-3 rounded-xl border border-[#E0B15C]/15 bg-[#1C110F]/70 p-3">
+    <div className="space-y-3 border-b app-rule pb-4">
       <Input
         aria-label="Search watchlist"
         placeholder="Search watchlist..."
@@ -57,11 +57,11 @@ export default function WatchlistControls({
       <div className="flex flex-wrap items-center gap-2">
         <Button
           size="sm"
-          variant={mediaType === "all" ? "solid" : "bordered"}
+          variant={mediaType === "all" ? "solid" : "light"}
           className={
             mediaType === "all"
-              ? "bg-[#E0B15C] text-[#161616]"
-              : "border-[#E0B15C]/35 text-[#E0B15C]"
+              ? "app-primary-button"
+              : "app-secondary-button"
           }
           aria-pressed={mediaType === "all"}
           onPress={() => onMediaTypeChange("all")}
@@ -70,11 +70,11 @@ export default function WatchlistControls({
         </Button>
         <Button
           size="sm"
-          variant={mediaType === "movie" ? "solid" : "bordered"}
+          variant={mediaType === "movie" ? "solid" : "light"}
           className={
             mediaType === "movie"
-              ? "bg-[#E0B15C] text-[#161616]"
-              : "border-[#E0B15C]/35 text-[#E0B15C]"
+              ? "app-primary-button"
+              : "app-secondary-button"
           }
           aria-pressed={mediaType === "movie"}
           onPress={() => onMediaTypeChange("movie")}
@@ -83,11 +83,11 @@ export default function WatchlistControls({
         </Button>
         <Button
           size="sm"
-          variant={mediaType === "tv" ? "solid" : "bordered"}
+          variant={mediaType === "tv" ? "solid" : "light"}
           className={
             mediaType === "tv"
-              ? "bg-[#E0B15C] text-[#161616]"
-              : "border-[#E0B15C]/35 text-[#E0B15C]"
+              ? "app-primary-button"
+              : "app-secondary-button"
           }
           aria-pressed={mediaType === "tv"}
           onPress={() => onMediaTypeChange("tv")}
@@ -147,7 +147,7 @@ export default function WatchlistControls({
           <Button
             size="sm"
             variant="light"
-            className="text-[#E0B15C]"
+          className="app-secondary-button"
             onPress={onClearFilters}
           >
             Clear filters

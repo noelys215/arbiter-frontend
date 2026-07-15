@@ -1,9 +1,6 @@
 import {
   AvatarGroup,
   Button,
-  Card,
-  CardBody,
-  CardHeader,
   useDisclosure,
 } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -97,21 +94,19 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
   };
 
   return (
-    <aside className="flex flex-col gap-6" aria-label="Group and friends panel">
-      {/* Group Context Card */}
-      {selectedGroup ? (
-        <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
-          <CardHeader className="pb-2">
+    <aside className="app-surface px-4 py-4" aria-label="Group and friends panel">
+      <div className="space-y-5">
+        {selectedGroup ? (
+          <section>
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-[#E0B15C]/70">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#E0B15C]/65">
                 Current Group
               </p>
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="mt-1 text-lg font-semibold text-[#F7EAD2]">
                 {selectedGroup.name}
               </h3>
             </div>
-          </CardHeader>
-          <CardBody className="pt-2 pl-5">
+            <div className="mt-3">
             {members.length > 0 ? (
               <AvatarGroup
                 isBordered
@@ -132,25 +127,22 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                 ))}
               </AvatarGroup>
             ) : null}
-          </CardBody>
-        </Card>
-      ) : null}
+            </div>
+          </section>
+        ) : null}
 
-      {/* Friends List Card */}
-      <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
-        <CardHeader>
+        <section className={selectedGroup ? "border-t app-rule pt-5" : ""}>
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-[#E0B15C]/70">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#E0B15C]/65">
               Friends
             </p>
-            <h3 className="text-lg font-semibold text-white">
-              {friends?.length ?? 0} CONNECTED
+            <h3 className="mt-1 text-lg font-semibold text-[#F7EAD2]">
+              {friends?.length ?? 0} connected
             </h3>
           </div>
-        </CardHeader>
-        <CardBody className="pt-0">
+          <div className="mt-3">
           {friends && friends.length > 0 ? (
-            <ul className="space-y-3">
+            <ul className="divide-y app-rule">
               {friends.map((friend) => {
                 const label =
                   friend.display_name ??
@@ -162,7 +154,7 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                 return (
                   <li
                     key={friend.id}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-[#E0B15C]/10 bg-[#1C110F]/70 p-2"
+                    className="flex items-center justify-between gap-3 py-3"
                   >
                     <div className="flex items-center gap-2">
                       <ArbiterAvatar
@@ -176,8 +168,8 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                     <div className="flex items-center gap-2">
                       <Button
                         size="sm"
-                        variant="bordered"
-                        className="border-[#E0B15C]/40 text-[#E0B15C] hover:bg-[#E0B15C]/10 uppercase"
+                        variant="light"
+                        className="app-secondary-button"
                         onPress={() => addMemberMutation.mutate(friend.id)}
                         isDisabled={addDisabled}
                         isLoading={pendingAddId === friend.id}
@@ -191,8 +183,8 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                       </Button>
                       <Button
                         size="sm"
-                        variant="bordered"
-                        className="border-[#D77B69]/40 text-[#D77B69] hover:bg-[#D77B69]/10 uppercase"
+                        variant="light"
+                        className="app-danger-button"
                         onPress={() =>
                           openConfirm({
                             type: "unfriend",
@@ -211,12 +203,13 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
               })}
             </ul>
           ) : (
-            <p className="text-sm text-[#D9C7A8]">
-              No friends yet. Add some via the account menu!
+            <p className="text-sm app-muted">
+              No friends yet. Add people from the account menu.
             </p>
           )}
-        </CardBody>
-      </Card>
+          </div>
+        </section>
+      </div>
 
       <ConfirmActionModal
         isOpen={confirmModal.isOpen}

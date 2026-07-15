@@ -1545,3 +1545,88 @@ pre {
     animation: none;
   }
 }
+
+@layer components {
+  .app-page {
+    min-height: 100vh;
+    overflow-x: clip;
+    background:
+      radial-gradient(circle at 74% 0%, rgb(224 177 92 / 0.08), transparent 28rem),
+      linear-gradient(180deg, #100806 0%, var(--theater-bg) 42%, #120908 100%);
+    color: var(--theater-text);
+  }
+
+  .app-shell {
+    width: min(100% - (clamp(1.25rem, 4vw, 3rem) * 2), 78rem);
+    margin-inline: auto;
+  }
+
+  .app-surface {
+    border: 1px solid rgb(224 177 92 / 0.16);
+    border-radius: 0.875rem;
+    background: rgb(28 17 15 / 0.72);
+  }
+
+  .app-surface-soft {
+    border: 1px solid rgb(224 177 92 / 0.1);
+    border-radius: 0.75rem;
+    background: rgb(28 17 15 / 0.46);
+  }
+
+  .app-rule {
+    border-color: rgb(224 177 92 / 0.12);
+  }
+
+  .app-heading-serif {
+    font-family: "ITC Benguiat Book Regular", "Space Grotesk", system-ui,
+      sans-serif;
+    letter-spacing: 0;
+  }
+
+  .app-primary-button {
+    border: 1px solid rgb(224 177 92 / 0.5);
+    background: var(--theater-accent);
+    color: #1c110f;
+    font-weight: 700;
+  }
+
+  .app-primary-button:hover {
+    background: #edc578;
+  }
+
+  .app-secondary-button {
+    color: var(--theater-accent);
+  }
+
+  .app-secondary-button:hover {
+    background: rgb(224 177 92 / 0.08);
+  }
+
+  .app-outline-button {
+    border-color: rgb(224 177 92 / 0.28);
+    color: var(--theater-accent);
+  }
+
+  .app-outline-button:hover {
+    border-color: rgb(224 177 92 / 0.48);
+    background: rgb(224 177 92 / 0.07);
+  }
+
+  .app-danger-button {
+    border-color: rgb(215 123 105 / 0.22);
+    color: var(--theater-danger);
+  }
+
+  .app-danger-button:hover {
+    border-color: rgb(215 123 105 / 0.4);
+    background: rgb(215 123 105 / 0.08);
+  }
+
+  .app-muted {
+    color: var(--theater-text-muted);
+  }
+
+  .app-tertiary {
+    color: rgb(217 199 168 / 0.68);
+  }
+}

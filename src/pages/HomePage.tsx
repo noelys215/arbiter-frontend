@@ -1,4 +1,4 @@
-import { useDisclosure } from "@heroui/react";
+import { Select, SelectItem, useDisclosure } from "@heroui/react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getMe } from "../features/auth/auth.api";
@@ -11,6 +11,7 @@ import {
 } from "../features/watchlist/watchlist.api";
 import type { WatchlistItem } from "../features/watchlist/watchlist.api";
 import { tmdbPosterUrl } from "../lib/tmdb";
+import { theaterSelectClassNames } from "../lib/selectTheme";
 import { TMDB_GENRE_LABEL_BY_ID } from "./session/constants";
 import AddToWatchlistCard from "./HomePage/components/AddToWatchlistCard";
 import AvatarMenuModal from "./HomePage/components/AvatarMenuModal";
@@ -128,12 +129,12 @@ export default function HomePage() {
         <img
           src={poster}
           alt={altText ?? "Poster"}
-          className="h-16 w-12 rounded-md object-cover"
+          className="h-20 w-14 rounded-md object-cover"
         />
       );
     }
     return (
-      <div className="flex h-16 w-12 items-center justify-center rounded-md border border-[#E0B15C]/20 bg-[#22130F] text-xs text-[#D9C7A8]">
+      <div className="flex h-20 w-14 items-center justify-center rounded-md border border-[#E0B15C]/20 bg-[#22130F] text-xs text-[#D9C7A8]">
         N/A
       </div>
     );
@@ -242,19 +243,14 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#140C0A] text-white">
+    <div className="app-page">
       <SkipLink />
-      {/* Sticky Top Bar */}
       <TopBar
-        groups={groups}
-        selectedGroupId={resolvedSelectedGroupId}
-        onSelectGroup={setSelectedGroupId}
         me={me}
         onAvatarClick={avatarModal.onOpen}
       />
 
-      {/* Main Content Area */}
-      <div id="main-content" tabIndex={-1} className="mx-auto max-w-7xl px-6 py-8">
+      <div id="main-content" tabIndex={-1} className="app-shell py-7 sm:py-9">
         {groupsLoading ? (
           <div
             className="flex items-center gap-3 text-[#D9C7A8]"
@@ -271,27 +267,64 @@ export default function HomePage() {
         ) : groups && groups.length === 0 ? (
           <NoGroupsCard inputClassNames={inputClassNames} />
         ) : (
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-[2fr_1fr]">
-            {/* Main Column */}
-            <main className="flex flex-col gap-6">
+          <div className="space-y-7">
+            <header className="flex flex-col gap-4 border-b app-rule pb-5 lg:flex-row lg:items-end lg:justify-between">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-[#E0B15C]/75">
+                  {selectedGroup?.name ?? "Choose a group"}
+                </p>
+                <h2 className="app-heading-serif mt-1 text-4xl leading-none text-[#F7EAD2] sm:text-5xl">
+                  Watchlist
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 app-muted sm:text-base">
+                  Add the contenders, keep the group together, and start the vote when there are enough titles.
+                </p>
+              </div>
+
+              <div className="flex w-full flex-col gap-2 sm:w-auto">
+                <span
+                  id="app-group-label"
+                  className="text-xs font-semibold uppercase tracking-[0.16em] app-tertiary"
+                >
+                  Current group
+                </span>
+                <Select
+                  aria-labelledby="app-group-label"
+                  placeholder="Select a group"
+                  selectedKeys={resolvedSelectedGroupId ? [resolvedSelectedGroupId] : []}
+                  renderValue={(items) =>
+                    items.map((item) => (
+                      <span key={item.key} className="text-[#F5D9A5]">
+                        {item.textValue}
+                      </span>
+                    ))
+                  }
+                  onSelectionChange={(keys) => {
+                    const [value] = Array.from(keys);
+                    if (typeof value === "string") {
+                      setSelectedGroupId(value);
+                    }
+                  }}
+                  isDisabled={!groups || groups.length === 0}
+                  size="sm"
+                  variant="bordered"
+                  className="w-full sm:w-56"
+                  classNames={theaterSelectClassNames}
+                >
+                  {(groups ?? []).map((group) => (
+                    <SelectItem key={group.id}>{group.name}</SelectItem>
+                  ))}
+                </Select>
+              </div>
+            </header>
+
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2.15fr)_minmax(18rem,0.85fr)]">
+            <main className="flex flex-col gap-5">
               <p className="sr-only" role="status" aria-live="polite">
                 {selectedGroup?.name
                   ? `${selectedGroup.name} watchlist loaded.`
                   : "Watchlist loaded."}
               </p>
-              <AddToWatchlistCard
-                selectedGroupId={resolvedSelectedGroupId}
-                search={tmdbSearch}
-                onSearchChange={handleSearchChange}
-                tmdbResults={tmdbResults}
-                isSearching={tmdbQuery.isFetching}
-                onClearSearch={() => handleSearchChange("")}
-                onOpenManual={manualModal.onOpen}
-                isManualDisabled={!resolvedSelectedGroupId}
-                inputClassNames={inputClassNames}
-                renderPoster={renderPoster}
-              />
-
               <WatchlistCard
                 selectedGroupName={selectedGroup?.name ?? null}
                 selectedGroupId={resolvedSelectedGroupId}
@@ -324,12 +357,25 @@ export default function HomePage() {
                 renderPoster={renderPoster}
                 getWatchlistMeta={getWatchlistMeta}
               />
+
+              <AddToWatchlistCard
+                selectedGroupId={resolvedSelectedGroupId}
+                search={tmdbSearch}
+                onSearchChange={handleSearchChange}
+                tmdbResults={tmdbResults}
+                isSearching={tmdbQuery.isFetching}
+                onClearSearch={() => handleSearchChange("")}
+                onOpenManual={manualModal.onOpen}
+                isManualDisabled={!resolvedSelectedGroupId}
+                inputClassNames={inputClassNames}
+                renderPoster={renderPoster}
+              />
             </main>
 
-            {/* Right Rail */}
-            <div>
+            <div className="lg:pt-1">
               <RightRail friends={friends} selectedGroup={selectedGroup} />
             </div>
+          </div>
           </div>
         )}
       </div>
@@ -346,6 +392,8 @@ export default function HomePage() {
         isOpen={avatarModal.isOpen}
         onOpenChange={avatarModal.onOpenChange}
         me={me}
+        groups={groups}
+        friends={friends}
         selectedGroup={selectedGroup}
         onGroupCleared={() => setSelectedGroupId(null)}
       />

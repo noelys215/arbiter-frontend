@@ -1,11 +1,4 @@
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Input,
-  Spinner,
-} from "@heroui/react";
+import { Button, Input, Spinner } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { addTmdbToWatchlist } from "../../../features/watchlist/watchlist.api";
@@ -53,14 +46,16 @@ export default function AddToWatchlistCard({
   });
 
   return (
-    <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
-      <CardHeader>
+    <section className="app-surface-soft px-4 py-4 sm:px-5" aria-labelledby="add-title-heading">
+      <div className="mb-4 flex flex-col gap-1">
         <div>
-          <h2 className="text-lg font-semibold text-white">Add to Watchlist</h2>
-          <p className="text-sm text-[#D9C7A8]">Search or add manually.</p>
+          <h3 id="add-title-heading" className="text-base font-semibold text-[#F7EAD2]">
+            Add a title
+          </h3>
+          <p className="text-sm app-muted">Search movies and shows, or add one by hand.</p>
         </div>
-      </CardHeader>
-      <CardBody className="space-y-4">
+      </div>
+      <div className="space-y-4">
         <div className="space-y-2">
           <Input
             label="Search TMDB"
@@ -81,14 +76,14 @@ export default function AddToWatchlistCard({
           ) : null}
           {tmdbResults.length > 0 ? (
             <ul
-              className="space-y-2 rounded-2xl border border-[#E0B15C]/10 bg-black/40 p-2"
+              className="divide-y app-rule rounded-xl border border-[#E0B15C]/10 bg-black/20 px-2"
               aria-label="TMDB search results"
             >
               {tmdbResults.map((item) => (
                 <li key={`${item.tmdb_id}-${item.media_type}`}>
                   <button
                     type="button"
-                    className="flex w-full items-center gap-3 rounded-xl border border-transparent p-2 text-left transition hover:border-[#E0B15C]/30 hover:bg-[#E0B15C]/5"
+                    className="flex w-full items-center gap-3 rounded-lg border border-transparent py-2 text-left transition hover:border-[#E0B15C]/25 hover:bg-[#E0B15C]/5"
                     onClick={() => {
                       if (!selectedGroupId) return;
                       addTmdbMutation.mutate(item);
@@ -114,12 +109,12 @@ export default function AddToWatchlistCard({
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Button
-            variant="bordered"
-            className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10 uppercase"
+            variant="light"
+            className="app-secondary-button"
             onPress={onOpenManual}
             isDisabled={isManualDisabled}
           >
-            Add manually
+            Add a title
           </Button>
           {addTmdbMutation.isError ? (
             <p className="text-sm text-[#D77B69]" role="alert">
@@ -127,7 +122,7 @@ export default function AddToWatchlistCard({
             </p>
           ) : null}
         </div>
-      </CardBody>
-    </Card>
+      </div>
+    </section>
   );
 }
