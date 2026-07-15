@@ -2,7 +2,10 @@ import { Button, Input } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useId, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { requestMagicLink } from "../features/auth/auth.api";
+import {
+  localAuthBypass,
+  requestMagicLink,
+} from "../features/auth/auth.api";
 import { subscribeToAuthSuccess } from "../features/auth/authHandoff";
 import SkipLink from "../components/SkipLink";
 import { API_BASE, IS_LOCAL_DEV } from "../lib/api";
@@ -39,6 +42,10 @@ export default function LoginPage() {
         !configuredGoogleLoginUrlIsLocal
       ? configuredGoogleLoginUrl
       : `${API_BASE}/auth/google/login`;
+  const localAuthBypassToken = (
+    import.meta.env.VITE_LOCAL_AUTH_BYPASS_TOKEN as string | undefined
+  )?.trim();
+  const showLocalAuthBypass = Boolean(import.meta.env.DEV && localAuthBypassToken);
   const oauthErrorCode = searchParams.get("oauth_error");
   const oauthErrorMessage = oauthErrorCode
     ? (OAUTH_ERROR_MESSAGES[oauthErrorCode] ??
@@ -53,6 +60,7 @@ export default function LoginPage() {
   };
 
   const magicLinkMutation = useMutation({ mutationFn: requestMagicLink });
+  const localAuthBypassMutation = useMutation({ mutationFn: localAuthBypass });
   const magicLinkErrorDetail =
     magicLinkMutation.error &&
     typeof magicLinkMutation.error === "object" &&
@@ -91,6 +99,24 @@ export default function LoginPage() {
       },
     );
   };
+
+  const handleLocalAuthBypass = () => {
+    if (!localAuthBypassToken) return;
+    localAuthBypassMutation.mutate(
+      { token: localAuthBypassToken },
+      {
+        onSuccess: () => {
+          void queryClient.invalidateQueries({ queryKey: ["me"] });
+          void navigate("/app", { replace: true });
+        },
+      },
+    );
+  };
+
+  const isAuthActionPending =
+    magicLinkMutation.isPending ||
+    isGoogleRedirecting ||
+    localAuthBypassMutation.isPending;
 
   return (
     <div className="login-page">
@@ -166,7 +192,7 @@ export default function LoginPage() {
               type="submit"
               className="login-primary-button"
               isLoading={magicLinkMutation.isPending}
-              isDisabled={magicLinkMutation.isPending || isGoogleRedirecting}
+              isDisabled={isAuthActionPending}
             >
               Continue with email
             </Button>
@@ -183,7 +209,7 @@ export default function LoginPage() {
                   variant="bordered"
                   className="login-secondary-button"
                   isLoading={isGoogleRedirecting}
-                  isDisabled={magicLinkMutation.isPending || isGoogleRedirecting}
+                  isDisabled={isAuthActionPending}
                   onPress={() => {
                     setIsGoogleRedirecting(true);
                     window.location.assign(googleLoginUrl);
@@ -192,6 +218,19 @@ export default function LoginPage() {
                   Continue with Google
                 </Button>
               </>
+            ) : null}
+
+            {showLocalAuthBypass ? (
+              <Button
+                type="button"
+                variant="light"
+                className="login-dev-button"
+                isLoading={localAuthBypassMutation.isPending}
+                isDisabled={isAuthActionPending}
+                onPress={handleLocalAuthBypass}
+              >
+                Use local test account
+              </Button>
             ) : null}
 
             <div
@@ -209,6 +248,11 @@ export default function LoginPage() {
               {oauthErrorMessage ? (
                 <p className="login-message login-message-error" role="alert">
                   {oauthErrorMessage}
+                </p>
+              ) : null}
+              {localAuthBypassMutation.isError ? (
+                <p className="login-message login-message-error" role="alert">
+                  Local test sign-in failed. Check your bypass environment.
                 </p>
               ) : null}
               {magicSentTo ? (

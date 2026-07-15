@@ -1059,7 +1059,8 @@ pre {
   }
 
   .login-primary-button,
-  .login-secondary-button {
+  .login-secondary-button,
+  .login-dev-button {
     min-height: 3rem;
     width: 100%;
     border-radius: var(--landing-radius-sm) !important;
@@ -1095,8 +1096,22 @@ pre {
     transform: translateY(-1px);
   }
 
+  .login-dev-button {
+    min-height: 2.6rem;
+    border: 1px dashed rgb(224 177 92 / 0.22) !important;
+    background: transparent !important;
+    color: var(--landing-text-tertiary) !important;
+    font-size: 0.86rem;
+  }
+
+  .login-dev-button:hover {
+    border-color: rgb(224 177 92 / 0.38) !important;
+    color: var(--landing-accent-soft) !important;
+  }
+
   .login-primary-button[data-disabled="true"],
-  .login-secondary-button[data-disabled="true"] {
+  .login-secondary-button[data-disabled="true"],
+  .login-dev-button[data-disabled="true"] {
     cursor: default;
     opacity: 0.62;
     transform: none;
@@ -1516,7 +1531,8 @@ pre {
   .landing-final-action:hover,
   .landing-product-frame,
   .login-primary-button:hover,
-  .login-secondary-button:hover {
+  .login-secondary-button:hover,
+  .login-dev-button:hover {
     transform: none;
   }
 
