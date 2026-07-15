@@ -1557,20 +1557,20 @@ pre {
   }
 
   .app-shell {
-    width: min(100% - (clamp(1.25rem, 4vw, 3rem) * 2), 78rem);
+    width: min(100% - (clamp(1rem, 3.5vw, 2.5rem) * 2), 88rem);
     margin-inline: auto;
   }
 
   .app-surface {
-    border: 1px solid rgb(224 177 92 / 0.16);
+    border: 1px solid rgb(224 177 92 / 0.22);
     border-radius: 0.875rem;
-    background: rgb(28 17 15 / 0.72);
+    background: rgb(28 17 15 / 0.88);
   }
 
   .app-surface-soft {
-    border: 1px solid rgb(224 177 92 / 0.1);
+    border: 1px solid rgb(224 177 92 / 0.16);
     border-radius: 0.75rem;
-    background: rgb(28 17 15 / 0.46);
+    background: rgb(28 17 15 / 0.68);
   }
 
   .app-rule {
@@ -1584,10 +1584,11 @@ pre {
   }
 
   .app-primary-button {
-    border: 1px solid rgb(224 177 92 / 0.5);
-    background: var(--theater-accent);
-    color: #1c110f;
+    border: 1px solid rgb(245 217 165 / 0.36) !important;
+    background: linear-gradient(180deg, #edc578 0%, var(--theater-accent) 100%) !important;
+    color: #160c0a !important;
     font-weight: 700;
+    box-shadow: 0 10px 24px rgb(0 0 0 / 0.22);
   }
 
   .app-primary-button:hover {
@@ -1595,7 +1596,7 @@ pre {
   }
 
   .app-secondary-button {
-    color: var(--theater-accent);
+    color: var(--theater-accent-soft);
   }
 
   .app-secondary-button:hover {
@@ -1603,8 +1604,8 @@ pre {
   }
 
   .app-outline-button {
-    border-color: rgb(224 177 92 / 0.28);
-    color: var(--theater-accent);
+    border-color: rgb(224 177 92 / 0.42);
+    color: var(--theater-accent-soft);
   }
 
   .app-outline-button:hover {
@@ -1613,8 +1614,8 @@ pre {
   }
 
   .app-danger-button {
-    border-color: rgb(215 123 105 / 0.22);
-    color: var(--theater-danger);
+    border-color: rgb(215 123 105 / 0.34);
+    color: #f1a799;
   }
 
   .app-danger-button:hover {
@@ -1623,10 +1624,10 @@ pre {
   }
 
   .app-muted {
-    color: var(--theater-text-muted);
+    color: #e4d1b2;
   }
 
   .app-tertiary {
-    color: rgb(217 199 168 / 0.68);
+    color: rgb(217 199 168 / 0.78);
   }
 }

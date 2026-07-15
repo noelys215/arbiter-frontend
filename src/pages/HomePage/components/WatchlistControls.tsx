@@ -48,9 +48,9 @@ export default function WatchlistControls({
         onValueChange={onQChange}
         classNames={{
           input:
-            "!text-[#F5F5F5] placeholder:text-white/35 caret-[#E0B15C]",
+            "!text-[#F7F1E3] placeholder:text-[#D9C7A8]/70 caret-[#E0B15C]",
           inputWrapper:
-            "!bg-[#1A100E] !text-[#F5F5F5] border-[#E0B15C]/20 data-[hover=true]:border-[#E0B15C]/45 data-[focus=true]:!bg-[#1A100E] data-[focus=true]:border-[#E0B15C]/55",
+            "!bg-[#1A100E] !text-[#F7F1E3] border-[#E0B15C]/35 data-[hover=true]:border-[#E0B15C]/55 data-[focus=true]:!bg-[#1A100E] data-[focus=true]:border-[#E0B15C]/75",
         }}
       />
 
@@ -137,7 +137,7 @@ export default function WatchlistControls({
 
       <div className="flex items-center justify-between gap-2 text-xs">
         <span
-          className="uppercase tracking-[0.08em] text-[#D9C7A8]"
+          className="uppercase tracking-[0.08em] app-muted"
           role="status"
           aria-live="polite"
         >

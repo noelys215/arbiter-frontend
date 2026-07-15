@@ -34,6 +34,7 @@ type WatchlistCardProps = {
   onSortChange: (value: WatchlistSort) => void;
   onClearFilters: () => void;
   genreOptions: Array<{ id: number; label: string }>;
+  addTitleSlot: ReactNode;
   renderPoster: (posterPath?: string | null, altText?: string) => ReactNode;
   getWatchlistMeta: (item: WatchlistItem) => WatchlistMeta;
 };
@@ -61,6 +62,7 @@ export default function WatchlistCard({
   onSortChange,
   onClearFilters,
   genreOptions,
+  addTitleSlot,
   renderPoster,
   getWatchlistMeta,
 }: WatchlistCardProps) {
@@ -104,7 +106,7 @@ export default function WatchlistCard({
 
   return (
     <section className="app-surface overflow-hidden" aria-labelledby="watchlist-heading">
-      <div className="border-b app-rule px-4 py-4 sm:px-5">
+      <div className="border-b app-rule px-5 py-5 sm:px-6">
         <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <h3
@@ -122,7 +124,8 @@ export default function WatchlistCard({
 
           <Button
             size="md"
-            className="app-primary-button w-full sm:w-auto"
+            className="app-primary-button h-11 w-full px-5 sm:w-auto"
+            variant="solid"
             isDisabled={!selectedGroupId || totalCount < 2}
             onPress={() => {
               if (!selectedGroupId) return;
@@ -133,7 +136,8 @@ export default function WatchlistCard({
           </Button>
         </div>
       </div>
-      <div className="space-y-4 px-4 py-4 sm:px-5">
+      <div className="space-y-5 px-5 py-5 sm:px-6">
+        {addTitleSlot}
         <WatchlistControls
           q={q}
           onQChange={onQChange}

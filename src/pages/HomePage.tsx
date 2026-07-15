@@ -41,14 +41,15 @@ export default function HomePage() {
   const [watchlistGenreId, setWatchlistGenreId] = useState<number | null>(null);
   const [watchlistSort, setWatchlistSort] = useState<WatchlistSort>("recent");
   const [watchlistPage, setWatchlistPage] = useState(1);
+  const [isAddTitleOpen, setIsAddTitleOpen] = useState(false);
   const manualModal = useDisclosure();
   const avatarModal = useDisclosure();
 
   const inputClassNames: InputClassNames = {
-    label: "text-[#E0B15C]/80",
-    input: "text-white placeholder:text-white/40",
+    label: "text-[#F5D9A5]",
+    input: "text-[#F7F1E3] placeholder:text-[#D9C7A8]/65",
     inputWrapper:
-      "border-[#E0B15C]/20 bg-[#22130F] focus-within:border-[#E0B15C]",
+      "border-[#E0B15C]/35 bg-[#22130F] focus-within:border-[#E0B15C]",
   };
 
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: getMe });
@@ -129,12 +130,12 @@ export default function HomePage() {
         <img
           src={poster}
           alt={altText ?? "Poster"}
-          className="h-20 w-14 rounded-md object-cover"
+          className="h-24 w-16 rounded-md object-cover shadow-[0_10px_24px_rgb(0_0_0/0.26)]"
         />
       );
     }
     return (
-      <div className="flex h-20 w-14 items-center justify-center rounded-md border border-[#E0B15C]/20 bg-[#22130F] text-xs text-[#D9C7A8]">
+      <div className="flex h-24 w-16 items-center justify-center rounded-md border border-[#E0B15C]/25 bg-[#22130F] text-xs text-[#D9C7A8]">
         N/A
       </div>
     );
@@ -318,7 +319,7 @@ export default function HomePage() {
               </div>
             </header>
 
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2.15fr)_minmax(18rem,0.85fr)]">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2.45fr)_minmax(18rem,0.75fr)]">
             <main className="flex flex-col gap-5">
               <p className="sr-only" role="status" aria-live="polite">
                 {selectedGroup?.name
@@ -354,21 +355,24 @@ export default function HomePage() {
                   setWatchlistSort("recent");
                 }}
                 genreOptions={genreOptions}
+                addTitleSlot={
+                  <AddToWatchlistCard
+                    selectedGroupId={resolvedSelectedGroupId}
+                    search={tmdbSearch}
+                    onSearchChange={handleSearchChange}
+                    tmdbResults={tmdbResults}
+                    isSearching={tmdbQuery.isFetching}
+                    onClearSearch={() => handleSearchChange("")}
+                    onOpenManual={manualModal.onOpen}
+                    isManualDisabled={!resolvedSelectedGroupId}
+                    inputClassNames={inputClassNames}
+                    renderPoster={renderPoster}
+                    isOpen={isAddTitleOpen}
+                    onToggleOpen={() => setIsAddTitleOpen((value) => !value)}
+                  />
+                }
                 renderPoster={renderPoster}
                 getWatchlistMeta={getWatchlistMeta}
-              />
-
-              <AddToWatchlistCard
-                selectedGroupId={resolvedSelectedGroupId}
-                search={tmdbSearch}
-                onSearchChange={handleSearchChange}
-                tmdbResults={tmdbResults}
-                isSearching={tmdbQuery.isFetching}
-                onClearSearch={() => handleSearchChange("")}
-                onOpenManual={manualModal.onOpen}
-                isManualDisabled={!resolvedSelectedGroupId}
-                inputClassNames={inputClassNames}
-                renderPoster={renderPoster}
               />
             </main>
 

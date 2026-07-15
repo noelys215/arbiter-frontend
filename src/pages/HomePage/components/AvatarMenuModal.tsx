@@ -90,6 +90,7 @@ export default function AvatarMenuModal({
   // Copy state
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState<"profile" | "friends" | "groups">("profile");
+  const [showGroupSettings, setShowGroupSettings] = useState(false);
 
   const isOwner = selectedGroup?.owner_id === me?.id;
 
@@ -213,10 +214,11 @@ export default function AvatarMenuModal({
         size="2xl"
         scrollBehavior="inside"
         classNames={{
-          base: "border border-[#E0B15C]/18 bg-[#1C110F]",
-          header: "border-b border-[#E0B15C]/10",
+          base: "border border-[#E0B15C]/24 bg-[#1C110F]",
+          backdrop: "bg-black/45",
+          header: "border-b border-[#E0B15C]/16",
           body: "py-5",
-          footer: "border-t border-[#E0B15C]/10",
+          footer: "border-t border-[#E0B15C]/16",
         }}
       >
         <ModalContent>
@@ -250,9 +252,9 @@ export default function AvatarMenuModal({
                   classNames={{
                     base: "w-full",
                     tabList:
-                      "w-full rounded-lg border border-[#E0B15C]/12 bg-[#120B09]/70 p-1",
-                    tab: "h-9 px-3 text-[#D9C7A8] data-[selected=true]:text-[#1C110F]",
-                    cursor: "rounded-md bg-[#E0B15C]",
+                      "w-full rounded-lg border border-[#E0B15C]/22 bg-[#120B09]/80 p-1",
+                    tab: "h-9 px-3 font-semibold text-[#E4D1B2] data-[hover=true]:text-[#F7EAD2] data-[selected=true]:text-[#160C0A]",
+                    cursor: "rounded-md bg-[#E0B15C] shadow-sm",
                     panel: "pt-5",
                   }}
                 >
@@ -284,35 +286,6 @@ export default function AvatarMenuModal({
                         >
                           Edit avatar
                         </Button>
-                      </div>
-
-                      <Divider className="bg-[#E0B15C]/10" />
-
-                      <div className="grid gap-3 text-sm sm:grid-cols-3">
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-[0.14em] app-tertiary">
-                            Name
-                          </p>
-                          <p className="mt-1 text-[#F7EAD2]">
-                            {me?.display_name ?? "-"}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-[0.14em] app-tertiary">
-                            Username
-                          </p>
-                          <p className="mt-1 text-[#F7EAD2]">
-                            {me?.username ?? "-"}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-[0.14em] app-tertiary">
-                            Email
-                          </p>
-                          <p className="mt-1 break-all text-[#F7EAD2]">
-                            {me?.email ?? "-"}
-                          </p>
-                        </div>
                       </div>
                     </section>
                   </Tab>
@@ -419,7 +392,7 @@ export default function AvatarMenuModal({
                           </ul>
                         ) : (
                           <p className="mt-2 text-sm app-muted">
-                            Friends you add will appear here.
+                            No friends here yet. Share an invite to start choosing together.
                           </p>
                         )}
                       </div>
@@ -485,42 +458,8 @@ export default function AvatarMenuModal({
 
                         <div className="space-y-3">
                           <h3 className="text-lg font-semibold text-[#F7EAD2]">
-                            Group invites
+                            Join with a code
                           </h3>
-                          <Button
-                            className="app-outline-button"
-                            variant="bordered"
-                            onPress={() => createGroupInviteMutation.mutate()}
-                            isDisabled={!selectedGroup}
-                            isLoading={createGroupInviteMutation.isPending}
-                          >
-                            Create invite
-                          </Button>
-                          {createdGroupCode ? (
-                            <div className="flex items-center gap-2">
-                              <Chip
-                                radius="sm"
-                                size="lg"
-                                variant="flat"
-                                classNames={{
-                                  base: "border-[#E0B15C]/35 bg-[#E0B15C]/10",
-                                  content: "text-[#F5D9A5]",
-                                }}
-                              >
-                                {createdGroupCode}
-                              </Chip>
-                              <Button
-                                size="sm"
-                                variant="light"
-                                className="app-secondary-button"
-                                onPress={() => handleCopy(createdGroupCode)}
-                              >
-                                {copiedCode === createdGroupCode
-                                  ? "Copied"
-                                  : "Copy"}
-                              </Button>
-                            </div>
-                          ) : null}
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                             <Input
                               label="Join with a code"
@@ -546,42 +485,100 @@ export default function AvatarMenuModal({
                       {selectedGroup ? (
                         <>
                           <Divider className="bg-[#D77B69]/15" />
-                          <section className="rounded-lg border border-[#D77B69]/20 p-4">
-                            <h3 className="text-sm font-semibold text-[#F1A799]">
-                              {selectedGroup.name}
-                            </h3>
-                            <div className="mt-3 flex flex-wrap gap-3">
-                              {isOwner ? (
+                          <section className="space-y-3 rounded-lg border border-[#E0B15C]/16 p-4">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                              <div>
+                                <h3 className="text-lg font-semibold text-[#F7EAD2]">
+                                  Group settings
+                                </h3>
+                                <p className="mt-1 text-sm app-muted">
+                                  Invite people or manage {selectedGroup.name}.
+                                </p>
+                              </div>
+                              <Button
+                                variant="light"
+                                className="app-secondary-button"
+                                onPress={() => setShowGroupSettings((value) => !value)}
+                                aria-expanded={showGroupSettings}
+                                aria-controls="group-settings-panel"
+                              >
+                                {showGroupSettings ? "Hide settings" : "Show settings"}
+                              </Button>
+                            </div>
+                            <div
+                              id="group-settings-panel"
+                              hidden={!showGroupSettings}
+                              className="space-y-4 border-t app-rule pt-4"
+                            >
+                              <div className="flex flex-wrap items-center gap-3">
                                 <Button
-                                  className="app-danger-button"
+                                  className="app-outline-button"
                                   variant="bordered"
-                                  onPress={() =>
-                                    openConfirm({
-                                      type: "delete",
-                                      id: selectedGroup.id,
-                                      label: `Delete ${selectedGroup.name}`,
-                                    })
-                                  }
-                                  isLoading={deleteGroupMutation.isPending}
+                                  onPress={() => createGroupInviteMutation.mutate()}
+                                  isDisabled={!selectedGroup}
+                                  isLoading={createGroupInviteMutation.isPending}
                                 >
-                                  Delete group
+                                  Create group invite
                                 </Button>
-                              ) : (
-                                <Button
-                                  className="app-danger-button"
-                                  variant="bordered"
-                                  onPress={() =>
-                                    openConfirm({
-                                      type: "leave",
-                                      id: selectedGroup.id,
-                                      label: `Leave ${selectedGroup.name}`,
-                                    })
-                                  }
-                                  isLoading={leaveGroupMutation.isPending}
-                                >
-                                  Leave group
-                                </Button>
-                              )}
+                                {createdGroupCode ? (
+                                  <div className="flex items-center gap-2">
+                                    <Chip
+                                      radius="sm"
+                                      size="lg"
+                                      variant="flat"
+                                      classNames={{
+                                        base: "border-[#E0B15C]/35 bg-[#E0B15C]/10",
+                                        content: "text-[#F5D9A5]",
+                                      }}
+                                    >
+                                      {createdGroupCode}
+                                    </Chip>
+                                    <Button
+                                      size="sm"
+                                      variant="light"
+                                      className="app-secondary-button"
+                                      onPress={() => handleCopy(createdGroupCode)}
+                                    >
+                                      {copiedCode === createdGroupCode
+                                        ? "Copied"
+                                        : "Copy"}
+                                    </Button>
+                                  </div>
+                                ) : null}
+                              </div>
+                              <div className="border-t border-[#D77B69]/18 pt-4">
+                                {isOwner ? (
+                                  <Button
+                                    className="app-danger-button"
+                                    variant="bordered"
+                                    onPress={() =>
+                                      openConfirm({
+                                        type: "delete",
+                                        id: selectedGroup.id,
+                                        label: `Delete ${selectedGroup.name}`,
+                                      })
+                                    }
+                                    isLoading={deleteGroupMutation.isPending}
+                                  >
+                                    Delete group
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    className="app-danger-button"
+                                    variant="bordered"
+                                    onPress={() =>
+                                      openConfirm({
+                                        type: "leave",
+                                        id: selectedGroup.id,
+                                        label: `Leave ${selectedGroup.name}`,
+                                      })
+                                    }
+                                    isLoading={leaveGroupMutation.isPending}
+                                  >
+                                    Leave group
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           </section>
                         </>

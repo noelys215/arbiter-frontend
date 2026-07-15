@@ -1,4 +1,4 @@
-import { Button, Chip, Pagination, Spinner } from "@heroui/react";
+import { Button, Pagination, Spinner } from "@heroui/react";
 import type { ReactNode } from "react";
 import type { WatchlistItem } from "../../../features/watchlist/watchlist.api";
 import type { WatchlistMeta } from "../types";
@@ -85,31 +85,19 @@ export default function WatchlistList({
           return (
             <li
               key={item.id ?? `${meta.name}-${meta.year ?? ""}`}
-              className="grid grid-cols-[4rem_minmax(0,1fr)] gap-4 py-4 sm:grid-cols-[4.5rem_minmax(0,1fr)_auto] sm:items-center"
+              className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-4 py-5 transition-colors hover:bg-[#E0B15C]/[0.035] focus-within:bg-[#E0B15C]/[0.045] sm:grid-cols-[5rem_minmax(0,1fr)_auto] sm:items-center"
             >
               {renderPoster(meta.poster, meta.name)}
               <div className="min-w-0 flex-1">
-                <p className="truncate text-lg font-semibold leading-6 text-[#F7EAD2]">
+                <p className="truncate text-xl font-bold leading-7 text-[#F7EAD2]">
                   {meta.name}
                 </p>
-                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm app-muted">
-                  <span>{meta.year ? meta.year : "Unknown year"}</span>
-                  {addedBy ? <span>Added by {addedBy}</span> : null}
-                </div>
+                <p className="mt-1 text-sm app-muted">
+                  {meta.year ? meta.year : "Unknown year"}
+                  {addedBy ? ` · Added by ${addedBy}` : ""}
+                </p>
               </div>
               <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 sm:col-span-1 sm:flex-col sm:items-end sm:justify-center">
-                {item.status ? (
-                  <Chip
-                    variant="bordered"
-                    radius="sm"
-                    classNames={{
-                      base: "border-[#E0B15C]/50",
-                      content: "text-[#E0B15C]",
-                    }}
-                  >
-                    {item.status}
-                  </Chip>
-                ) : null}
                 <Button
                   size="sm"
                   variant="light"
@@ -137,12 +125,12 @@ export default function WatchlistList({
             variant="bordered"
             size="sm"
             classNames={{
-              base: "rounded-2xl border border-[#E0B15C]/25 bg-[#22130F] px-2 py-1",
+              base: "rounded-2xl border border-[#E0B15C]/30 bg-[#22130F] px-2 py-1",
               wrapper: "gap-1",
-              item: "border-none bg-transparent text-[#F7F1E3] data-[hover=true]:bg-[#2B1713]",
+              item: "border-none bg-transparent text-[#F7EAD2] data-[hover=true]:bg-[#2B1713]",
               cursor: "bg-[#E0B15C] text-[#1C110F]",
-              prev: "border-none bg-transparent text-[#F7F1E3] data-[hover=true]:bg-[#2B1713]",
-              next: "border-none bg-transparent text-[#F7F1E3] data-[hover=true]:bg-[#2B1713]",
+              prev: "border-none bg-transparent text-[#F7EAD2] data-[hover=true]:bg-[#2B1713]",
+              next: "border-none bg-transparent text-[#F7EAD2] data-[hover=true]:bg-[#2B1713]",
             }}
           />
         </div>
