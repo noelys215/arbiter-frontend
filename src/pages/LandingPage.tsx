@@ -1,8 +1,9 @@
-import { Button } from "@heroui/react";
-import { useEffect } from "react";
+import { Button, Chip, useDisclosure } from "@heroui/react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import BrandLockup from "../components/BrandLockup";
 import SkipLink from "../components/SkipLink";
+import LegalModal from "./components/LegalModal";
 
 const pageCopy: Record<
   string,
@@ -58,6 +59,12 @@ const steps = [
   },
 ];
 
+const featureStats = [
+  { label: "Live sessions", value: "real-time" },
+  { label: "Vote options", value: "yes / no" },
+  { label: "Auth", value: "OAuth + magic links" },
+];
+
 const searchTargets = [
   "movie night picker",
   "group movie picker",
@@ -67,9 +74,12 @@ const searchTargets = [
 ];
 
 const AUTH_CTA_LABEL = "Sign in";
+type LegalModalKind = "privacy" | "data-deletion";
 
 export default function LandingPage() {
   const location = useLocation();
+  const legalModal = useDisclosure();
+  const [legalKind, setLegalKind] = useState<LegalModalKind>("privacy");
   const copy = pageCopy[location.pathname] ?? {
     eyebrow: "Group movie picker",
     title: "Arbiter",
@@ -97,6 +107,11 @@ export default function LandingPage() {
       ?.setAttribute("content", copy.description);
   }, [copy.description, copy.pageTitle]);
 
+  const openLegalModal = (kind: LegalModalKind) => {
+    setLegalKind(kind);
+    legalModal.onOpen();
+  };
+
   return (
     <div className="min-h-screen bg-[#140C0A] text-[#F7F1E3]">
       <SkipLink />
@@ -113,7 +128,7 @@ export default function LandingPage() {
           <Button
             as={Link}
             to="/login"
-            className="border border-[#E0B15C]/60 bg-[#E0B15C] text-[#1C110F]"
+            className="min-h-11 border border-[#E0B15C]/60 bg-[#E0B15C] px-5 text-[#1C110F]"
           >
             {AUTH_CTA_LABEL}
           </Button>
@@ -126,55 +141,96 @@ export default function LandingPage() {
             src="/arbiter.png"
             alt=""
             aria-hidden="true"
-            className="absolute right-[-4rem] top-24 z-[-1] w-[min(80vw,46rem)] opacity-20 blur-[1px] sm:right-[4vw] sm:top-20 sm:opacity-25"
+            className="absolute right-[-5rem] top-24 z-[-1] w-[min(78vw,42rem)] opacity-[0.18] sm:right-[3vw] sm:top-[4.5rem] sm:opacity-25"
           />
-          <div className="absolute inset-0 z-[-2] bg-[linear-gradient(180deg,rgba(20,12,10,0.22)_0%,rgba(20,12,10,0.78)_58%,#140C0A_100%)]" />
-          <div className="mx-auto grid w-full max-w-6xl gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.7fr)] lg:items-end">
+          <div className="absolute inset-0 z-[-2] bg-[linear-gradient(180deg,rgba(20,12,10,0.1)_0%,rgba(20,12,10,0.8)_62%,#140C0A_100%)]" />
+          <div className="mx-auto grid w-full max-w-6xl gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.78fr)] lg:items-end">
             <div className="max-w-3xl">
               <p className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-[#E0B15C]">
                 {copy.eyebrow}
               </p>
-              <h1 className="max-w-4xl text-5xl font-semibold leading-[1.02] text-[#F5D9A5] sm:text-7xl">
+              <h1 className="max-w-4xl text-5xl font-semibold leading-[1.03] text-[#F5D9A5] sm:text-7xl">
                 {copy.title}
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-[#D9C7A8] sm:text-xl">
                 {copy.description}
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-8 flex flex-wrap items-center gap-4">
                 <Button
                   as={Link}
                   to="/login"
                   size="lg"
-                  className="border border-[#E0B15C]/60 bg-[#E0B15C] text-[#1C110F]"
+                  className="min-h-12 border border-[#E0B15C]/60 bg-[#E0B15C] px-7 text-base text-[#1C110F]"
                 >
                   {AUTH_CTA_LABEL}
                 </Button>
+                <p className="max-w-xs text-sm leading-6 text-[#D9C7A8]">
+                  Continue with Google or request a secure magic link. No
+                  passwords to create or manage.
+                </p>
               </div>
             </div>
 
-            <div className="hidden border-l border-[#E0B15C]/25 pl-8 lg:block">
-              <p className="text-sm uppercase tracking-[0.2em] text-[#E0B15C]/80">
-                Built for
-              </p>
-              <ul className="mt-4 space-y-3 text-lg text-[#F7F1E3]">
-                <li>Friday movie nights</li>
-                <li>Remote watch parties</li>
-                <li>Roommate watchlists</li>
-                <li>Friend group sessions</li>
-              </ul>
+            <div className="border border-[#E0B15C]/18 bg-[#1C110F]/82 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-sm sm:p-6">
+              <div className="flex items-center justify-between gap-3 border-b border-[#E0B15C]/15 pb-4">
+                <div>
+                  <p className="text-sm uppercase tracking-[0.2em] text-[#E0B15C]/80">
+                    Tonight's session
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold text-[#F7F1E3]">
+                    Movie night, settled
+                  </h2>
+                </div>
+                <Chip
+                  variant="flat"
+                  classNames={{
+                    base: "bg-[#E0B15C]/18",
+                    content: "text-[#F5D9A5]",
+                  }}
+                >
+                  Live
+                </Chip>
+              </div>
+              <dl className="mt-5 grid gap-3">
+                {featureStats.map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex items-center justify-between gap-4 border-b border-[#E0B15C]/10 pb-3 last:border-b-0 last:pb-0"
+                  >
+                    <dt className="text-sm text-[#D9C7A8]">{item.label}</dt>
+                    <dd className="text-sm font-semibold text-[#F5D9A5]">
+                      {item.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              <div className="mt-6 grid grid-cols-3 gap-2" aria-hidden="true">
+                {["No", "Undo", "Yes"].map((label) => (
+                  <div
+                    key={label}
+                    className="border border-[#E0B15C]/18 bg-[#140C0A] px-3 py-3 text-center text-sm font-semibold text-[#F7F1E3]"
+                  >
+                    {label}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="border-y border-[#E0B15C]/15 bg-[#1C110F] px-5 py-10 sm:px-8">
+        <section className="border-y border-[#E0B15C]/15 bg-[#1C110F] px-5 py-8 sm:px-8">
           <div className="mx-auto flex max-w-6xl flex-wrap gap-3">
             {searchTargets.map((target) => (
-              <span
+              <Chip
                 key={target}
-                className="rounded-full border border-[#E0B15C]/25 px-4 py-2 text-sm text-[#D9C7A8]"
+                variant="bordered"
+                classNames={{
+                  base: "border-[#E0B15C]/25",
+                  content: "text-[#D9C7A8]",
+                }}
               >
                 {target}
-              </span>
+              </Chip>
             ))}
           </div>
         </section>
@@ -209,7 +265,7 @@ export default function LandingPage() {
         </section>
 
         <section className="bg-[#F7F1E3] px-5 py-16 text-[#1C110F] sm:px-8">
-          <div className="mx-auto flex max-w-6xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="mx-auto max-w-6xl">
             <div className="max-w-2xl">
               <h2 className="text-3xl font-semibold sm:text-4xl">
                 Ready to settle the next watch night?
@@ -219,31 +275,38 @@ export default function LandingPage() {
                 Arbiter turn the decision into a quick live vote.
               </p>
             </div>
-            <Button
-              as={Link}
-              to="/login"
-              size="lg"
-              className="w-full bg-[#1C110F] text-[#F7F1E3] md:w-auto"
-            >
-              {AUTH_CTA_LABEL}
-            </Button>
           </div>
         </section>
       </main>
 
       <footer className="px-5 py-8 text-sm text-[#D9C7A8] sm:px-8">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4">
-          <span>Arbiter</span>
-          <div className="flex gap-4">
-            <Link className="text-[#F5D9A5]" to="/privacy">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p>© 2026 Arbiter™. All rights reserved.</p>
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
+            <button
+              type="button"
+              className="min-h-11 text-[#F5D9A5] underline-offset-4 hover:underline"
+              onClick={() => openLegalModal("privacy")}
+            >
               Privacy
-            </Link>
-            <Link className="text-[#F5D9A5]" to="/data-deletion">
+            </button>
+            <button
+              type="button"
+              className="min-h-11 text-[#F5D9A5] underline-offset-4 hover:underline"
+              onClick={() => openLegalModal("data-deletion")}
+            >
               Data deletion
-            </Link>
+            </button>
           </div>
         </div>
       </footer>
+
+      <LegalModal
+        kind={legalKind}
+        isOpen={legalModal.isOpen}
+        onOpenChange={legalModal.onOpenChange}
+        onSwitchKind={setLegalKind}
+      />
     </div>
   );
 }
