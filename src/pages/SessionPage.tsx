@@ -66,6 +66,7 @@ export default function SessionPage() {
     isDeckComplete,
 
     shortlist,
+    voteSummaries,
     shortlistModal,
     personalPreviewModal,
     personalPreviewCards,
@@ -198,6 +199,7 @@ export default function SessionPage() {
         isOpen={shortlistModal.isOpen}
         onOpenChange={shortlistModal.onOpenChange}
         shortlist={shortlist}
+        voteSummaries={voteSummaries}
         localVotes={localVotes}
         winnerWatchlistItemId={winnerWatchlistItemId}
         getReadableVote={getReadableVote}

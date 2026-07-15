@@ -834,6 +834,8 @@ export function useSessionFlow() {
     return [];
   }, [localVotes, shortlistByBackendIds, sortedCards, winnerWatchlistItemId]);
 
+  const voteSummaries = sessionStateQuery.data?.vote_summaries ?? [];
+
   const showShortlistButton =
     hasVotes || isDeckComplete || shortlist.length > 0;
 
@@ -1081,6 +1083,7 @@ export function useSessionFlow() {
     isDeckComplete,
 
     shortlist,
+    voteSummaries,
     shortlistModal,
     personalPreviewModal,
     personalPreviewCards,

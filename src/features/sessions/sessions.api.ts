@@ -86,9 +86,26 @@ export type SessionStateResponse = {
     | Array<{
         watchlist_item_id?: string;
       }>;
+  vote_summaries?: SessionVoteSummary[];
 };
 
 export type SessionVote = "yes" | "no";
+
+export type SessionVoteParticipant = {
+  user_id: string;
+  display_name: string;
+  avatar_url: string | null;
+  vote: SessionVote;
+};
+
+export type SessionVoteSummary = {
+  watchlist_item_id: string;
+  yes_count: number;
+  no_count: number;
+  total_count: number;
+  is_leading: boolean;
+  voters: SessionVoteParticipant[];
+};
 
 export type SubmitVotePayload = {
   watchlist_item_id: string;
