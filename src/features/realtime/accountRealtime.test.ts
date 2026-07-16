@@ -52,6 +52,29 @@ describe("invalidateAccountQueries", () => {
     );
   });
 
+  it("refreshes profile surfaces when a display name changes", async () => {
+    const queryClient = invalidator();
+    await invalidateAccountQueries(queryClient, {
+      type: "profile_updated",
+      reason: "display_name_updated",
+      user_id: "user-a",
+    });
+
+    expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(6);
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ["me"] },
+      { cancelRefetch: false },
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ["watchlist-library"], refetchType: "active" },
+      { cancelRefetch: false },
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ["session-state"], refetchType: "active" },
+      { cancelRefetch: false },
+    );
+  });
+
   it("invalidates only the affected group detail", async () => {
     const queryClient = invalidator();
     await invalidateAccountQueries(queryClient, {

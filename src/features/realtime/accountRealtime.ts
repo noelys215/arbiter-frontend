@@ -6,10 +6,12 @@ export type AccountRealtimeMessage = {
     | "friendship_updated"
     | "group_invite_updated"
     | "group_updated"
+    | "profile_updated"
     | "pong";
   reason?: string;
   group_id?: string;
   member_user_id?: string;
+  user_id?: string;
 };
 
 type QueryInvalidator = Pick<QueryClient, "invalidateQueries">;
@@ -47,6 +49,36 @@ export async function invalidateAccountQueries(
       { queryKey: ["friends"] },
       backgroundOptions,
     );
+    return;
+  }
+
+  if (message.type === "profile_updated") {
+    await Promise.all([
+      queryClient.invalidateQueries(
+        { queryKey: ["me"] },
+        backgroundOptions,
+      ),
+      queryClient.invalidateQueries(
+        { queryKey: ["friends"] },
+        backgroundOptions,
+      ),
+      queryClient.invalidateQueries(
+        { queryKey: ["group-detail"], refetchType: "active" },
+        backgroundOptions,
+      ),
+      queryClient.invalidateQueries(
+        { queryKey: ["watchlist-library"], refetchType: "active" },
+        backgroundOptions,
+      ),
+      queryClient.invalidateQueries(
+        { queryKey: ["session-state"], refetchType: "active" },
+        backgroundOptions,
+      ),
+      queryClient.invalidateQueries(
+        { queryKey: ["session-watchlist"], refetchType: "active" },
+        backgroundOptions,
+      ),
+    ]);
     return;
   }
 

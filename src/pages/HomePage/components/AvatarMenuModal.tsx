@@ -16,7 +16,7 @@ import { lazy, Suspense, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ArbiterAvatar from "../../../components/ArbiterAvatar";
 import KoFiSupportLink from "../../../components/KoFiSupportLink";
-import { logout } from "../../../features/auth/auth.api";
+import { logout, updateDisplayName } from "../../../features/auth/auth.api";
 import type { MeResponse } from "../../../features/auth/auth.api";
 import {
   acceptFriendInvite,
@@ -38,6 +38,7 @@ import {
   getGroupInvitations,
   leaveGroup,
   revokeGroupInvite,
+  updateGroup,
 } from "../../../features/groups/groups.api";
 import type { Group } from "../../../features/groups/groups.api";
 import type { ConfirmAction, InputClassNames, OnOpenChange } from "../types";
@@ -97,6 +98,18 @@ export default function AvatarMenuModal({
 
   // Create group state
   const [groupName, setGroupName] = useState("");
+  const [displayNameDraft, setDisplayNameDraft] = useState<string | null>(null);
+  const [profileSaveMessage, setProfileSaveMessage] = useState<string | null>(
+    null,
+  );
+  const [groupNameDraft, setGroupNameDraft] = useState<{
+    groupId: string;
+    value: string;
+  } | null>(null);
+  const [groupSaveMessage, setGroupSaveMessage] = useState<{
+    groupId: string;
+    message: string;
+  } | null>(null);
 
   // Confirm action state
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(
@@ -109,6 +122,11 @@ export default function AvatarMenuModal({
   const [showGroupSettings, setShowGroupSettings] = useState(false);
 
   const isOwner = selectedGroup?.owner_id === me?.id;
+  const displayName = displayNameDraft ?? me?.display_name ?? "";
+  const groupEditName =
+    groupNameDraft && groupNameDraft.groupId === selectedGroup?.id
+      ? groupNameDraft.value
+      : selectedGroup?.name ?? "";
   const groupDetailQuery = useQuery({
     queryKey: ["group-detail", selectedGroup?.id],
     queryFn: () => getGroup(selectedGroup?.id ?? ""),
@@ -142,6 +160,15 @@ export default function AvatarMenuModal({
     onSuccess: () => {
       queryClient.clear();
       navigate("/login", { replace: true });
+    },
+  });
+
+  const updateDisplayNameMutation = useMutation({
+    mutationFn: () => updateDisplayName(displayName.trim()),
+    onSuccess: (data) => {
+      queryClient.setQueryData(["me"], data);
+      setDisplayNameDraft(null);
+      setProfileSaveMessage("Display name updated.");
     },
   });
 
@@ -234,6 +261,28 @@ export default function AvatarMenuModal({
     },
   });
 
+  const updateGroupMutation = useMutation({
+    mutationFn: () => {
+      if (!selectedGroup) return Promise.reject(new Error("No group selected"));
+      return updateGroup(selectedGroup.id, groupEditName.trim());
+    },
+    onSuccess: async (updatedGroup) => {
+      queryClient.setQueryData<Group[]>(["groups"], (current) =>
+        current?.map((group) =>
+          group.id === updatedGroup.id ? { ...group, ...updatedGroup } : group,
+        ),
+      );
+      setGroupNameDraft(null);
+      setGroupSaveMessage({
+        groupId: updatedGroup.id,
+        message: "Group name updated.",
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["group-detail", updatedGroup.id],
+      });
+    },
+  });
+
   // Leave/Delete group mutations
   const leaveGroupMutation = useMutation({
     mutationFn: () =>
@@ -273,6 +322,15 @@ export default function AvatarMenuModal({
 
   const isConfirmPending =
     leaveGroupMutation.isPending || deleteGroupMutation.isPending;
+  const cleanedDisplayName = displayName.trim();
+  const canSaveDisplayName =
+    cleanedDisplayName.length > 0 &&
+    cleanedDisplayName !== (me?.display_name ?? "").trim();
+  const cleanedGroupName = groupEditName.trim();
+  const canSaveGroupName =
+    Boolean(isOwner && selectedGroup) &&
+    cleanedGroupName.length > 0 &&
+    cleanedGroupName !== (selectedGroup?.name ?? "").trim();
 
   return (
     <>
@@ -359,6 +417,51 @@ export default function AvatarMenuModal({
                         >
                           Edit avatar
                         </Button>
+                      </div>
+                      <form
+                        className="flex flex-col gap-3 border-t app-rule pt-5 sm:flex-row sm:items-end"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          if (canSaveDisplayName) {
+                            updateDisplayNameMutation.mutate();
+                          }
+                        }}
+                      >
+                        <Input
+                          label="Display name"
+                          description="This is how your name appears to friends and groups."
+                          value={displayName}
+                          onValueChange={(value) => {
+                            setDisplayNameDraft(value);
+                            setProfileSaveMessage(null);
+                          }}
+                          maxLength={120}
+                          variant="bordered"
+                          className="flex-1"
+                          classNames={inputClassNames}
+                        />
+                        <Button
+                          type="submit"
+                          className="app-outline-button w-full sm:w-auto"
+                          variant="bordered"
+                          isDisabled={!canSaveDisplayName}
+                          isLoading={updateDisplayNameMutation.isPending}
+                        >
+                          Save name
+                        </Button>
+                      </form>
+                      <div
+                        className="min-h-5 text-sm"
+                        role="status"
+                        aria-live="polite"
+                      >
+                        {updateDisplayNameMutation.isError ? (
+                          <p className="app-text-destructive">
+                            We couldn’t update your display name. Please try again.
+                          </p>
+                        ) : profileSaveMessage ? (
+                          <p className="app-text-secondary">{profileSaveMessage}</p>
+                        ) : null}
                       </div>
                       <div className="profile-support-section">
                         <div>
@@ -664,6 +767,62 @@ export default function AvatarMenuModal({
                               hidden={!showGroupSettings}
                               className="space-y-4 border-t app-rule pt-4"
                             >
+                              {isOwner ? (
+                                <form
+                                  className="space-y-3"
+                                  onSubmit={(event) => {
+                                    event.preventDefault();
+                                    if (canSaveGroupName) {
+                                      updateGroupMutation.mutate();
+                                    }
+                                  }}
+                                >
+                                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                                    <Input
+                                      label="Group name"
+                                      value={groupEditName}
+                                      onValueChange={(value) => {
+                                        if (selectedGroup) {
+                                          setGroupNameDraft({
+                                            groupId: selectedGroup.id,
+                                            value,
+                                          });
+                                        }
+                                        setGroupSaveMessage(null);
+                                      }}
+                                      maxLength={120}
+                                      variant="bordered"
+                                      className="flex-1"
+                                      classNames={inputClassNames}
+                                    />
+                                    <Button
+                                      type="submit"
+                                      className="app-outline-button w-full sm:w-auto"
+                                      variant="bordered"
+                                      isDisabled={!canSaveGroupName}
+                                      isLoading={updateGroupMutation.isPending}
+                                    >
+                                      Save name
+                                    </Button>
+                                  </div>
+                                  <div
+                                    className="min-h-5 text-sm"
+                                    role="status"
+                                    aria-live="polite"
+                                  >
+                                    {updateGroupMutation.isError ? (
+                                      <p className="app-text-destructive">
+                                        We couldn’t update the group name. Please try again.
+                                      </p>
+                                    ) : groupSaveMessage?.groupId ===
+                                      selectedGroup.id ? (
+                                      <p className="app-text-secondary">
+                                        {groupSaveMessage.message}
+                                      </p>
+                                    ) : null}
+                                  </div>
+                                </form>
+                              ) : null}
                               <div className="flex flex-wrap items-center gap-3">
                                 <Button
                                   className="app-outline-button"

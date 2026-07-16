@@ -88,6 +88,13 @@ export async function createGroup(payload: CreateGroupPayload) {
   });
 }
 
+export async function updateGroup(groupId: string, name: string) {
+  return apiJson<Group>(`/groups/${groupId}`, {
+    method: "PATCH",
+    ...jsonBody({ name }),
+  });
+}
+
 export async function addGroupMembers(
   groupId: string,
   payload: AddGroupMembersPayload,

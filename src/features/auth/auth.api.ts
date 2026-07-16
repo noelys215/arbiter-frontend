@@ -37,6 +37,13 @@ export async function getMe() {
   return apiJson<MeResponse>("/me", { cache: "no-store" });
 }
 
+export async function updateDisplayName(displayName: string) {
+  return apiJson<MeResponse>("/me", {
+    method: "PATCH",
+    ...jsonBody({ display_name: displayName }),
+  });
+}
+
 export async function updateAvatar(payload: UpdateAvatarPayload) {
   return apiJson<MeResponse>("/me/avatar", {
     method: "PATCH",
