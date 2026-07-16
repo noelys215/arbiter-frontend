@@ -22,6 +22,11 @@ type InvitePageProps = {
 
 type InvitePreview = FriendInvitePreview | GroupInvitePreview;
 
+function inviteErrorMessage(error: Error | null) {
+  const detail = (error as (Error & { detail?: string }) | null)?.detail;
+  return detail || "We couldn’t accept this invitation. Please try again.";
+}
+
 export default function InvitePage({ type }: InvitePageProps) {
   const { token = "" } = useParams();
   const location = useLocation();
@@ -54,6 +59,8 @@ export default function InvitePage({ type }: InvitePageProps) {
   const signInHref = `/login?return_to=${encodeURIComponent(invitePath)}`;
   const preview = previewQuery.data;
   const inviter = preview?.inviter;
+  const isOwnFriendInvite =
+    type === "friend" && Boolean(inviter && meQuery.data?.id === inviter.id);
   const groupPreview = type === "group" && preview && "group_name" in preview
     ? (preview as GroupInvitePreview)
     : null;
@@ -131,7 +138,24 @@ export default function InvitePage({ type }: InvitePageProps) {
                   <p className="text-[#F5D9A5]">
                     {type === "friend" ? "You’re connected." : "You joined the group."}
                   </p>
-                  <Button className="app-primary-button" onPress={() => navigate("/app")}>Open Arbiter</Button>
+                  <Button
+                    className="app-primary-button"
+                    onPress={() => navigate("/app")}
+                  >
+                    Open Arbiter
+                  </Button>
+                </div>
+              ) : isOwnFriendInvite ? (
+                <div className="space-y-4" role="status">
+                  <p className="max-w-lg text-base leading-7 text-[#D9C7A8]">
+                    This is your invitation. Share it with someone else to connect.
+                  </p>
+                  <Button
+                    className="app-outline-button"
+                    onPress={() => navigate("/app")}
+                  >
+                    Open Arbiter
+                  </Button>
                 </div>
               ) : meQuery.data ? (
                 <Button
@@ -149,7 +173,7 @@ export default function InvitePage({ type }: InvitePageProps) {
               )}
               {acceptMutation.isError ? (
                 <p className="text-sm text-[#E69A88]" role="alert">
-                  We couldn’t accept this invitation. Please try again.
+                  {inviteErrorMessage(acceptMutation.error)}
                 </p>
               ) : null}
             </div>
