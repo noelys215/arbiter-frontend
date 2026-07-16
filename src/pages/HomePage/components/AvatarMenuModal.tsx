@@ -419,7 +419,7 @@ export default function AvatarMenuModal({
                         </Button>
                       </div>
                       <form
-                        className="flex flex-col gap-3 border-t app-rule pt-5 sm:flex-row sm:items-end"
+                        className="grid gap-3 border-t app-rule pt-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"
                         onSubmit={(event) => {
                           event.preventDefault();
                           if (canSaveDisplayName) {
@@ -429,7 +429,7 @@ export default function AvatarMenuModal({
                       >
                         <Input
                           label="Display name"
-                          description="This is how your name appears to friends and groups."
+                          aria-describedby="display-name-help"
                           value={displayName}
                           onValueChange={(value) => {
                             setDisplayNameDraft(value);
@@ -437,12 +437,18 @@ export default function AvatarMenuModal({
                           }}
                           maxLength={120}
                           variant="bordered"
-                          className="flex-1"
+                          className="sm:col-start-1 sm:row-start-1"
                           classNames={inputClassNames}
                         />
+                        <p
+                          id="display-name-help"
+                          className="-mt-1 text-xs app-text-metadata sm:col-start-1 sm:row-start-2"
+                        >
+                          This is how your name appears to friends and groups.
+                        </p>
                         <Button
                           type="submit"
-                          className="app-outline-button w-full sm:w-auto"
+                          className="app-outline-button w-full sm:col-start-2 sm:row-start-1 sm:w-auto"
                           variant="bordered"
                           isDisabled={!canSaveDisplayName}
                           isLoading={updateDisplayNameMutation.isPending}
