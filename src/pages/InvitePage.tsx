@@ -1,8 +1,7 @@
 import { Button, Spinner } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import ArbiterAvatar from "../components/ArbiterAvatar";
-import BrandLockup from "../components/BrandLockup";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { getMe } from "../features/auth/auth.api";
 import {
   acceptFriendLinkInvite,
@@ -14,24 +13,29 @@ import {
   previewGroupInvite,
 } from "../features/groups/groups.api";
 import type { GroupInvitePreview } from "../features/groups/groups.api";
-import SkipLink from "../components/SkipLink";
+import InviteActions from "./invite/InviteActions";
+import InviteIdentity from "./invite/InviteIdentity";
+import InviteShell from "./invite/InviteShell";
+import {
+  classifyInviteError,
+  failurePresentation,
+} from "./invite/invitePresentation";
 
 type InvitePageProps = {
   type: "friend" | "group";
 };
 
 type InvitePreview = FriendInvitePreview | GroupInvitePreview;
-
-function inviteErrorMessage(error: Error | null) {
-  const detail = (error as (Error & { detail?: string }) | null)?.detail;
-  return detail || "We couldn’t accept this invitation. Please try again.";
-}
+type FriendAcceptResult = Awaited<ReturnType<typeof acceptFriendLinkInvite>>;
+type GroupAcceptResult = Awaited<ReturnType<typeof acceptGroupLinkInvite>>;
+type InviteAcceptResult = FriendAcceptResult | GroupAcceptResult;
 
 export default function InvitePage({ type }: InvitePageProps) {
   const { token = "" } = useParams();
   const location = useLocation();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const outcomeHeadingRef = useRef<HTMLHeadingElement>(null);
+  const [copyStatus, setCopyStatus] = useState("");
   const meQuery = useQuery({ queryKey: ["me"], queryFn: getMe, retry: false });
   const previewQuery = useQuery<InvitePreview>({
     queryKey: ["invite-preview", type, token],
@@ -41,7 +45,7 @@ export default function InvitePage({ type }: InvitePageProps) {
         : await previewGroupInvite(token),
     retry: false,
   });
-  const acceptMutation = useMutation<unknown, Error, void>({
+  const acceptMutation = useMutation<InviteAcceptResult, Error, void>({
     mutationFn: async () =>
       type === "friend"
         ? await acceptFriendLinkInvite(token)
@@ -59,127 +63,224 @@ export default function InvitePage({ type }: InvitePageProps) {
   const signInHref = `/login?return_to=${encodeURIComponent(invitePath)}`;
   const preview = previewQuery.data;
   const inviter = preview?.inviter;
+  const groupPreview =
+    type === "group" && preview && "group_name" in preview
+      ? (preview as GroupInvitePreview)
+      : null;
   const isOwnFriendInvite =
     type === "friend" && Boolean(inviter && meQuery.data?.id === inviter.id);
-  const groupPreview = type === "group" && preview && "group_name" in preview
-    ? (preview as GroupInvitePreview)
+  const acceptFailure = acceptMutation.isError
+    ? classifyInviteError(acceptMutation.error)
     : null;
-  const title = groupPreview
-    ? `Join ${groupPreview.group_name}`
-    : inviter
+  const terminalAcceptFailure =
+    acceptFailure && acceptFailure !== "temporary" ? acceptFailure : null;
+
+  useEffect(() => {
+    if (acceptMutation.isSuccess || terminalAcceptFailure) {
+      outcomeHeadingRef.current?.focus();
+    }
+  }, [acceptMutation.isSuccess, terminalAcceptFailure]);
+
+  const copyInviteLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopyStatus("Invite link copied.");
+    } catch {
+      setCopyStatus("We couldn’t copy the link. Copy it from your address bar instead.");
+    }
+  };
+
+  if (previewQuery.isPending) {
+    return (
+      <InviteShell
+        identity={<InviteIdentity type={type} eyebrow="Opening invitation" />}
+        headline="Your invitation is almost ready."
+        body="We’re gathering the details now."
+        status={
+          <div className="invite-loading" role="status" aria-live="polite">
+            <Spinner size="sm" color="warning" />
+            <span>Opening invitation…</span>
+          </div>
+        }
+      />
+    );
+  }
+
+  if (previewQuery.isError || !preview || !inviter) {
+    const failure = classifyInviteError(previewQuery.error);
+    const presentation = failurePresentation(failure);
+    return (
+      <InviteShell
+        identity={<InviteIdentity type={type} eyebrow={presentation.eyebrow} />}
+        headline={presentation.headline}
+        body={presentation.body}
+        actions={
+          failure === "temporary" ? (
+            <InviteActions
+              primaryLabel="Try again"
+              onPrimaryPress={() => void previewQuery.refetch()}
+              isPending={previewQuery.isFetching}
+              secondaryLabel="Back to Arbiter"
+              secondaryHref="/"
+            />
+          ) : (
+            <InviteActions
+              primaryLabel="Back to Arbiter"
+              primaryHref="/"
+            />
+          )
+        }
+      />
+    );
+  }
+
+  if (terminalAcceptFailure) {
+    const presentation = failurePresentation(terminalAcceptFailure);
+    return (
+      <InviteShell
+        headingRef={outcomeHeadingRef}
+        identity={
+          <InviteIdentity
+            type={type}
+            inviter={inviter}
+            memberCount={groupPreview?.member_count}
+            eyebrow={presentation.eyebrow}
+          />
+        }
+        headline={presentation.headline}
+        body={presentation.body}
+        actions={
+          <InviteActions primaryLabel="Go to Arbiter" primaryHref="/app" />
+        }
+      />
+    );
+  }
+
+  if (acceptMutation.isSuccess) {
+    const alreadyConnected =
+      type === "friend" &&
+      "already_friends" in acceptMutation.data &&
+      acceptMutation.data.already_friends;
+    const alreadyMember =
+      type === "group" &&
+      "already_member" in acceptMutation.data &&
+      acceptMutation.data.already_member;
+    const headline = alreadyConnected
+      ? "You’re already connected."
+      : alreadyMember
+        ? `You’re already in ${groupPreview?.group_name}.`
+        : type === "friend"
+          ? "You’re connected."
+          : "You’re in.";
+    const body =
+      type === "friend"
+        ? `${inviter.display_name} is ${alreadyConnected ? "already" : "now"} in your friends list.`
+        : alreadyMember
+          ? `${groupPreview?.group_name} is already one of your groups.`
+          : `You’ve joined ${groupPreview?.group_name}.`;
+
+    return (
+      <InviteShell
+        headingRef={outcomeHeadingRef}
+        identity={
+          <InviteIdentity
+            type={type}
+            inviter={inviter}
+            memberCount={groupPreview?.member_count}
+            eyebrow={type === "friend" ? "Invitation accepted" : "Welcome to the group"}
+          />
+        }
+        headline={headline}
+        body={body}
+        status={<span className="sr-only" role="status">{headline}</span>}
+        actions={
+          <InviteActions primaryLabel="Go to Arbiter" primaryHref="/app" />
+        }
+      />
+    );
+  }
+
+  if (isOwnFriendInvite) {
+    return (
+      <InviteShell
+        identity={<InviteIdentity type={type} inviter={inviter} />}
+        headline="This is your invitation."
+        body="Share it with someone you’d like to connect with."
+        status={
+          copyStatus ? (
+            <p
+              className={copyStatus === "Invite link copied." ? "invite-copy-success" : "invite-error"}
+              role="status"
+              aria-live="polite"
+            >
+              {copyStatus}
+            </p>
+          ) : null
+        }
+        actions={
+          <>
+            <Button className="invite-primary-action" onPress={() => void copyInviteLink()}>
+              Copy invite link
+            </Button>
+            <Link to="/app" className="invite-secondary-action">
+              Back to Arbiter
+            </Link>
+          </>
+        }
+      />
+    );
+  }
+
+  const headline =
+    type === "friend"
       ? `${inviter.display_name} invited you to connect.`
-      : "Your Arbiter invitation";
+      : `Join ${groupPreview?.group_name}.`;
+  const body =
+    type === "friend"
+      ? "You’ll be able to invite each other to groups and plan movie nights together."
+      : `${inviter.display_name} invited you to help choose what the group watches next.`;
+  const isSignedIn = Boolean(meQuery.data);
 
   return (
-    <div className="min-h-screen bg-[#140C0A] text-[#F7F1E3]">
-      <SkipLink />
-      <header className="mx-auto flex w-full max-w-5xl px-5 py-6 sm:px-8">
-        <Link to="/" aria-label="Arbiter home">
-          <BrandLockup
-            logoClassName="h-11 w-11"
-            titleClassName="text-3xl"
-            versionClassName="sr-only"
+    <InviteShell
+      identity={
+        <InviteIdentity
+          type={type}
+          inviter={inviter}
+          memberCount={groupPreview?.member_count}
+        />
+      }
+      headline={headline}
+      body={body}
+      status={
+        acceptFailure === "temporary" ? (
+          <p className="invite-error" role="alert">
+            We couldn’t accept this invitation. Please try again.
+          </p>
+        ) : null
+      }
+      actions={
+        meQuery.isPending ? (
+          <div className="invite-auth-pending" role="status" aria-live="polite">
+            Checking your sign-in…
+          </div>
+        ) : isSignedIn ? (
+          <InviteActions
+            primaryLabel={type === "friend" ? "Accept invite" : "Join group"}
+            onPrimaryPress={() => acceptMutation.mutate()}
+            isPending={acceptMutation.isPending}
+            secondaryLabel="Not now"
+            secondaryHref="/app"
           />
-        </Link>
-      </header>
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className="mx-auto flex w-full max-w-5xl items-center px-5 pb-16 pt-8 sm:min-h-[72vh] sm:px-8"
-      >
-        <section className="w-full max-w-2xl border-l border-[#E0B15C]/35 pl-5 sm:pl-9">
-          {previewQuery.isLoading ? (
-            <div className="flex items-center gap-3" role="status">
-              <Spinner size="sm" color="warning" />
-              <span className="text-[#D9C7A8]">Opening invitation…</span>
-            </div>
-          ) : previewQuery.isError || !preview || !inviter ? (
-            <div className="space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#C99A4A]">
-                Invitation unavailable
-              </p>
-              <h1 className="font-serif text-4xl leading-tight text-[#F7EAD2] sm:text-5xl">
-                This invitation can’t be used.
-              </h1>
-              <p className="max-w-lg text-base leading-7 text-[#D9C7A8]">
-                It may have expired, been withdrawn, or already reached its limit.
-              </p>
-              <Button as={Link} to="/" className="app-outline-button" variant="bordered">
-                Back to Arbiter
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-7">
-              <div className="flex items-center gap-3">
-                <ArbiterAvatar
-                  user={inviter}
-                  size="lg"
-                  label={inviter.display_name ?? inviter.username ?? "Arbiter member"}
-                />
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#C99A4A]">
-                    {type === "friend" ? "Friend invitation" : "Group invitation"}
-                  </p>
-                  <p className="mt-1 text-sm text-[#D9C7A8]">From {inviter.display_name}</p>
-                </div>
-              </div>
-              <div>
-                <h1 className="max-w-xl font-serif text-4xl leading-[1.08] text-[#F7EAD2] sm:text-6xl">
-                  {title}
-                </h1>
-                <p className="mt-4 max-w-xl text-base leading-7 text-[#D9C7A8] sm:text-lg">
-                  {type === "friend"
-                    ? "Connect to share groups and choose movie nights together."
-                    : `${groupPreview?.member_count ?? 0} ${groupPreview?.member_count === 1 ? "person is" : "people are"} already choosing together.`}
-                </p>
-              </div>
-              {acceptMutation.isSuccess ? (
-                <div className="space-y-4" role="status" aria-live="polite">
-                  <p className="text-[#F5D9A5]">
-                    {type === "friend" ? "You’re connected." : "You joined the group."}
-                  </p>
-                  <Button
-                    className="app-primary-button"
-                    onPress={() => navigate("/app")}
-                  >
-                    Open Arbiter
-                  </Button>
-                </div>
-              ) : isOwnFriendInvite ? (
-                <div className="space-y-4" role="status">
-                  <p className="max-w-lg text-base leading-7 text-[#D9C7A8]">
-                    This is your invitation. Share it with someone else to connect.
-                  </p>
-                  <Button
-                    className="app-outline-button"
-                    onPress={() => navigate("/app")}
-                  >
-                    Open Arbiter
-                  </Button>
-                </div>
-              ) : meQuery.data ? (
-                <Button
-                  className="app-primary-button"
-                  isLoading={acceptMutation.isPending}
-                  isDisabled={acceptMutation.isPending}
-                  onPress={() => acceptMutation.mutate()}
-                >
-                  {type === "friend" ? "Accept invite" : "Join group"}
-                </Button>
-              ) : (
-                <Button as={Link} to={signInHref} className="app-primary-button">
-                  Sign in to continue
-                </Button>
-              )}
-              {acceptMutation.isError ? (
-                <p className="text-sm text-[#E69A88]" role="alert">
-                  {inviteErrorMessage(acceptMutation.error)}
-                </p>
-              ) : null}
-            </div>
-          )}
-        </section>
-      </main>
-    </div>
+        ) : (
+          <InviteActions
+            primaryLabel={type === "friend" ? "Sign in to accept" : "Sign in to join"}
+            primaryHref={signInHref}
+            secondaryLabel="Back to Arbiter"
+            secondaryHref="/"
+          />
+        )
+      }
+    />
   );
 }

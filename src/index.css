@@ -1724,3 +1724,327 @@ pre {
     color: var(--app-text-destructive);
   }
 }
+
+@layer components {
+  .invite-page {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 100svh;
+    overflow-x: clip;
+    background: var(--landing-bg);
+    color: var(--landing-text-primary);
+  }
+
+  .invite-header {
+    width: min(100% - (var(--landing-gutter) * 2), 64rem);
+    margin-inline: auto;
+    padding-block: clamp(1.15rem, 3vh, 1.75rem);
+  }
+
+  .invite-brand {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--landing-accent);
+    text-decoration: none;
+  }
+
+  .invite-brand img {
+    width: clamp(2.25rem, 4vw, 2.75rem);
+    height: clamp(2.25rem, 4vw, 2.75rem);
+    object-fit: contain;
+  }
+
+  .invite-brand span {
+    font-family: "ITC Benguiat Book Regular", "Space Grotesk", system-ui,
+      sans-serif;
+    font-size: clamp(1.9rem, 4vw, 2.45rem);
+    line-height: 1;
+  }
+
+  .invite-main {
+    display: flex;
+    width: min(100% - (var(--landing-gutter) * 2), 64rem);
+    min-height: 0;
+    margin-inline: auto;
+    align-items: center;
+    padding-block: clamp(1rem, 5vh, 3.5rem) clamp(2.5rem, 7vh, 5rem);
+  }
+
+  .invite-surface {
+    width: 100%;
+    border: 1px solid var(--landing-border);
+    border-radius: var(--landing-radius-md);
+    background: var(--landing-surface-solid);
+    padding: clamp(1.5rem, 5vw, 3.75rem);
+  }
+
+  .invite-grid {
+    display: grid;
+    align-items: start;
+    gap: clamp(2rem, 6vw, 5rem);
+  }
+
+  .invite-identity-column {
+    min-width: 0;
+  }
+
+  .invite-identity {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .invite-eyebrow {
+    color: var(--landing-accent);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1.35;
+    text-transform: uppercase;
+  }
+
+  .invite-person {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .invite-person-name,
+  .invite-identity-label {
+    overflow-wrap: anywhere;
+    color: var(--landing-text-primary);
+    font-size: 1.08rem;
+    font-weight: 650;
+    line-height: 1.35;
+  }
+
+  .invite-person-username,
+  .invite-member-count {
+    color: var(--app-text-tertiary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .invite-member-count {
+    width: fit-content;
+    border-top: 1px solid var(--landing-border);
+    padding-block-start: 1rem;
+  }
+
+  .invite-statement {
+    min-width: 0;
+  }
+
+  .invite-title {
+    max-width: 13ch;
+    overflow-wrap: anywhere;
+    color: var(--landing-accent-soft);
+    font-family: "ITC Benguiat Book Regular", "Space Grotesk", system-ui,
+      sans-serif;
+    font-size: clamp(2.65rem, 5.7vw, 4.5rem);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.04;
+  }
+
+  .invite-title:focus {
+    outline: none;
+  }
+
+  .invite-body {
+    max-width: 35rem;
+    margin-block-start: 1.25rem;
+    color: var(--app-text-secondary);
+    font-size: clamp(1rem, 2vw, 1.14rem);
+    line-height: 1.65;
+  }
+
+  .invite-status {
+    min-height: 1.5rem;
+    margin-block-start: 1.15rem;
+  }
+
+  .invite-actions {
+    display: flex;
+    min-height: 3rem;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.7rem 1rem;
+    margin-block-start: 1.6rem;
+  }
+
+  .invite-primary-action,
+  .invite-secondary-action {
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--landing-radius-sm) !important;
+    padding-inline: 1.15rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    transition:
+      background-color var(--landing-duration-fast) var(--landing-ease),
+      border-color var(--landing-duration-fast) var(--landing-ease),
+      color var(--landing-duration-fast) var(--landing-ease),
+      transform var(--landing-duration-fast) var(--landing-ease) !important;
+  }
+
+  .invite-primary-action {
+    min-width: 8.75rem;
+    border: 1px solid rgb(245 217 165 / 0.5) !important;
+    background: var(--landing-accent) !important;
+    color: #1c110f !important;
+  }
+
+  .invite-primary-action:hover {
+    border-color: var(--landing-accent-soft) !important;
+    background: #e8bd68 !important;
+    transform: translateY(-1px);
+  }
+
+  .invite-primary-action[data-disabled="true"],
+  .invite-primary-action[disabled],
+  .invite-primary-action[aria-disabled="true"] {
+    border-color: rgb(224 177 92 / 0.22) !important;
+    background: rgb(224 177 92 / 0.1) !important;
+    color: var(--app-text-tertiary) !important;
+    cursor: not-allowed;
+    opacity: 1 !important;
+    transform: none;
+  }
+
+  .invite-secondary-action {
+    border: 1px solid transparent;
+    color: var(--app-text-secondary);
+  }
+
+  .invite-secondary-action:hover {
+    background: rgb(224 177 92 / 0.07);
+    color: var(--landing-text-primary);
+  }
+
+  .invite-primary-action:focus-visible,
+  .invite-secondary-action:focus-visible,
+  .invite-primary-action[data-focus-visible="true"] {
+    outline: 3px solid var(--theater-focus) !important;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--landing-bg) !important;
+  }
+
+  .invite-loading,
+  .invite-auth-pending {
+    display: flex;
+    min-height: 3rem;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--app-text-secondary);
+    font-size: 0.94rem;
+  }
+
+  .invite-error,
+  .invite-copy-success {
+    max-width: 34rem;
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .invite-error {
+    color: #f0a494;
+  }
+
+  .invite-copy-success {
+    color: var(--landing-accent-soft);
+  }
+}
+
+@media (width >= 760px) {
+  .invite-grid {
+    grid-template-columns: minmax(13rem, 0.62fr) minmax(0, 1.25fr);
+  }
+
+  .invite-identity-column {
+    padding-block-start: 0.35rem;
+  }
+}
+
+@media (width < 760px) {
+  .invite-header {
+    padding-block: 1rem;
+  }
+
+  .invite-main {
+    min-height: auto;
+    align-items: flex-start;
+    padding-block: 0.5rem 2.5rem;
+  }
+
+  .invite-surface {
+    padding: clamp(1.25rem, 6vw, 1.65rem);
+  }
+
+  .invite-grid {
+    gap: 2rem;
+  }
+
+  .invite-identity {
+    gap: 1rem;
+  }
+
+  .invite-person :where([role="img"], [data-slot="base"]) {
+    width: 3rem !important;
+    height: 3rem !important;
+  }
+
+  .invite-title {
+    max-width: 14ch;
+    font-size: clamp(2.35rem, 11vw, 3rem);
+    line-height: 1.06;
+  }
+
+  .invite-body {
+    margin-block-start: 1rem;
+    font-size: 1rem;
+  }
+
+  .invite-status {
+    margin-block-start: 0.9rem;
+  }
+
+  .invite-actions {
+    display: grid;
+    gap: 0.55rem;
+    margin-block-start: 1.35rem;
+  }
+
+  .invite-primary-action,
+  .invite-secondary-action {
+    width: 100%;
+    min-height: 3rem;
+  }
+}
+
+@media (height < 650px) and (width >= 760px) {
+  .invite-main {
+    min-height: auto;
+    align-items: flex-start;
+    padding-block: 1rem 2.5rem;
+  }
+}
+
+@layer components {
+  @media (prefers-reduced-motion: reduce) {
+    .invite-primary-action,
+    .invite-secondary-action {
+      transition: none !important;
+    }
+
+    .invite-primary-action:hover {
+      transform: none;
+    }
+  }
+}
