@@ -1726,6 +1726,91 @@ pre {
 }
 
 @layer components {
+  .kofi-support-link {
+    display: inline-flex;
+    min-height: 2.75rem;
+    width: fit-content;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--landing-radius-sm);
+    color: var(--app-text-secondary);
+    font-size: 0.9rem;
+    font-weight: 650;
+    line-height: 1.25;
+    text-decoration: none;
+    transition:
+      border-color var(--landing-duration-fast) var(--landing-ease),
+      background-color var(--landing-duration-fast) var(--landing-ease),
+      color var(--landing-duration-fast) var(--landing-ease);
+  }
+
+  .kofi-support-link:hover {
+    color: var(--landing-text-primary);
+  }
+
+  .kofi-support-link:focus-visible {
+    outline: 3px solid var(--theater-focus);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--landing-bg);
+  }
+
+  .kofi-support-link-footer {
+    color: var(--landing-accent-soft);
+  }
+
+  .kofi-support-link-footer:hover {
+    text-decoration-line: underline;
+    text-underline-offset: 0.25rem;
+  }
+
+  .kofi-support-link-profile {
+    min-height: 2.75rem;
+    border: 1px solid var(--app-border-control);
+    background: var(--app-control-surface);
+    color: var(--app-text-primary);
+    padding-inline: 1rem;
+  }
+
+  .kofi-support-link-profile:hover {
+    border-color: rgb(224 177 92 / 0.48);
+    background: rgb(224 177 92 / 0.1);
+  }
+
+  .profile-support-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid var(--app-border-subtle);
+    padding-block-start: 1.15rem;
+  }
+
+  .profile-support-eyebrow {
+    color: var(--app-text-metadata);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  @media (width < 480px) {
+    .profile-support-section {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .kofi-support-link-profile {
+      width: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .kofi-support-link {
+      transition: none;
+    }
+  }
+
   .invite-page {
     display: grid;
     grid-template-rows: auto 1fr;

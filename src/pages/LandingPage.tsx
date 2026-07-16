@@ -1,6 +1,7 @@
 import { useDisclosure } from "@heroui/react";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import KoFiSupportLink from "../components/KoFiSupportLink";
 import SkipLink from "../components/SkipLink";
 import LegalModal from "./components/LegalModal";
 
@@ -318,6 +319,7 @@ export default function LandingPage() {
         <div className="landing-shell flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 Arbiter™. All rights reserved.</p>
           <div className="flex flex-wrap gap-x-5 gap-y-2">
+            <KoFiSupportLink />
             <button
               type="button"
               className="landing-text-link"

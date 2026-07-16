@@ -15,6 +15,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { lazy, Suspense, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ArbiterAvatar from "../../../components/ArbiterAvatar";
+import KoFiSupportLink from "../../../components/KoFiSupportLink";
 import { logout } from "../../../features/auth/auth.api";
 import type { MeResponse } from "../../../features/auth/auth.api";
 import {
@@ -358,6 +359,18 @@ export default function AvatarMenuModal({
                         >
                           Edit avatar
                         </Button>
+                      </div>
+                      <div className="profile-support-section">
+                        <div>
+                          <p className="profile-support-eyebrow">Support Arbiter</p>
+                          <p className="mt-1 text-sm app-text-secondary">
+                            Enjoying movie night?
+                          </p>
+                        </div>
+                        <KoFiSupportLink
+                          label="Support Arbiter on Ko-fi"
+                          placement="profile"
+                        />
                       </div>
                     </section>
                   </Tab>
