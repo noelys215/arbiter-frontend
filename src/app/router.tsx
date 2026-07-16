@@ -7,6 +7,7 @@ import MagicLinkVerifyPage from "../pages/MagicLinkVerifyPage";
 import PrivacyPolicyPage from "../pages/PrivacyPolicyPage";
 import DataDeletionPage from "../pages/DataDeletionPage";
 import SessionPage from "../pages/SessionPage";
+import InvitePage from "../pages/InvitePage";
 
 export default function AppRouter() {
   return (
@@ -19,6 +20,8 @@ export default function AppRouter() {
         <Route path="/watch-party-picker" element={<LandingPage />} />
         <Route path="/auth/magic-link/verify" element={<MagicLinkVerifyPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/invite/friend/:token" element={<InvitePage type="friend" />} />
+        <Route path="/invite/group/:token" element={<InvitePage type="group" />} />
         <Route path="/register" element={<Navigate to="/login" replace />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />

@@ -14,6 +14,7 @@ export type MeResponse = {
 
 export type MagicLinkRequestPayload = {
   email: string;
+  return_to?: string;
 };
 
 export type LocalAuthBypassPayload = {

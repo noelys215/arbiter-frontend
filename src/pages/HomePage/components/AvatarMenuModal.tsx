@@ -1,6 +1,5 @@
 import {
   Button,
-  Chip,
   Divider,
   Input,
   Modal,
@@ -12,27 +11,37 @@ import {
   Tabs,
   useDisclosure,
 } from "@heroui/react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { lazy, Suspense, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ArbiterAvatar from "../../../components/ArbiterAvatar";
 import { logout } from "../../../features/auth/auth.api";
 import type { MeResponse } from "../../../features/auth/auth.api";
 import {
   acceptFriendInvite,
-  createFriendInvite,
+  createFriendLinkInvite,
+  revokeFriendInvite,
 } from "../../../features/friends/friends.api";
 import type { Friend } from "../../../features/friends/friends.api";
 import {
+  filterFriendsByGroup,
+  type FriendFilter,
+} from "../../../features/friends/friendFilters";
+import {
   acceptGroupInvite,
   createGroup,
-  createGroupInvite,
+  createGroupLinkInvite,
+  decideGroupInvitation,
   deleteGroup,
+  getGroup,
+  getGroupInvitations,
   leaveGroup,
+  revokeGroupInvite,
 } from "../../../features/groups/groups.api";
 import type { Group } from "../../../features/groups/groups.api";
 import type { ConfirmAction, InputClassNames, OnOpenChange } from "../types";
 import ConfirmActionModal from "./ConfirmActionModal";
+import InviteShareActions from "./InviteShareActions";
 
 const AvatarSelectorModal = lazy(
   () => import("../../../features/avatar/AvatarSelectorModal"),
@@ -71,13 +80,19 @@ export default function AvatarMenuModal({
 
   // Friend invite state
   const [friendInviteCode, setFriendInviteCode] = useState("");
-  const [createdFriendCode, setCreatedFriendCode] = useState<string | null>(
-    null,
-  );
+  const [createdFriendInvite, setCreatedFriendInvite] = useState<{
+    id: string;
+    token: string;
+    code: string;
+  } | null>(null);
 
   // Group invite state
   const [groupInviteCode, setGroupInviteCode] = useState("");
-  const [createdGroupCode, setCreatedGroupCode] = useState<string | null>(null);
+  const [createdGroupInvite, setCreatedGroupInvite] = useState<{
+    id: string;
+    token: string;
+    code: string;
+  } | null>(null);
 
   // Create group state
   const [groupName, setGroupName] = useState("");
@@ -88,11 +103,37 @@ export default function AvatarMenuModal({
   );
 
   // Copy state
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState<"profile" | "friends" | "groups">("profile");
+  const [friendFilter, setFriendFilter] = useState<FriendFilter>("all");
   const [showGroupSettings, setShowGroupSettings] = useState(false);
 
   const isOwner = selectedGroup?.owner_id === me?.id;
+  const groupDetailQuery = useQuery({
+    queryKey: ["group-detail", selectedGroup?.id],
+    queryFn: () => getGroup(selectedGroup?.id ?? ""),
+    enabled: Boolean(selectedGroup?.id),
+  });
+  const outgoingInvitesQuery = useQuery({
+    queryKey: ["group-invitations", "outgoing", selectedGroup?.id],
+    queryFn: () => getGroupInvitations(selectedGroup?.id),
+    enabled: Boolean(selectedGroup?.id && isOwner),
+  });
+  const incomingInvitesQuery = useQuery({
+    queryKey: ["group-invitations", "incoming"],
+    queryFn: () => getGroupInvitations(),
+  });
+  const memberIds = useMemo(
+    () => new Set((groupDetailQuery.data?.members ?? []).map((member) => member.id)),
+    [groupDetailQuery.data?.members],
+  );
+  const pendingTargetIds = useMemo(
+    () => new Set((outgoingInvitesQuery.data ?? []).flatMap((invite) => invite.target ? [invite.target.id] : [])),
+    [outgoingInvitesQuery.data],
+  );
+  const filteredFriends = useMemo(() => {
+    if (!friends || !selectedGroup) return friends ?? [];
+    return filterFriendsByGroup(friends, memberIds, friendFilter);
+  }, [friendFilter, friends, memberIds, selectedGroup]);
 
   // Logout mutation
   const logoutMutation = useMutation({
@@ -105,10 +146,17 @@ export default function AvatarMenuModal({
 
   // Friend invite mutations
   const createFriendInviteMutation = useMutation({
-    mutationFn: createFriendInvite,
+    mutationFn: createFriendLinkInvite,
     onSuccess: (data) => {
-      setCreatedFriendCode(data.code);
+      setCreatedFriendInvite(data);
     },
+  });
+  const regenerateFriendInviteMutation = useMutation({
+    mutationFn: async () => {
+      if (createdFriendInvite) await revokeFriendInvite(createdFriendInvite.id);
+      return createFriendLinkInvite();
+    },
+    onSuccess: (data) => setCreatedFriendInvite(data),
   });
 
   const acceptFriendInviteMutation = useMutation({
@@ -133,9 +181,38 @@ export default function AvatarMenuModal({
   // Group invite mutations
   const createGroupInviteMutation = useMutation({
     mutationFn: () =>
-      selectedGroup ? createGroupInvite(selectedGroup.id) : Promise.reject(),
+      selectedGroup ? createGroupLinkInvite(selectedGroup.id) : Promise.reject(),
     onSuccess: (data) => {
-      setCreatedGroupCode(data.code);
+      setCreatedGroupInvite(data);
+    },
+  });
+  const regenerateGroupInviteMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedGroup) throw new Error("No group selected");
+      if (createdGroupInvite) await revokeGroupInvite(createdGroupInvite.id);
+      return createGroupLinkInvite(selectedGroup.id);
+    },
+    onSuccess: (data) => setCreatedGroupInvite(data),
+  });
+
+  const targetedGroupInviteMutation = useMutation({
+    mutationFn: (friendId: string) => {
+      if (!selectedGroup) return Promise.reject(new Error("No group selected"));
+      return createGroupLinkInvite(selectedGroup.id, friendId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["group-invitations", "outgoing", selectedGroup?.id],
+      });
+    },
+  });
+
+  const groupDecisionMutation = useMutation({
+    mutationFn: ({ inviteId, decision }: { inviteId: string; decision: "accept" | "decline" }) =>
+      decideGroupInvitation(inviteId, decision),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["group-invitations"] });
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
     },
   });
 
@@ -176,16 +253,6 @@ export default function AvatarMenuModal({
       queryClient.invalidateQueries({ queryKey: ["groups"] });
     },
   });
-
-  const handleCopy = async (code: string) => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopiedCode(code);
-      setTimeout(() => setCopiedCode(null), 1500);
-    } catch {
-      // ignore
-    }
-  };
 
   const openConfirm = (payload: ConfirmAction) => {
     setConfirmAction(payload);
@@ -299,61 +366,61 @@ export default function AvatarMenuModal({
                     <section className="space-y-5">
                       <div className="space-y-3">
                         <h3 className="text-lg font-semibold text-[#F7EAD2]">
-                          Friend invites
+                          Invite a friend
                         </h3>
-                        <div className="flex flex-wrap items-center gap-3">
+                        <p className="text-sm app-muted">Share this link to connect on Arbiter.</p>
+                        {!createdFriendInvite ? (
                           <Button
-                            className="app-outline-button"
-                            variant="bordered"
+                            className="app-primary-button"
                             onPress={() => createFriendInviteMutation.mutate()}
                             isLoading={createFriendInviteMutation.isPending}
                           >
                             Create invite
                           </Button>
-                          {createdFriendCode ? (
-                            <div className="flex items-center gap-2">
-                              <Chip
-                                variant="bordered"
-                                classNames={{
-                                  base: "border-[#E0B15C]/35",
-                                  content: "text-[#F5D9A5]",
-                                }}
-                              >
-                                {createdFriendCode}
-                              </Chip>
-                              <Button
-                                size="sm"
-                                variant="light"
-                                className="app-secondary-button"
-                                onPress={() => handleCopy(createdFriendCode)}
-                              >
-                                {copiedCode === createdFriendCode
-                                  ? "Copied"
-                                  : "Copy"}
-                              </Button>
-                            </div>
-                          ) : null}
-                        </div>
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                          <Input
-                            label="Join with a code"
-                            placeholder="Enter code"
-                            value={friendInviteCode}
-                            onChange={(e) => setFriendInviteCode(e.target.value)}
-                            variant="bordered"
-                            classNames={inputClassNames}
-                            className="sm:max-w-xs"
-                          />
-                          <Button
-                            className="app-outline-button w-full sm:w-auto"
-                            variant="bordered"
-                            onPress={() => acceptFriendInviteMutation.mutate()}
-                            isDisabled={!friendInviteCode.trim()}
-                            isLoading={acceptFriendInviteMutation.isPending}
-                          >
-                            Join
-                          </Button>
-                        </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <InviteShareActions
+                              path={`/invite/friend/${createdFriendInvite.token}`}
+                              code={createdFriendInvite.code}
+                              title={`Connect with ${me?.display_name ?? "me"} on Arbiter`}
+                              text="Join me on Arbiter for movie nights."
+                            />
+                            <Button
+                              size="sm"
+                              variant="light"
+                              className="app-secondary-button"
+                              isLoading={regenerateFriendInviteMutation.isPending}
+                              onPress={() => regenerateFriendInviteMutation.mutate()}
+                            >
+                              Create a new link
+                            </Button>
+                          </div>
+                        )}
+                        <details className="pt-1">
+                          <summary className="cursor-pointer py-2 text-sm font-medium text-[#EAD9BC] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#F2C16E]">
+                            Have an invite code?
+                          </summary>
+                          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end">
+                            <Input
+                              label="Friend invite code"
+                              placeholder="Enter code"
+                              value={friendInviteCode}
+                              onChange={(e) => setFriendInviteCode(e.target.value)}
+                              variant="bordered"
+                              classNames={inputClassNames}
+                              className="sm:max-w-xs"
+                            />
+                            <Button
+                              className="app-outline-button w-full sm:w-auto"
+                              variant="bordered"
+                              onPress={() => acceptFriendInviteMutation.mutate()}
+                              isDisabled={!friendInviteCode.trim()}
+                              isLoading={acceptFriendInviteMutation.isPending}
+                            >
+                              Join
+                            </Button>
+                          </div>
+                        </details>
                         {acceptFriendInviteMutation.isError ? (
                           <p className="text-sm text-[#D77B69]" role="alert">
                             {acceptFriendInviteErrorDetail ||
@@ -365,41 +432,76 @@ export default function AvatarMenuModal({
                       <Divider className="bg-[#E0B15C]/10" />
 
                       <div>
-                        <h3 className="text-lg font-semibold text-[#F7EAD2]">
-                          Your friends
-                        </h3>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <h3 className="text-lg font-semibold text-[#F7EAD2]">Your friends</h3>
+                          {selectedGroup ? (
+                            <div className="flex flex-wrap gap-1" aria-label="Filter friends">
+                              {([
+                                ["all", "All"],
+                                ["in-group", "In current group"],
+                                ["not-in-group", "Not in current group"],
+                              ] as const).map(([value, label]) => (
+                                <Button
+                                  key={value}
+                                  size="sm"
+                                  variant="light"
+                                  className="app-secondary-button"
+                                  aria-pressed={friendFilter === value}
+                                  onPress={() => setFriendFilter(value)}
+                                >
+                                  {label}
+                                </Button>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
                         {friends && friends.length > 0 ? (
                           <ul className="mt-3 divide-y app-rule">
-                            {friends.map((friend) => (
+                            {filteredFriends.map((friend) => {
+                              const label = friend.display_name ?? friend.username ?? "Friend";
+                              const inGroup = memberIds.has(friend.id);
+                              const pending = pendingTargetIds.has(friend.id);
+                              return (
                               <li
                                 key={friend.id}
-                                className="flex items-center gap-3 py-3"
+                                className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between"
                               >
-                                <ArbiterAvatar
-                                  user={friend}
-                                  size="sm"
-                                  label={
-                                    friend.display_name ??
-                                    friend.username ??
-                                    friend.email ??
-                                    "Friend"
-                                  }
-                                  className="bg-[#E0B15C]/20 text-[#E0B15C]"
-                                />
-                                <span className="text-sm text-[#F7EAD2]">
-                                  {friend.display_name ??
-                                    friend.username ??
-                                    friend.email ??
-                                    "Friend"}
-                                </span>
+                                <div className="flex items-center gap-3">
+                                  <ArbiterAvatar user={friend} size="sm" label={label} className="bg-[#E0B15C]/20 text-[#E0B15C]" />
+                                  <div>
+                                    <span className="text-sm text-[#F7EAD2]">{label}</span>
+                                    <p className="text-xs app-text-metadata">@{friend.username}</p>
+                                  </div>
+                                </div>
+                                {selectedGroup && isOwner ? (
+                                  <Button
+                                    size="sm"
+                                    variant="light"
+                                    className="app-secondary-button self-start sm:self-auto"
+                                    isDisabled={inGroup || pending}
+                                    isLoading={targetedGroupInviteMutation.isPending && targetedGroupInviteMutation.variables === friend.id}
+                                    onPress={() => targetedGroupInviteMutation.mutate(friend.id)}
+                                    aria-label={inGroup ? `${label} is already in ${selectedGroup.name}` : pending ? `${label} has a pending invitation to ${selectedGroup.name}` : `Invite ${label} to ${selectedGroup.name}`}
+                                  >
+                                    {inGroup ? "In group" : pending ? "Pending" : `Invite to ${selectedGroup.name}`}
+                                  </Button>
+                                ) : null}
                               </li>
-                            ))}
+                              );
+                            })}
                           </ul>
                         ) : (
                           <p className="mt-2 text-sm app-muted">
                             No friends here yet. Share an invite to start choosing together.
                           </p>
                         )}
+                        {friends && friends.length > 0 && filteredFriends.length === 0 ? (
+                          <p className="mt-3 text-sm app-muted">
+                            {friendFilter === "in-group"
+                              ? `None of your friends are in ${selectedGroup?.name ?? "this group"} yet.`
+                              : "All of your friends are already in this group."}
+                          </p>
+                        ) : null}
                       </div>
                     </section>
                   </Tab>
@@ -434,6 +536,40 @@ export default function AvatarMenuModal({
                           </p>
                         )}
                       </div>
+
+                      {incomingInvitesQuery.data && incomingInvitesQuery.data.length > 0 ? (
+                        <div className="space-y-3 border-t app-rule pt-5">
+                          <h3 className="text-lg font-semibold text-[#F7EAD2]">Group invitations</h3>
+                          <ul className="divide-y app-rule">
+                            {incomingInvitesQuery.data.map((invite) => (
+                              <li key={invite.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                  <p className="text-sm font-semibold text-[#F7EAD2]">{invite.group_name}</p>
+                                  <p className="text-sm app-muted">Invited by {invite.inviter.display_name}</p>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    className="app-primary-button"
+                                    isLoading={groupDecisionMutation.isPending && groupDecisionMutation.variables?.inviteId === invite.id}
+                                    onPress={() => groupDecisionMutation.mutate({ inviteId: invite.id, decision: "accept" })}
+                                  >
+                                    Join group
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="light"
+                                    className="app-secondary-button"
+                                    onPress={() => groupDecisionMutation.mutate({ inviteId: invite.id, decision: "decline" })}
+                                  >
+                                    Not now
+                                  </Button>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
 
                       <Divider className="bg-[#E0B15C]/10" />
 
@@ -523,34 +659,28 @@ export default function AvatarMenuModal({
                                   isDisabled={!selectedGroup}
                                   isLoading={createGroupInviteMutation.isPending}
                                 >
-                                  Create group invite
+                                  Invite people
                                 </Button>
-                                {createdGroupCode ? (
-                                  <div className="flex items-center gap-2">
-                                    <Chip
-                                      radius="sm"
-                                      size="lg"
-                                      variant="flat"
-                                      classNames={{
-                                        base: "border-[#E0B15C]/35 bg-[#E0B15C]/10",
-                                        content: "text-[#F5D9A5]",
-                                      }}
-                                    >
-                                      {createdGroupCode}
-                                    </Chip>
-                                    <Button
-                                      size="sm"
-                                      variant="light"
-                                      className="app-secondary-button"
-                                      onPress={() => handleCopy(createdGroupCode)}
-                                    >
-                                      {copiedCode === createdGroupCode
-                                        ? "Copied"
-                                        : "Copy"}
-                                    </Button>
-                                  </div>
-                                ) : null}
                               </div>
+                              {createdGroupInvite ? (
+                                <div className="space-y-2">
+                                  <InviteShareActions
+                                    path={`/invite/group/${createdGroupInvite.token}`}
+                                    code={createdGroupInvite.code}
+                                    title={`Join ${selectedGroup.name} on Arbiter`}
+                                    text="Join my movie group on Arbiter."
+                                  />
+                                  <Button
+                                    size="sm"
+                                    variant="light"
+                                    className="app-secondary-button"
+                                    isLoading={regenerateGroupInviteMutation.isPending}
+                                    onPress={() => regenerateGroupInviteMutation.mutate()}
+                                  >
+                                    Create a new link
+                                  </Button>
+                                </div>
+                              ) : null}
                               <div className="border-t border-[#D77B69]/18 pt-4">
                                 {isOwner ? (
                                   <Button

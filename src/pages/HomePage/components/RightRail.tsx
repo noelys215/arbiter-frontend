@@ -8,7 +8,11 @@ import { useMemo, useState } from "react";
 import ArbiterAvatar from "../../../components/ArbiterAvatar";
 import { unfriend } from "../../../features/friends/friends.api";
 import type { Friend } from "../../../features/friends/friends.api";
-import { addGroupMembers, getGroup } from "../../../features/groups/groups.api";
+import {
+  createGroupLinkInvite,
+  getGroup,
+  getGroupInvitations,
+} from "../../../features/groups/groups.api";
 import type { Group } from "../../../features/groups/groups.api";
 import type { ConfirmAction } from "../types";
 import ConfirmActionModal from "./ConfirmActionModal";
@@ -16,9 +20,11 @@ import ConfirmActionModal from "./ConfirmActionModal";
 type RightRailProps = {
   friends: Friend[] | undefined;
   selectedGroup: Group | null;
+  currentUserId: string | null;
+  onOpenAccount: () => void;
 };
 
-export default function RightRail({ friends, selectedGroup }: RightRailProps) {
+export default function RightRail({ friends, selectedGroup, currentUserId, onOpenAccount }: RightRailProps) {
   const queryClient = useQueryClient();
   const confirmModal = useDisclosure();
   const [pendingUnfriendId, setPendingUnfriendId] = useState<string | null>(
@@ -41,6 +47,23 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
     () => new Set(members.map((member) => member.id)),
     [members],
   );
+  const canInviteToGroup = Boolean(
+    selectedGroup?.owner_id && selectedGroup.owner_id === currentUserId,
+  );
+  const outgoingInvitesQuery = useQuery({
+    queryKey: ["group-invitations", "outgoing", selectedGroup?.id],
+    queryFn: () => getGroupInvitations(selectedGroup?.id),
+    enabled: Boolean(selectedGroup?.id && canInviteToGroup),
+  });
+  const pendingTargetIds = useMemo(
+    () =>
+      new Set(
+        (outgoingInvitesQuery.data ?? [])
+          .map((invite) => invite.target?.id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    [outgoingInvitesQuery.data],
+  );
 
   const unfriendMutation = useMutation({
     mutationFn: (userId: string) => unfriend(userId),
@@ -55,29 +78,24 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
     },
   });
 
-  const [pendingAddId, setPendingAddId] = useState<string | null>(null);
-  const addMemberMutation = useMutation({
+  const [pendingInviteId, setPendingInviteId] = useState<string | null>(null);
+  const inviteMemberMutation = useMutation({
     mutationFn: (userId: string) => {
       if (!selectedGroup) {
         return Promise.reject(new Error("No group selected"));
       }
-      return addGroupMembers(selectedGroup.id, {
-        member_user_ids: [userId],
-      });
+      return createGroupLinkInvite(selectedGroup.id, userId);
     },
     onMutate: (userId) => {
-      setPendingAddId(userId);
+      setPendingInviteId(userId);
     },
     onSuccess: () => {
-      if (selectedGroup?.id) {
-        queryClient.invalidateQueries({
-          queryKey: ["group-detail", selectedGroup.id],
-        });
-      }
-      queryClient.invalidateQueries({ queryKey: ["groups"] });
+      queryClient.invalidateQueries({
+        queryKey: ["group-invitations", "outgoing", selectedGroup?.id],
+      });
     },
     onSettled: () => {
-      setPendingAddId(null);
+      setPendingInviteId(null);
     },
   });
 
@@ -151,7 +169,7 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                   friend.email ??
                   friend.id;
                 const isMember = memberIds.has(friend.id);
-                const addDisabled = !selectedGroup || isMember;
+                const isPending = pendingTargetIds.has(friend.id);
                 return (
                   <li
                     key={friend.id}
@@ -167,21 +185,25 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
                       <span className="text-sm app-text-primary">{label}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="light"
-                        className="app-secondary-button"
-                        onPress={() => addMemberMutation.mutate(friend.id)}
-                        isDisabled={addDisabled}
-                        isLoading={pendingAddId === friend.id}
-                        aria-label={
-                          isMember
-                            ? `${label} is already in this group`
-                            : `Add ${label} to current group`
-                        }
-                      >
-                        {isMember ? "In group" : "Add"}
-                      </Button>
+                      {selectedGroup && canInviteToGroup ? (
+                        <Button
+                          size="sm"
+                          variant="light"
+                          className="app-secondary-button"
+                          onPress={() => inviteMemberMutation.mutate(friend.id)}
+                          isDisabled={isMember || isPending}
+                          isLoading={pendingInviteId === friend.id}
+                          aria-label={
+                            isMember
+                              ? `${label} is already in this group`
+                              : isPending
+                                ? `${label} has a pending group invitation`
+                                : `Invite ${label} to ${selectedGroup.name}`
+                          }
+                        >
+                          {isMember ? "In group" : isPending ? "Pending" : "Invite"}
+                        </Button>
+                      ) : null}
                       <Button
                         size="sm"
                         variant="light"
@@ -204,9 +226,14 @@ export default function RightRail({ friends, selectedGroup }: RightRailProps) {
               })}
             </ul>
           ) : (
-            <p className="text-sm app-muted">
-              No friends yet. Add people from the account menu.
-            </p>
+            <div className="space-y-3">
+              <p className="text-sm app-muted">
+                No friends here yet. Share an invite to start choosing together.
+              </p>
+              <Button size="sm" variant="light" className="app-secondary-button" onPress={onOpenAccount}>
+                Invite a friend
+              </Button>
+            </div>
           )}
           </div>
         </section>

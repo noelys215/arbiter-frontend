@@ -2,15 +2,18 @@ import { Button, Tooltip } from "@heroui/react";
 import ArbiterAvatar from "../../../components/ArbiterAvatar";
 import BrandLockup from "../../../components/BrandLockup";
 import type { MeResponse } from "../../../features/auth/auth.api";
+import type { RefObject } from "react";
 
 type TopBarProps = {
   me: MeResponse | undefined;
   onAvatarClick: () => void;
+  accountTriggerRef: RefObject<HTMLButtonElement | null>;
 };
 
 export default function TopBar({
   me,
   onAvatarClick,
+  accountTriggerRef,
 }: TopBarProps) {
   return (
     <nav
@@ -33,6 +36,7 @@ export default function TopBar({
           }}
         >
           <Button
+            ref={accountTriggerRef}
             isIconOnly
             variant="light"
             className="app-account-trigger h-12 w-12 min-w-12 rounded-full border border-[#E0B15C]/20 p-0 transition hover:border-[#E0B15C]/55 sm:h-14 sm:w-14 sm:min-w-14"

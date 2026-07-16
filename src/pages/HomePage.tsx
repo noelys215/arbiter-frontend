@@ -34,6 +34,7 @@ export default function HomePage() {
   const [tmdbSearch, setTmdbSearch] = useState("");
   const [debouncedTmdbSearch, setDebouncedTmdbSearch] = useState("");
   const debounceTimerRef = useRef<number | null>(null);
+  const accountTriggerRef = useRef<HTMLButtonElement | null>(null);
   const [watchlistQ, setWatchlistQ] = useState("");
   const [debouncedWatchlistQ, setDebouncedWatchlistQ] = useState("");
   const [watchlistMediaType, setWatchlistMediaType] = useState<
@@ -251,6 +252,7 @@ export default function HomePage() {
       <SkipLink />
       <TopBar
         me={me}
+        accountTriggerRef={accountTriggerRef}
         onAvatarClick={avatarModal.onOpen}
       />
 
@@ -268,11 +270,10 @@ export default function HomePage() {
           <p className="text-sm app-text-destructive" role="alert">
             Unable to load groups. Please refresh.
           </p>
-        ) : groups && groups.length === 0 ? (
-          <NoGroupsCard inputClassNames={inputClassNames} />
         ) : (
           <div className="space-y-7">
-            <header className="flex flex-col gap-4 border-b app-rule pb-5 lg:flex-row lg:items-end lg:justify-between">
+            {groups && groups.length > 0 ? (
+              <header className="flex flex-col gap-4 border-b app-rule pb-5 lg:flex-row lg:items-end lg:justify-between">
               <div className="min-w-0">
                 <p className="hidden text-sm font-medium app-text-metadata sm:block">
                   {selectedGroup?.name ?? "Choose a group"}
@@ -320,10 +321,15 @@ export default function HomePage() {
                   ))}
                 </Select>
               </div>
-            </header>
+              </header>
+            ) : null}
 
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2.45fr)_minmax(18rem,0.75fr)]">
             <main className="flex flex-col gap-5">
+              {groups && groups.length === 0 ? (
+                <NoGroupsCard inputClassNames={inputClassNames} />
+              ) : (
+                <>
               <p className="sr-only" role="status" aria-live="polite">
                 {selectedGroup?.name
                   ? `${selectedGroup.name} watchlist loaded.`
@@ -375,10 +381,17 @@ export default function HomePage() {
                 renderPoster={renderPoster}
                 getWatchlistMeta={getWatchlistMeta}
               />
+                </>
+              )}
             </main>
 
             <div>
-              <RightRail friends={friends} selectedGroup={selectedGroup} />
+              <RightRail
+                friends={friends}
+                selectedGroup={selectedGroup}
+                currentUserId={me?.id ?? null}
+                onOpenAccount={avatarModal.onOpen}
+              />
             </div>
           </div>
           </div>
@@ -395,7 +408,16 @@ export default function HomePage() {
 
       <AvatarMenuModal
         isOpen={avatarModal.isOpen}
-        onOpenChange={avatarModal.onOpenChange}
+        onOpenChange={(nextOpen) => {
+          if (nextOpen) {
+            avatarModal.onOpen();
+            return;
+          }
+          avatarModal.onClose();
+          window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => accountTriggerRef.current?.focus());
+          });
+        }}
         me={me}
         groups={groups}
         friends={friends}
