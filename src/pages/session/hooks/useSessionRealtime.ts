@@ -1,14 +1,16 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { API_WS_BASE } from "../../../lib/api";
+import {
+  REALTIME_PING_INTERVAL_MS,
+  REALTIME_RECONNECT_DELAY_MS,
+  shouldReconnectRealtimeSocket,
+} from "../../../features/realtime/realtimeSocket";
 
 type SessionRealtimeMessage = {
   type?: string;
   session_id?: string;
 };
-
-const RECONNECT_DELAY_MS = 1500;
-const PING_INTERVAL_MS = 25000;
 
 function buildSessionWebSocketUrl(sessionId: string): string {
   return `${API_WS_BASE}/sessions/${encodeURIComponent(sessionId)}/ws`;
@@ -41,7 +43,7 @@ export function useSessionRealtime(sessionId: string | null) {
       reconnectTimer = window.setTimeout(() => {
         reconnectTimer = null;
         connect();
-      }, RECONNECT_DELAY_MS);
+      }, REALTIME_RECONNECT_DELAY_MS);
     };
 
     const connect = () => {
@@ -56,7 +58,7 @@ export function useSessionRealtime(sessionId: string | null) {
           if (socket?.readyState === WebSocket.OPEN) {
             socket.send(JSON.stringify({ type: "ping" }));
           }
-        }, PING_INTERVAL_MS);
+        }, REALTIME_PING_INTERVAL_MS);
       };
 
       socket.onmessage = (event) => {
@@ -68,22 +70,26 @@ export function useSessionRealtime(sessionId: string | null) {
         }
 
         if (
-          message?.type === "session_updated" &&
+          (message?.type === "session_updated" ||
+            message?.type === "session_connected") &&
           message.session_id === sessionId
         ) {
-          void queryClient.invalidateQueries({
-            queryKey: ["session-state", sessionId],
-            exact: true,
-          });
+          void queryClient.invalidateQueries(
+            {
+              queryKey: ["session-state", sessionId],
+              exact: true,
+            },
+            { cancelRefetch: false },
+          );
         }
       };
 
-      socket.onclose = () => {
+      socket.onclose = (event) => {
         if (pingTimer !== null) {
           window.clearInterval(pingTimer);
           pingTimer = null;
         }
-        scheduleReconnect();
+        if (shouldReconnectRealtimeSocket(event.code)) scheduleReconnect();
       };
 
       socket.onerror = () => {

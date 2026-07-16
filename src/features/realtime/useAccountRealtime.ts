@@ -1,26 +1,21 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { API_WS_BASE } from "../../../lib/api";
+import { API_WS_BASE } from "../../lib/api";
+import {
+  invalidateAccountQueries,
+  type AccountRealtimeMessage,
+} from "./accountRealtime";
 import {
   REALTIME_PING_INTERVAL_MS,
   REALTIME_RECONNECT_DELAY_MS,
   shouldReconnectRealtimeSocket,
-} from "../../../features/realtime/realtimeSocket";
+} from "./realtimeSocket";
 
-type WatchlistRealtimeMessage = {
-  type?: string;
-  group_id?: string;
-};
-
-function buildWatchlistWebSocketUrl(groupId: string): string {
-  return `${API_WS_BASE}/groups/${encodeURIComponent(groupId)}/watchlist/ws`;
-}
-
-export function useWatchlistRealtime(groupId: string | null) {
+export function useAccountRealtime(enabled: boolean) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (!groupId) return;
+    if (!enabled) return;
 
     let socket: WebSocket | null = null;
     let reconnectTimer: number | null = null;
@@ -48,12 +43,10 @@ export function useWatchlistRealtime(groupId: string | null) {
 
     const connect = () => {
       if (stopped) return;
-      socket = new WebSocket(buildWatchlistWebSocketUrl(groupId));
+      socket = new WebSocket(`${API_WS_BASE}/me/ws`);
 
       socket.onopen = () => {
-        if (pingTimer !== null) {
-          window.clearInterval(pingTimer);
-        }
+        if (pingTimer !== null) window.clearInterval(pingTimer);
         pingTimer = window.setInterval(() => {
           if (socket?.readyState === WebSocket.OPEN) {
             socket.send(JSON.stringify({ type: "ping" }));
@@ -62,25 +55,13 @@ export function useWatchlistRealtime(groupId: string | null) {
       };
 
       socket.onmessage = (event) => {
-        let message: WatchlistRealtimeMessage | null = null;
+        let message: AccountRealtimeMessage;
         try {
-          message = JSON.parse(String(event.data)) as WatchlistRealtimeMessage;
+          message = JSON.parse(String(event.data)) as AccountRealtimeMessage;
         } catch {
           return;
         }
-
-        if (
-          (message?.type === "watchlist_updated" ||
-            message?.type === "watchlist_connected") &&
-          message.group_id === groupId
-        ) {
-          void queryClient.invalidateQueries({
-            queryKey: ["watchlist-library", groupId],
-          }, { cancelRefetch: false });
-          void queryClient.invalidateQueries({
-            queryKey: ["watchlist", groupId],
-          }, { cancelRefetch: false });
-        }
+        void invalidateAccountQueries(queryClient, message);
       };
 
       socket.onclose = (event) => {
@@ -88,20 +69,21 @@ export function useWatchlistRealtime(groupId: string | null) {
           window.clearInterval(pingTimer);
           pingTimer = null;
         }
-        if (shouldReconnectRealtimeSocket(event.code)) scheduleReconnect();
+        if (!shouldReconnectRealtimeSocket(event.code)) {
+          stopped = true;
+          return;
+        }
+        scheduleReconnect();
       };
 
-      socket.onerror = () => {
-        socket?.close();
-      };
+      socket.onerror = () => socket?.close();
     };
 
     connect();
-
     return () => {
       stopped = true;
       clearTimers();
       socket?.close();
     };
-  }, [groupId, queryClient]);
+  }, [enabled, queryClient]);
 }

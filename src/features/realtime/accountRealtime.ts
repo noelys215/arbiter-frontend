@@ -1,0 +1,73 @@
+import type { QueryClient } from "@tanstack/react-query";
+
+export type AccountRealtimeMessage = {
+  type?:
+    | "account_connected"
+    | "friendship_updated"
+    | "group_invite_updated"
+    | "group_updated"
+    | "pong";
+  reason?: string;
+  group_id?: string;
+  member_user_id?: string;
+};
+
+type QueryInvalidator = Pick<QueryClient, "invalidateQueries">;
+
+const backgroundOptions = { cancelRefetch: false } as const;
+
+export async function invalidateAccountQueries(
+  queryClient: QueryInvalidator,
+  message: AccountRealtimeMessage,
+) {
+  if (message.type === "account_connected") {
+    await Promise.all([
+      queryClient.invalidateQueries(
+        { queryKey: ["friends"] },
+        backgroundOptions,
+      ),
+      queryClient.invalidateQueries(
+        { queryKey: ["groups"] },
+        backgroundOptions,
+      ),
+      queryClient.invalidateQueries(
+        { queryKey: ["group-detail"], refetchType: "active" },
+        backgroundOptions,
+      ),
+      queryClient.invalidateQueries(
+        { queryKey: ["group-invitations"], refetchType: "active" },
+        backgroundOptions,
+      ),
+    ]);
+    return;
+  }
+
+  if (message.type === "friendship_updated") {
+    await queryClient.invalidateQueries(
+      { queryKey: ["friends"] },
+      backgroundOptions,
+    );
+    return;
+  }
+
+  if (message.type === "group_invite_updated") {
+    await queryClient.invalidateQueries(
+      { queryKey: ["group-invitations"] },
+      backgroundOptions,
+    );
+    return;
+  }
+
+  if (message.type === "group_updated" && message.group_id) {
+    await Promise.all([
+      queryClient.invalidateQueries(
+        { queryKey: ["groups"] },
+        backgroundOptions,
+      ),
+      queryClient.invalidateQueries(
+        { queryKey: ["group-detail", message.group_id], exact: true },
+        backgroundOptions,
+      ),
+    ]);
+  }
+}

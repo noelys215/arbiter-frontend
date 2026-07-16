@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { getMe } from "../features/auth/auth.api";
 import { broadcastAuthSuccess } from "../features/auth/authHandoff";
+import { useAccountRealtime } from "../features/realtime/useAccountRealtime";
 
 type RequireAuthProps = {
   children: ReactNode;
@@ -17,6 +18,7 @@ export default function RequireAuth({ children }: RequireAuthProps) {
     queryFn: getMe,
     retry: false,
   });
+  useAccountRealtime(Boolean(data));
 
   useEffect(() => {
     if (!data) return;

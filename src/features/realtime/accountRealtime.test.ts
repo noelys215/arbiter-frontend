@@ -1,0 +1,69 @@
+import { describe, expect, it, vi } from "vitest";
+import { invalidateAccountQueries } from "./accountRealtime";
+
+function invalidator() {
+  return {
+    invalidateQueries: vi.fn(async () => undefined),
+  };
+}
+
+describe("invalidateAccountQueries", () => {
+  it("recovers account state when the socket connects", async () => {
+    const queryClient = invalidator();
+    await invalidateAccountQueries(queryClient, { type: "account_connected" });
+
+    expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(4);
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ["friends"] },
+      { cancelRefetch: false },
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ["group-detail"], refetchType: "active" },
+      { cancelRefetch: false },
+    );
+  });
+
+  it("invalidates only friends for friendship events", async () => {
+    const queryClient = invalidator();
+    await invalidateAccountQueries(queryClient, {
+      type: "friendship_updated",
+      reason: "friendship_created",
+    });
+
+    expect(queryClient.invalidateQueries).toHaveBeenCalledOnce();
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ["friends"] },
+      { cancelRefetch: false },
+    );
+  });
+
+  it("invalidates invitation queries without refetching unrelated groups", async () => {
+    const queryClient = invalidator();
+    await invalidateAccountQueries(queryClient, {
+      type: "group_invite_updated",
+      reason: "targeted_invite_created",
+      group_id: "group-a",
+    });
+
+    expect(queryClient.invalidateQueries).toHaveBeenCalledOnce();
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ["group-invitations"] },
+      { cancelRefetch: false },
+    );
+  });
+
+  it("invalidates only the affected group detail", async () => {
+    const queryClient = invalidator();
+    await invalidateAccountQueries(queryClient, {
+      type: "group_updated",
+      reason: "membership_created",
+      group_id: "group-a",
+    });
+
+    expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(2);
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ["group-detail", "group-a"], exact: true },
+      { cancelRefetch: false },
+    );
+  });
+});
