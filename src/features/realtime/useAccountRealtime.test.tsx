@@ -4,6 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { REALTIME_RECONNECT_DELAY_MS } from "./realtimeSocket";
 import { useAccountRealtime } from "./useAccountRealtime";
 
+const getMeMock = vi.fn(async () => ({ id: "me" }));
+
+vi.mock("../auth/auth.api", () => ({
+  getMe: () => getMeMock(),
+}));
+
 class MockWebSocket {
   static OPEN = 1;
   static instances: MockWebSocket[] = [];
@@ -51,11 +57,12 @@ describe("useAccountRealtime reconnect behavior", () => {
     vi.useRealTimers();
   });
 
-  it("reconnects after an ordinary dropped connection", () => {
+  it("reconnects after an ordinary dropped connection", async () => {
     renderHarness();
     expect(MockWebSocket.instances).toHaveLength(1);
 
     MockWebSocket.instances[0].onclose?.({ code: 1006 } as CloseEvent);
+    await vi.runAllTicks();
     vi.advanceTimersByTime(REALTIME_RECONNECT_DELAY_MS);
 
     expect(MockWebSocket.instances).toHaveLength(2);
@@ -64,6 +71,20 @@ describe("useAccountRealtime reconnect behavior", () => {
   it("does not reconnect after an authorization close", () => {
     renderHarness();
     MockWebSocket.instances[0].onclose?.({ code: 1008 } as CloseEvent);
+    vi.advanceTimersByTime(REALTIME_RECONNECT_DELAY_MS * 2);
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+  });
+
+  it("stops after an abnormal handshake close confirms an expired login", async () => {
+    const authError = Object.assign(new Error("Not authenticated"), {
+      status: 401,
+    });
+    getMeMock.mockRejectedValueOnce(authError);
+    renderHarness();
+
+    MockWebSocket.instances[0].onclose?.({ code: 1006 } as CloseEvent);
+    await vi.runAllTicks();
     vi.advanceTimersByTime(REALTIME_RECONNECT_DELAY_MS * 2);
 
     expect(MockWebSocket.instances).toHaveLength(1);

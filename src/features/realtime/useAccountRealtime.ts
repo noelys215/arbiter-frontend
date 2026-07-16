@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { API_WS_BASE } from "../../lib/api";
+import { getMe } from "../auth/auth.api";
 import {
   invalidateAccountQueries,
   type AccountRealtimeMessage,
@@ -64,7 +65,7 @@ export function useAccountRealtime(enabled: boolean) {
         void invalidateAccountQueries(queryClient, message);
       };
 
-      socket.onclose = (event) => {
+      socket.onclose = async (event) => {
         if (pingTimer !== null) {
           window.clearInterval(pingTimer);
           pingTimer = null;
@@ -72,6 +73,21 @@ export function useAccountRealtime(enabled: boolean) {
         if (!shouldReconnectRealtimeSocket(event.code)) {
           stopped = true;
           return;
+        }
+        if (event.code === 1006) {
+          try {
+            await getMe();
+          } catch (error) {
+            if (
+              typeof error === "object" &&
+              error !== null &&
+              "status" in error &&
+              error.status === 401
+            ) {
+              stopped = true;
+              return;
+            }
+          }
         }
         scheduleReconnect();
       };
