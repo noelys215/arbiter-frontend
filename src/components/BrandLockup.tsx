@@ -1,3 +1,5 @@
+import { APP_VERSION } from "../config/appMetadata";
+
 type BrandLockupProps = {
   className?: string;
   logoClassName?: string;
@@ -17,7 +19,7 @@ export default function BrandLockup({
   titleClassName,
   versionClassName,
   showVersion = true,
-  versionText = "v1.2.0",
+  versionText = `v${APP_VERSION}`,
 }: BrandLockupProps) {
   return (
     <div className={cx("flex items-center", className)}>

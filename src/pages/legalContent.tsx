@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
-export const LEGAL_LAST_UPDATED = "February 11, 2026";
+export const LEGAL_LAST_UPDATED = "July 16, 2026";
 export const PRIVACY_EMAIL = "privacy@arbitertv.com";
 
 type LegalContentProps = {
@@ -53,6 +53,18 @@ export function PrivacyPolicyContent({
           We use information to provide and secure the service, support login and
           account management, personalize your experience, and improve app
           reliability and features.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Feedback">
+        <p>
+          When you send feedback, we receive the message you provide. If you
+          choose to be contacted, we also receive or use a reply email. If you
+          enable technical details, the submission may include the current page
+          with private tokens removed, browser and operating system, screen size,
+          app version, timestamp, online status, and, when signed in, internal
+          account and relevant group identifiers. Feedback is delivered through
+          our email provider and is not stored in Arbiter’s database.
         </p>
       </LegalSection>
 

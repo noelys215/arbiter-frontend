@@ -57,6 +57,7 @@ type AvatarMenuModalProps = {
   friends: Friend[] | undefined;
   selectedGroup: Group | null;
   onGroupCleared: () => void;
+  onOpenFeedback?: () => void;
 };
 
 const inputClassNames: InputClassNames = {
@@ -74,6 +75,7 @@ export default function AvatarMenuModal({
   friends,
   selectedGroup,
   onGroupCleared,
+  onOpenFeedback,
 }: AvatarMenuModalProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -469,6 +471,23 @@ export default function AvatarMenuModal({
                           <p className="app-text-secondary">{profileSaveMessage}</p>
                         ) : null}
                       </div>
+                      {onOpenFeedback ? (
+                        <div className="profile-feedback-section">
+                          <div>
+                            <p className="profile-support-eyebrow">Feedback</p>
+                            <p className="mt-1 text-sm app-text-secondary">
+                              Help improve Arbiter.
+                            </p>
+                          </div>
+                          <Button
+                            className="app-outline-button w-full sm:w-auto"
+                            variant="bordered"
+                            onPress={onOpenFeedback}
+                          >
+                            Send feedback
+                          </Button>
+                        </div>
+                      ) : null}
                       <div className="profile-support-section">
                         <div>
                           <p className="profile-support-eyebrow">Support Arbiter</p>

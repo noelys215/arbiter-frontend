@@ -1785,6 +1785,54 @@ pre {
     padding-block-start: 1.15rem;
   }
 
+  .profile-feedback-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid var(--app-border-subtle);
+    padding-block-start: 1.15rem;
+  }
+
+  .feedback-type-options {
+    display: grid !important;
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .feedback-type-option {
+    min-height: 2.75rem;
+    max-width: none;
+    margin: 0;
+    border: 1px solid var(--app-border-control);
+    border-radius: var(--landing-radius-sm);
+    background: var(--app-control-surface);
+    padding: 0.65rem 0.75rem;
+  }
+
+  .feedback-type-option[data-selected="true"] {
+    border-color: rgb(224 177 92 / 0.72);
+    background: rgb(224 177 92 / 0.1);
+  }
+
+  .feedback-success {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .feedback-honeypot {
+    position: absolute !important;
+    left: -10000px !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
   .profile-support-eyebrow {
     color: var(--app-text-metadata);
     font-size: 0.72rem;
@@ -1795,12 +1843,21 @@ pre {
   }
 
   @media (width < 480px) {
-    .profile-support-section {
+    .profile-support-section,
+    .profile-feedback-section {
       align-items: flex-start;
       flex-direction: column;
     }
 
     .kofi-support-link-profile {
+      width: 100%;
+    }
+
+    .feedback-type-options {
+      grid-template-columns: 1fr;
+    }
+
+    .feedback-type-option {
       width: 100%;
     }
   }

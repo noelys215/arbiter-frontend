@@ -24,6 +24,8 @@ import WatchlistCard from "./HomePage/components/WatchlistCard";
 import { useWatchlistRealtime } from "./HomePage/hooks/useWatchlistRealtime";
 import type { InputClassNames, WatchlistMeta } from "./HomePage/types";
 import SkipLink from "../components/SkipLink";
+import { feedbackAvailability } from "../config/appMetadata";
+import FeedbackDialog from "../features/feedback/FeedbackDialog";
 
 const GROUP_STORAGE_KEY = "arbiter:lastGroupId";
 
@@ -45,6 +47,7 @@ export default function HomePage() {
   const [watchlistPage, setWatchlistPage] = useState(1);
   const manualModal = useDisclosure();
   const avatarModal = useDisclosure();
+  const feedbackModal = useDisclosure();
 
   const inputClassNames: InputClassNames = {
     label: "!text-[#EAD9BC]",
@@ -423,7 +426,25 @@ export default function HomePage() {
         friends={friends}
         selectedGroup={selectedGroup}
         onGroupCleared={() => setSelectedGroupId(null)}
+        onOpenFeedback={
+          feedbackAvailability.account
+            ? () => {
+                avatarModal.onClose();
+                window.requestAnimationFrame(feedbackModal.onOpen);
+              }
+            : undefined
+        }
       />
+      {feedbackAvailability.account ? (
+        <FeedbackDialog
+          isOpen={feedbackModal.isOpen}
+          onOpenChange={feedbackModal.onOpenChange}
+          source="account_profile"
+          isAuthenticated
+          selectedGroupId={resolvedSelectedGroupId}
+          returnFocusRef={accountTriggerRef}
+        />
+      ) : null}
     </div>
   );
 }

@@ -1,8 +1,10 @@
 import { useDisclosure } from "@heroui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import KoFiSupportLink from "../components/KoFiSupportLink";
 import SkipLink from "../components/SkipLink";
+import { feedbackAvailability } from "../config/appMetadata";
+import FeedbackDialog from "../features/feedback/FeedbackDialog";
 import LegalModal from "./components/LegalModal";
 
 const pageCopy: Record<
@@ -86,6 +88,8 @@ type LegalModalKind = "privacy" | "data-deletion" | "credits";
 export default function LandingPage() {
   const location = useLocation();
   const legalModal = useDisclosure();
+  const feedbackModal = useDisclosure();
+  const feedbackTriggerRef = useRef<HTMLButtonElement>(null);
   const [legalKind, setLegalKind] = useState<LegalModalKind>("privacy");
   const copy = pageCopy[location.pathname] ?? {
     eyebrow: "Made for movie night",
@@ -320,6 +324,16 @@ export default function LandingPage() {
           <p>© 2026 Arbiter™. All rights reserved.</p>
           <div className="flex flex-wrap gap-x-5 gap-y-2">
             <KoFiSupportLink />
+            {feedbackAvailability.public ? (
+              <button
+                ref={feedbackTriggerRef}
+                type="button"
+                className="landing-text-link"
+                onClick={feedbackModal.onOpen}
+              >
+                Feedback
+              </button>
+            ) : null}
             <button
               type="button"
               className="landing-text-link"
@@ -351,6 +365,14 @@ export default function LandingPage() {
         onOpenChange={legalModal.onOpenChange}
         onSwitchKind={setLegalKind}
       />
+      {feedbackAvailability.public ? (
+        <FeedbackDialog
+          isOpen={feedbackModal.isOpen}
+          onOpenChange={feedbackModal.onOpenChange}
+          source="landing_footer"
+          returnFocusRef={feedbackTriggerRef}
+        />
+      ) : null}
     </div>
   );
 }
