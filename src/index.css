@@ -1671,6 +1671,14 @@ pre {
     opacity: 1 !important;
   }
 
+  .session-deal-button[disabled],
+  .session-deal-button[data-disabled="true"],
+  .session-deal-button[aria-disabled="true"] {
+    border-color: rgb(224 177 92 / 0.24) !important;
+    background: rgb(224 177 92 / 0.1) !important;
+    color: #c9b28e !important;
+  }
+
   .app-primary-button:focus-visible,
   .app-secondary-button:focus-visible,
   .app-outline-button:focus-visible,

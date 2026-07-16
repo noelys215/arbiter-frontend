@@ -1,11 +1,4 @@
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Chip,
-  Textarea,
-} from "@heroui/react";
+import { Button, Chip, Textarea } from "@heroui/react";
 import type { SessionContext, VibeInputMode } from "../types";
 
 type VibeSelectionCardProps = {
@@ -39,121 +32,157 @@ export default function VibeSelectionCard({
   generateLabel,
   onGenerate,
 }: VibeSelectionCardProps) {
+  const selectionSummary =
+    vibeInputMode === "ai"
+      ? aiMoodInput.trim().length > 0
+        ? "Mood ready."
+        : "Describe the mood to continue."
+      : selectedTags.length === 0
+        ? "Choose one or more tags."
+        : selectedTags.length === 1
+          ? "1 mood selected."
+          : `${selectedTags.length} moods selected.`;
+
   return (
-    <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
-      <CardHeader className="flex flex-col items-start gap-3">
-        <div>
-          <p className="session-title-micro text-xs text-[#E0B15C]/70">
-            Select a Vibe
+    <section
+      className="w-full self-center rounded-xl border border-[#E0B15C]/12 bg-[#1C110F]/58 px-5 py-5 sm:px-6 sm:py-4 lg:max-w-[62rem]"
+      aria-labelledby="mood-selection-heading"
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="max-w-2xl">
+          <p className="session-title-micro text-xs text-[#D9C7A8]">
+            <span className="sm:hidden">
+              Before the vote · {selectedGroupName}
+            </span>
+            <span className="hidden sm:inline">Before the vote</span>
           </p>
-          <h2 className="text-2xl text-[#F5D9A5]">
-            Curate the mood before the deal
+          <h2
+            id="mood-selection-heading"
+            className="app-heading-serif mt-1 text-3xl leading-none text-[#F7EAD2]"
+          >
+            Set the mood.
           </h2>
-          <p className="mt-1 text-sm text-[#D9C7A8]">
-            Tags are generated from TMDB genres and runtime buckets currently in{" "}
-            {selectedGroupName}&apos;s watchlist. Use tags or AI mood text to
-            build the deck.
+          <p className="mt-2 text-sm leading-6 text-[#EAD9BC] sm:text-base">
+            Choose a few cues, or describe the night you have in mind.
           </p>
-        </div>
-      </CardHeader>
-      <CardBody className="space-y-5">
-        <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            variant={vibeInputMode === "tags" ? "solid" : "bordered"}
-            className={
-              vibeInputMode === "tags"
-                ? "bg-[#E0B15C] text-[#161616]"
-                : "border-[#E0B15C]/35 text-[#E0B15C]"
-            }
-            aria-pressed={vibeInputMode === "tags"}
-            onPress={() => onVibeInputModeChange("tags")}
-          >
-            Use Tags
-          </Button>
-          <Button
-            size="sm"
-            variant={vibeInputMode === "ai" ? "solid" : "bordered"}
-            className={
-              vibeInputMode === "ai"
-                ? "bg-[#E0B15C] text-[#161616]"
-                : "border-[#E0B15C]/35 text-[#E0B15C]"
-            }
-            aria-pressed={vibeInputMode === "ai"}
-            onPress={() => onVibeInputModeChange("ai")}
-          >
-            Use AI Mood
-          </Button>
         </div>
 
+        <p className="hidden max-w-60 truncate text-sm text-[#BFA986] sm:block sm:pt-1 sm:text-right">
+          Session for{" "}
+          <span className="font-semibold text-[#EAD9BC]">
+            {selectedGroupName}
+          </span>
+        </p>
+      </div>
+
+      <div
+        className="mt-4 inline-flex max-w-full gap-6 border-b border-[#E0B15C]/12 sm:mt-3"
+        role="group"
+        aria-label="Mood selection mode"
+      >
+        <Button
+          size="sm"
+          variant="light"
+          className={`h-11 min-w-0 rounded-none border-b-2 px-0 text-sm font-semibold data-[hover=true]:!bg-transparent focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E] sm:h-9 ${
+            vibeInputMode === "tags"
+              ? "border-[#E0B15C] text-[#F7EAD2]"
+              : "border-transparent text-[#EAD9BC] hover:text-[#F7EAD2]"
+          }`}
+          aria-pressed={vibeInputMode === "tags"}
+          onPress={() => onVibeInputModeChange("tags")}
+        >
+          Choose tags
+        </Button>
+        <Button
+          size="sm"
+          variant="light"
+          className={`h-11 min-w-0 rounded-none border-b-2 px-0 text-sm font-semibold data-[hover=true]:!bg-transparent focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E] sm:h-9 ${
+            vibeInputMode === "ai"
+              ? "border-[#E0B15C] text-[#F7EAD2]"
+              : "border-transparent text-[#EAD9BC] hover:text-[#F7EAD2]"
+          }`}
+          aria-pressed={vibeInputMode === "ai"}
+          onPress={() => onVibeInputModeChange("ai")}
+        >
+          Describe the mood
+        </Button>
+      </div>
+
+      <div className="mt-5 sm:mt-4">
         {vibeInputMode === "tags" ? (
           availableGenreTags.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
+            <div
+              className="flex flex-wrap gap-x-2 gap-y-1.5 sm:gap-2"
+              role="group"
+              aria-label="Mood tags"
+            >
               {availableGenreTags.map((tag) => {
                 const selected = selectedTags.includes(tag);
                 return (
                   <Button
                     key={tag}
                     size="sm"
-                    variant={selected ? "solid" : "bordered"}
-                    className={
+                    variant="light"
+                    className={`min-h-11 min-w-0 whitespace-normal border px-3 py-1.5 text-sm font-semibold leading-5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E] sm:min-h-9 ${
                       selected
-                        ? "bg-[#E0B15C] text-[#161616]"
-                        : "border-[#E0B15C]/35 text-[#E0B15C]"
-                    }
+                        ? "border-[#E0B15C]/65 bg-[#E0B15C]/16 text-[#F7EAD2]"
+                        : "border-[#E0B15C]/12 bg-[#E0B15C]/[0.025] text-[#EAD9BC] hover:border-[#E0B15C]/30 hover:bg-[#E0B15C]/7"
+                    }`}
                     aria-pressed={selected}
                     onPress={() => onToggleTag(tag)}
                   >
+                    {selected ? (
+                      <span aria-hidden="true" className="text-[#F2C16E]">
+                        ✓
+                      </span>
+                    ) : null}
                     {tag}
                   </Button>
                 );
               })}
             </div>
           ) : (
-            <div className="rounded-xl border border-[#E0B15C]/20 bg-black/30 p-4">
-              <p className="text-sm text-[#E0B15C]">
-                No vibe tags available yet
+            <div className="border-l-2 border-[#E0B15C]/28 pl-4">
+              <p className="text-sm font-semibold text-[#F7EAD2]">
+                No mood cues yet.
               </p>
-              <p className="mt-1 text-xs text-[#D9C7A8]">
-                Add more TMDB titles with genre/runtime metadata, or use AI mood
-                input to infer a match.
+              <p className="mt-1 text-sm leading-6 text-[#EAD9BC]">
+                Add a few more titles, or describe the night you have in mind.
               </p>
             </div>
           )
         ) : (
-          <div className="rounded-xl border border-[#E0B15C]/20 bg-black/40 p-4">
-            <p className="text-sm text-[#E0B15C]">Arbiter AI Mood Input</p>
-            <p className="mt-1 text-xs text-[#D9C7A8]">
-              Describe your mood. Arbiter uses backend OpenAI parsing to infer
-              tags and build your deck.
-            </p>
-            <Textarea
-              aria-label="Describe your mood"
-              placeholder='Example: "Cozy sci-fi with emotional stakes, nothing too long."'
-              value={aiMoodInput}
-              onValueChange={onAiMoodInputChange}
-              minRows={3}
-              className="mt-3"
-              classNames={{
-                label: "text-[#E0B15C]/80",
-                input:
-                  "!text-[#F5F5F5] placeholder:text-white/35 caret-[#E0B15C]",
-                inputWrapper:
-                  "!bg-[#1A100E] !text-[#F5F5F5] border-[#E0B15C]/20 data-[hover=true]:border-[#E0B15C]/45 data-[focus=true]:!bg-[#1A100E] data-[focus-visible=true]:!bg-[#1A100E] data-[focus=true]:border-[#E0B15C]/55",
-              }}
-            />
-          </div>
+          <Textarea
+            label="What are you in the mood for?"
+            labelPlacement="outside"
+            placeholder="Something tense, atmospheric, and under two hours…"
+            value={aiMoodInput}
+            onValueChange={onAiMoodInputChange}
+            minRows={2}
+            variant="bordered"
+            classNames={{
+              label: "pb-2 text-sm font-semibold !text-[#F7EAD2]",
+              input:
+                "!text-base !text-[#F7EAD2] placeholder:!text-[#BFA986] caret-[#E0B15C]",
+              inputWrapper:
+                "min-h-[5.25rem] border-[#E0B15C]/24 !bg-[#22130F]/70 data-[hover=true]:border-[#E0B15C]/40 data-[focus=true]:border-[#E0B15C] data-[focus=true]:ring-1 data-[focus=true]:ring-[#E0B15C]/60 data-[focus=true]:!bg-[#22130F]/70",
+            }}
+          />
         )}
 
         {sessionContext.tags.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
+          <div
+            className="mt-4 flex flex-wrap gap-2"
+            role="group"
+            aria-label="Mood cues"
+          >
             {sessionContext.tags.map((tag) => (
               <Chip
                 key={tag}
-                variant="bordered"
+                variant="flat"
                 classNames={{
-                  base: "border-[#E0B15C]/40",
-                  content: "text-[#E0B15C]",
+                  base: "bg-[#E0B15C]/10",
+                  content: "text-[#EAD9BC]",
                 }}
               >
                 {tag}
@@ -161,27 +190,26 @@ export default function VibeSelectionCard({
             ))}
           </div>
         ) : null}
+      </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div
-            className="text-xs uppercase tracking-widest text-[#D9C7A8]"
-            role="status"
-            aria-live="polite"
-          >
-            {selectedTags.length} selected · {availableGenreTags.length}{" "}
-            available · {sessionContext.tags.length} AI inferred
-          </div>
-          <Button
-            size="lg"
-            className="session-title-micro border border-[#E0B15C]/50 bg-[#E0B15C] text-[#111111]"
-            isLoading={isGenerating}
-            isDisabled={isGenerateDisabled}
-            onPress={onGenerate}
-          >
-            {generateLabel}
-          </Button>
-        </div>
-      </CardBody>
-    </Card>
+      <div className="mt-4 flex flex-col gap-4 border-t border-[#E0B15C]/10 pt-4 sm:mt-2.5 sm:flex-row sm:items-center sm:justify-between sm:pt-2.5">
+        <p
+          className="text-sm text-[#DAC49F]"
+          role="status"
+          aria-live="polite"
+        >
+          {selectionSummary}
+        </p>
+        <Button
+          size="lg"
+          className="app-primary-button session-deal-button h-11 w-full px-6 sm:w-auto"
+          isLoading={isGenerating}
+          isDisabled={isGenerateDisabled}
+          onPress={onGenerate}
+        >
+          {generateLabel}
+        </Button>
+      </div>
+    </section>
   );
 }

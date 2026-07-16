@@ -1,3 +1,4 @@
+import { Button } from "@heroui/react";
 import DealtCardsModal from "./session/components/DealtCardsModal";
 import SessionDeckSection from "./session/components/SessionDeckSection";
 import SessionHeader from "./session/components/SessionHeader";
@@ -95,19 +96,26 @@ export default function SessionPage() {
     return <SessionUnavailableState onGoHome={goHome} />;
   }
 
+  const sessionExitAction = activeSessionId ? (
+    <Button
+      size="sm"
+      variant="bordered"
+      className="app-danger-button h-10 px-4"
+      isLoading={isGroupLeader ? endSessionMutation.isPending : false}
+      onPress={isGroupLeader ? handleEndSession : handleLeaveSession}
+    >
+      {isGroupLeader ? "End Session" : "Leave Session"}
+    </Button>
+  ) : null;
+
   return (
     <div className="min-h-screen bg-[#140C0A] text-white">
       <SkipLink />
       <SessionHeader
-        selectedGroupName={selectedGroup?.name ?? "Current group"}
         user={me}
         userName={me?.display_name ?? me?.username ?? "User"}
         userEmail={me?.email ?? ""}
-        isGroupLeader={isGroupLeader}
-        activeSessionId={activeSessionId}
-        isEndingSession={endSessionMutation.isPending}
-        onEndSession={handleEndSession}
-        onLeaveSession={handleLeaveSession}
+        sessionAction={sessionExitAction}
         onGoHome={goHome}
       />
 
@@ -118,7 +126,7 @@ export default function SessionPage() {
       >
         {!hasSubmittedDeck ? (
           <VibeSelectionCard
-            selectedGroupName={selectedGroup?.name ?? "your group"}
+            selectedGroupName={selectedGroup?.name ?? "Current group"}
             vibeInputMode={vibeInputMode}
             onVibeInputModeChange={setVibeInputMode}
             availableGenreTags={availableGenreTags}
@@ -136,10 +144,10 @@ export default function SessionPage() {
             }
             generateLabel={
               generateDeckMutation.isPending
-                ? "Submitting"
+                ? "Dealing…"
                 : sessionPhase === "swiping"
-                  ? "Deck Ready"
-                  : "Deal Your Deck"
+                  ? "Deck ready"
+                  : "Deal the deck"
             }
             onGenerate={handleGenerateDeck}
           />

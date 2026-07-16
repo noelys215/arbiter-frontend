@@ -1,89 +1,64 @@
-import { Button, Tooltip } from "@heroui/react";
+import { Tooltip } from "@heroui/react";
+import type { ReactNode } from "react";
 import ArbiterAvatar from "../../../components/ArbiterAvatar";
 import BrandLockup from "../../../components/BrandLockup";
 import type { AvatarUser } from "../../../features/avatar/avatarTypes";
 
 type SessionHeaderProps = {
-  selectedGroupName: string;
   user: AvatarUser | null | undefined;
   userName: string;
   userEmail: string;
-  isGroupLeader: boolean;
-  activeSessionId: string | null;
-  isEndingSession: boolean;
-  onEndSession: () => void;
-  onLeaveSession: () => void;
+  sessionAction: ReactNode;
   onGoHome: () => void;
 };
 
 export default function SessionHeader({
-  selectedGroupName,
   user,
   userName,
   userEmail,
-  isGroupLeader,
-  activeSessionId,
-  isEndingSession,
-  onEndSession,
-  onLeaveSession,
+  sessionAction,
   onGoHome,
 }: SessionHeaderProps) {
   return (
-    <header
-      className="sticky top-0 z-40 border-b border-[#E0B15C]/20 bg-[#140C0A]/95 backdrop-blur-sm"
-      aria-label="Session controls"
+    <nav
+      className="sticky top-0 z-50 border-b border-[#E0B15C]/12 bg-[#100806]/88 px-4 py-3 backdrop-blur-sm sm:px-6"
+      aria-label="Primary"
     >
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-3 sm:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <button
-            type="button"
-            aria-label="Go to home"
-            className="flex items-center rounded-lg p-1 text-left transition hover:bg-[#E0B15C]/10"
-            onClick={onGoHome}
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4">
+        <button
+          type="button"
+          aria-label="Go to home"
+          className="flex items-center rounded-lg text-left transition hover:bg-[#E0B15C]/10 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E]"
+          onClick={onGoHome}
+        >
+          <BrandLockup
+            logoClassName="!h-10 !w-10 sm:!h-20 sm:!w-20"
+            titleClassName="text-[1.75rem] sm:text-4xl"
+            versionClassName="sr-only"
+          />
+        </button>
+
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          {sessionAction}
+          <Tooltip
+            content={`${userName}${userEmail ? `\n${userEmail}` : ""}`}
+            placement="bottom"
+            classNames={{
+              content:
+                "whitespace-pre-line border border-[#E0B15C]/25 bg-[#22130F] text-[#F7F1E3]",
+            }}
           >
-            <BrandLockup />
-          </button>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            {activeSessionId ? (
-              <Button
-                size="sm"
-                variant="bordered"
-                className="border-[#D77B69]/45 px-3 text-[#F1A799] sm:px-6"
-                isLoading={isGroupLeader ? isEndingSession : false}
-                onPress={isGroupLeader ? onEndSession : onLeaveSession}
-              >
-                {isGroupLeader ? "End Session" : "Leave Session"}
-              </Button>
-            ) : null}
-
-            <Tooltip
-              content={`${userName}${userEmail ? `\n${userEmail}` : ""}`}
-              placement="bottom"
-              classNames={{
-                content:
-                  "whitespace-pre-line border border-[#E0B15C]/25 bg-[#22130F] text-[#F7F1E3]",
-              }}
-            >
-              <div className="rounded-full border border-[#E0B15C]/30 p-0">
-                <ArbiterAvatar
-                  user={user}
-                  size="lg"
-                  label={userName}
-                  className="h-12 w-12 bg-[#E0B15C] text-[#1C110F]"
-                />
-              </div>
-            </Tooltip>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center gap-2 text-sm">
-          <span className="font-medium text-[#A99577]">Group</span>
-          <span className="max-w-[16rem] truncate font-semibold text-[#F5D9A5]">
-            {selectedGroupName}
-          </span>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#E0B15C]/20 p-0 sm:h-14 sm:w-14">
+              <ArbiterAvatar
+                user={user}
+                size="lg"
+                label={userName}
+                className="bg-[#E0B15C] text-[#1C110F]"
+              />
+            </div>
+          </Tooltip>
         </div>
       </div>
-    </header>
+    </nav>
   );
 }

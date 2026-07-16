@@ -164,6 +164,8 @@ export default function SessionDeckSection({
         : sessionPhase === "swiping"
           ? `Swiping in progress. ${Math.max(0, swipedCount)} of ${Math.max(0, totalCards)} cards reviewed.`
           : "Session setup in progress.";
+  const hasDeckStatusActions =
+    showShortlistButton || (tieBreakRequired && isGroupLeader);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -183,9 +185,9 @@ export default function SessionDeckSection({
       </p>
       <div className="flex items-end justify-center">
         <div className="w-full">
-          <p className="session-title-micro text-left text-xs text-[#E0B15C]/65">
+          {/* <p className="session-title-micro text-left text-xs text-[#E0B15C]/65">
             Deck
-          </p>
+          </p> */}
           <h3 id="deck-heading" className="text-center text-xl text-[#F5D9A5]">
             {deckHeading}
           </h3>
@@ -290,11 +292,17 @@ export default function SessionDeckSection({
         </div>
 
         <div
-          className="flex w-full flex-wrap items-center justify-between gap-2 text-xs text-[#D9C7A8]"
+          className={`flex w-full flex-wrap items-center gap-2 text-xs text-[#D9C7A8] ${
+            hasDeckStatusActions ? "justify-between" : "justify-center"
+          }`}
           role="status"
           aria-live="polite"
         >
-          <div className="flex flex-col">
+          <div
+            className={`flex flex-col ${
+              hasDeckStatusActions ? "" : "items-center text-center"
+            }`}
+          >
             <span>
               {Math.max(0, swipedCount)} / {Math.max(0, totalCards)}
             </span>
@@ -306,32 +314,36 @@ export default function SessionDeckSection({
               </span>
             ) : null}
           </div>
-          <div className="flex items-center gap-2">
-            {showShortlistButton ? (
-              <Button
-                size="sm"
-                variant="bordered"
-                className="border-[#E0B15C]/45 text-[#E0B15C]"
-                onPress={onOpenShortlist}
-              >
-                View Shortlist
-              </Button>
-            ) : null}
-            {tieBreakRequired && isGroupLeader ? (
-              <Button
-                size="sm"
-                variant="bordered"
-                className="border-[#E0B15C]/45 text-[#E0B15C]"
-                isLoading={shuffleIsPending || deckPhase === "revealingWinner"}
-                isDisabled={sortedCardsLength === 0}
-                onPress={() => {
-                  void onShuffleWinner();
-                }}
-              >
-                Shuffle Winner
-              </Button>
-            ) : null}
-          </div>
+          {hasDeckStatusActions ? (
+            <div className="flex items-center gap-2">
+              {showShortlistButton ? (
+                <Button
+                  size="sm"
+                  variant="bordered"
+                  className="border-[#E0B15C]/45 text-[#E0B15C]"
+                  onPress={onOpenShortlist}
+                >
+                  View Shortlist
+                </Button>
+              ) : null}
+              {tieBreakRequired && isGroupLeader ? (
+                <Button
+                  size="sm"
+                  variant="bordered"
+                  className="border-[#E0B15C]/45 text-[#E0B15C]"
+                  isLoading={
+                    shuffleIsPending || deckPhase === "revealingWinner"
+                  }
+                  isDisabled={sortedCardsLength === 0}
+                  onPress={() => {
+                    void onShuffleWinner();
+                  }}
+                >
+                  Shuffle Winner
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         {winnerCard && isTmdbWinner ? (
