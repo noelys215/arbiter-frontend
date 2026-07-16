@@ -156,19 +156,19 @@ export default function FeedbackDialog({
     <Modal
       isOpen={isOpen}
       onOpenChange={handleOpenChange}
-      size="2xl"
+      size="xl"
       scrollBehavior="inside"
       isDismissable={!mutation.isPending}
       isKeyboardDismissDisabled={mutation.isPending}
       classNames={{
-        base: "feedback-dialog max-h-[calc(100dvh-2rem)] border border-[#E0B15C]/20 bg-[#1C110F]",
+        base: "feedback-dialog max-h-[calc(100dvh-1.5rem)] !max-w-[44rem] border border-[#E0B15C]/20 bg-[#1C110F]",
         wrapper: "items-end pb-4 sm:items-center sm:pb-0",
         backdrop: "bg-black/38",
         closeButton:
-          "min-h-11 min-w-11 text-[#EAD9BC] hover:bg-[#E0B15C]/10 hover:text-[#F7EAD2] focus-visible:ring-2 focus-visible:ring-[#F2C16E]",
-        header: "border-b border-[#E0B15C]/14",
-        body: "py-5",
-        footer: "border-t border-[#E0B15C]/14",
+          "feedback-close-button min-h-11 min-w-11 text-[#EAD9BC] hover:bg-[#E0B15C]/10 hover:text-[#F7EAD2]",
+        header: "feedback-dialog-header",
+        body: "feedback-dialog-body",
+        footer: "feedback-dialog-footer",
       }}
     >
       <ModalContent>
@@ -200,7 +200,7 @@ export default function FeedbackDialog({
             </>
           ) : (
             <form onSubmit={handleSubmit} className="contents" noValidate>
-              <ModalHeader className="flex flex-col items-start gap-1">
+              <ModalHeader className="flex flex-col items-start gap-0.5">
                 <h2 className="app-heading-serif text-3xl text-[#F7EAD2]">
                   Share feedback
                 </h2>
@@ -208,7 +208,7 @@ export default function FeedbackDialog({
                   Help make Arbiter better.
                 </p>
               </ModalHeader>
-              <ModalBody className="space-y-5">
+              <ModalBody className="space-y-4">
                 <RadioGroup
                   label="What would you like to send?"
                   value={type}
@@ -225,9 +225,10 @@ export default function FeedbackDialog({
                       value={option.value}
                       classNames={{
                         base: "feedback-type-option",
-                        label: "text-sm text-[#EAD9BC]",
+                        label: "feedback-type-label",
+                        wrapper: "feedback-type-radio",
                         control:
-                          "border-[#E0B15C]/48 group-data-[selected=true]:border-[#E0B15C] group-data-[selected=true]:bg-[#E0B15C]",
+                          "feedback-type-indicator border-[#E0B15C]/48 group-data-[selected=true]:border-[#E0B15C] group-data-[selected=true]:bg-[#E0B15C]",
                       }}
                     >
                       {option.label}
@@ -241,36 +242,45 @@ export default function FeedbackDialog({
                   placeholder={MESSAGE_PLACEHOLDERS[type]}
                   value={message}
                   onValueChange={setMessage}
-                  minRows={4}
-                  maxRows={8}
+                  minRows={3}
+                  maxRows={7}
                   maxLength={4000}
                   variant="bordered"
                   isInvalid={messageInvalid}
-                  errorMessage={messageInvalid ? "Please add a little more detail." : undefined}
-                  description={`${message.length.toLocaleString()} of 4,000 characters`}
+                  errorMessage={
+                    messageInvalid ? (
+                      <span role="alert">Please add a little more detail.</span>
+                    ) : undefined
+                  }
+                  description={`${message.length.toLocaleString()} / 4,000`}
                   classNames={{
-                    label: "!text-[#EAD9BC]",
-                    input: "text-base text-[#F7F1E3] placeholder:text-[#C7B18D]",
+                    label: "feedback-field-label",
+                    input: "feedback-message-input text-base",
                     inputWrapper:
-                      "border-[#E0B15C]/32 bg-[#22130F] focus-within:border-[#E0B15C] focus-within:ring-1 focus-within:ring-[#E0B15C]/60",
-                    description: "app-text-metadata",
-                    errorMessage: "app-text-destructive",
+                      "feedback-field-wrapper border-[#E0B15C]/32 bg-[#22130F]",
+                    description: "feedback-character-count",
+                    errorMessage: "feedback-error-message",
                   }}
                 />
 
-                <div className="space-y-3 border-t app-rule pt-4">
+                <div className="feedback-consent-group">
                   <Checkbox
                     isSelected={allowContact}
                     onValueChange={setAllowContact}
+                    aria-describedby="feedback-contact-helper"
                     classNames={{
-                      base: "min-h-11",
-                      label: "text-sm app-text-secondary",
+                      base: "feedback-checkbox min-h-11",
+                      wrapper: "feedback-checkbox-control",
+                      label: "feedback-checkbox-label",
                     }}
                   >
                     {isAuthenticated
                       ? "Use my account email for a reply"
                       : "You may contact me about this feedback"}
                   </Checkbox>
+                  <p id="feedback-contact-helper" className="feedback-checkbox-helper">
+                    We’ll only use your email to follow up about this message.
+                  </p>
                   {allowContact && !isAuthenticated ? (
                     <Input
                       isRequired
@@ -282,35 +292,49 @@ export default function FeedbackDialog({
                       onValueChange={setContactEmail}
                       variant="bordered"
                       isInvalid={emailInvalid}
-                      errorMessage={emailInvalid ? "Enter a valid email address." : undefined}
+                      errorMessage={
+                        emailInvalid ? (
+                          <span role="alert">Enter a valid email address.</span>
+                        ) : undefined
+                      }
                       classNames={{
-                        label: "!text-[#EAD9BC]",
-                        input: "text-[#F7F1E3] placeholder:text-[#C7B18D]",
+                        label: "feedback-field-label",
+                        input: "feedback-message-input",
                         inputWrapper:
-                          "border-[#E0B15C]/32 bg-[#22130F] focus-within:border-[#E0B15C]",
-                        errorMessage: "app-text-destructive",
+                          "feedback-field-wrapper border-[#E0B15C]/32 bg-[#22130F]",
+                        errorMessage: "feedback-error-message",
                       }}
                     />
                   ) : null}
                 </div>
 
-                <div className="space-y-2 border-t app-rule pt-4">
+                <div className="feedback-consent-group">
                   <Checkbox
                     isSelected={includeDiagnostics}
+                    aria-describedby="feedback-diagnostics-helper feedback-diagnostics-reassurance"
                     onValueChange={(selected) => {
                       setIncludeDiagnostics(selected);
                       setDiagnosticsTouched(true);
                     }}
                     classNames={{
-                      base: "min-h-11",
-                      label: "text-sm app-text-secondary",
+                      base: "feedback-checkbox min-h-11",
+                      wrapper: "feedback-checkbox-control",
+                      label: "feedback-checkbox-label",
                     }}
                   >
-                    Include technical details to help diagnose this issue
+                    Include technical details
                   </Checkbox>
-                  <p className="pl-7 text-xs leading-5 app-text-metadata">
-                    Includes the current page, browser, screen size, app version, and
-                    timestamp. Never includes passwords, cookies, or invite links.
+                  <p
+                    id="feedback-diagnostics-helper"
+                    className="feedback-checkbox-helper"
+                  >
+                    Current page, browser, screen size, app version, and timestamp.
+                  </p>
+                  <p
+                    id="feedback-diagnostics-reassurance"
+                    className="feedback-checkbox-reassurance"
+                  >
+                    Never includes passwords, cookies, or private invite links.
                   </p>
                 </div>
 
@@ -325,11 +349,11 @@ export default function FeedbackDialog({
                   autoComplete="off"
                 />
 
-                <p className="text-xs app-text-metadata">
+                <p className="feedback-privacy-note">
                   Don’t include passwords or private invite links.
                 </p>
                 {mutation.isError ? (
-                  <p className="text-sm app-text-destructive" role="alert">
+                  <p className="feedback-error-message" role="alert">
                     {getErrorMessage(mutation.error)}
                   </p>
                 ) : null}
@@ -344,7 +368,7 @@ export default function FeedbackDialog({
                   type="button"
                   variant="light"
                   className="app-secondary-button w-full sm:w-auto"
-                  size="lg"
+                  size="md"
                   onPress={onClose}
                   isDisabled={mutation.isPending}
                 >
@@ -352,8 +376,8 @@ export default function FeedbackDialog({
                 </Button>
                 <Button
                   type="submit"
-                  className="app-primary-button w-full sm:w-auto"
-                  size="lg"
+                  className="feedback-submit-button app-primary-button w-full sm:w-auto"
+                  size="md"
                   isLoading={mutation.isPending}
                   isDisabled={mutation.isPending}
                 >

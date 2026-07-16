@@ -91,7 +91,7 @@ describe("FeedbackDialog", () => {
     await user.click(screen.getByRole("radio", { name: "Bug report" }));
     expect(
       screen.getByRole("checkbox", {
-        name: "Include technical details to help diagnose this issue",
+        name: "Include technical details",
       }),
     ).toBeChecked();
     const honeypot = document.querySelector<HTMLInputElement>('input[name="website"]');
