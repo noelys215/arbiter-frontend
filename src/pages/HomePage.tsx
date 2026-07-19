@@ -2,7 +2,10 @@ import { Select, SelectItem, useDisclosure } from "@heroui/react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getMe } from "../features/auth/auth.api";
-import { getGroups } from "../features/groups/groups.api";
+import {
+  getGroupInvitations,
+  getGroups,
+} from "../features/groups/groups.api";
 import {
   getFriendRequests,
   getFriends,
@@ -73,6 +76,10 @@ export default function HomePage() {
   const { data: friendRequests } = useQuery({
     queryKey: ["friend-requests"],
     queryFn: getFriendRequests,
+  });
+  const { data: groupInvitations } = useQuery({
+    queryKey: ["group-invitations", "incoming"],
+    queryFn: () => getGroupInvitations(),
   });
 
   const tmdbQuery = useQuery({
@@ -264,7 +271,10 @@ export default function HomePage() {
         me={me}
         accountTriggerRef={accountTriggerRef}
         onAvatarClick={avatarModal.onOpen}
-        pendingFriendRequestCount={friendRequests?.incoming.length ?? 0}
+        pendingNotificationCount={
+          (friendRequests?.incoming.length ?? 0) +
+          (groupInvitations?.length ?? 0)
+        }
       />
 
       <div id="main-content" tabIndex={-1} className="app-shell py-7 sm:py-9">
@@ -433,6 +443,7 @@ export default function HomePage() {
         groups={groups}
         friends={friends}
         friendRequests={friendRequests}
+        groupInvitations={groupInvitations}
         selectedGroup={selectedGroup}
         onGroupCleared={() => setSelectedGroupId(null)}
         onOpenFeedback={

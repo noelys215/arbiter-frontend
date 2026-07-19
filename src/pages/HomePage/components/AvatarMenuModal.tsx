@@ -32,7 +32,6 @@ import {
   type FriendFilter,
 } from "../../../features/friends/friendFilters";
 import {
-  acceptGroupInvite,
   createGroup,
   createGroupLinkInvite,
   decideGroupInvitation,
@@ -40,13 +39,14 @@ import {
   getGroup,
   getGroupInvitations,
   leaveGroup,
-  revokeGroupInvite,
   updateGroup,
 } from "../../../features/groups/groups.api";
-import type { Group } from "../../../features/groups/groups.api";
+import type {
+  Group,
+  GroupInvitation,
+} from "../../../features/groups/groups.api";
 import type { ConfirmAction, InputClassNames, OnOpenChange } from "../types";
 import ConfirmActionModal from "./ConfirmActionModal";
-import InviteShareActions from "./InviteShareActions";
 
 const AvatarSelectorModal = lazy(
   () => import("../../../features/avatar/AvatarSelectorModal"),
@@ -59,6 +59,7 @@ type AvatarMenuModalProps = {
   groups: Group[] | undefined;
   friends: Friend[] | undefined;
   friendRequests: FriendRequestsResponse | undefined;
+  groupInvitations: GroupInvitation[] | undefined;
   selectedGroup: Group | null;
   onGroupCleared: () => void;
   onOpenFeedback?: () => void;
@@ -78,6 +79,7 @@ export default function AvatarMenuModal({
   groups,
   friends,
   friendRequests,
+  groupInvitations,
   selectedGroup,
   onGroupCleared,
   onOpenFeedback,
@@ -94,13 +96,6 @@ export default function AvatarMenuModal({
   );
 
   // Group invite state
-  const [groupInviteCode, setGroupInviteCode] = useState("");
-  const [createdGroupInvite, setCreatedGroupInvite] = useState<{
-    id: string;
-    token: string;
-    code: string;
-  } | null>(null);
-
   // Create group state
   const [groupName, setGroupName] = useState("");
   const [displayNameDraft, setDisplayNameDraft] = useState<string | null>(null);
@@ -141,10 +136,6 @@ export default function AvatarMenuModal({
     queryKey: ["group-invitations", "outgoing", selectedGroup?.id],
     queryFn: () => getGroupInvitations(selectedGroup?.id),
     enabled: Boolean(selectedGroup?.id && isOwner),
-  });
-  const incomingInvitesQuery = useQuery({
-    queryKey: ["group-invitations", "incoming"],
-    queryFn: () => getGroupInvitations(),
   });
   const memberIds = useMemo(
     () => new Set((groupDetailQuery.data?.members ?? []).map((member) => member.id)),
@@ -217,22 +208,6 @@ export default function AvatarMenuModal({
       : null;
 
   // Group invite mutations
-  const createGroupInviteMutation = useMutation({
-    mutationFn: () =>
-      selectedGroup ? createGroupLinkInvite(selectedGroup.id) : Promise.reject(),
-    onSuccess: (data) => {
-      setCreatedGroupInvite(data);
-    },
-  });
-  const regenerateGroupInviteMutation = useMutation({
-    mutationFn: async () => {
-      if (!selectedGroup) throw new Error("No group selected");
-      if (createdGroupInvite) await revokeGroupInvite(createdGroupInvite.id);
-      return createGroupLinkInvite(selectedGroup.id);
-    },
-    onSuccess: (data) => setCreatedGroupInvite(data),
-  });
-
   const targetedGroupInviteMutation = useMutation({
     mutationFn: (friendId: string) => {
       if (!selectedGroup) return Promise.reject(new Error("No group selected"));
@@ -250,14 +225,6 @@ export default function AvatarMenuModal({
       decideGroupInvitation(inviteId, decision),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["group-invitations"] });
-      queryClient.invalidateQueries({ queryKey: ["groups"] });
-    },
-  });
-
-  const acceptGroupInviteMutation = useMutation({
-    mutationFn: () => acceptGroupInvite(groupInviteCode.trim()),
-    onSuccess: () => {
-      setGroupInviteCode("");
       queryClient.invalidateQueries({ queryKey: ["groups"] });
     },
   });
@@ -816,16 +783,18 @@ export default function AvatarMenuModal({
                           </ul>
                         ) : (
                           <p className="mt-2 text-sm app-muted">
-                            Create a group or join one with a code.
+                            Create a group when you’re ready to plan a movie night.
                           </p>
                         )}
                       </div>
 
-                      {incomingInvitesQuery.data && incomingInvitesQuery.data.length > 0 ? (
-                        <div className="space-y-3 border-t app-rule pt-5">
-                          <h3 className="text-lg font-semibold text-[#F7EAD2]">Group invitations</h3>
+                      <div className="space-y-3 border-t app-rule pt-5">
+                        <h3 className="text-lg font-semibold text-[#F7EAD2]">
+                          Group invitations
+                        </h3>
+                        {groupInvitations && groupInvitations.length > 0 ? (
                           <ul className="divide-y app-rule">
-                            {incomingInvitesQuery.data.map((invite) => (
+                            {groupInvitations.map((invite) => (
                               <li key={invite.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                   <p className="text-sm font-semibold text-[#F7EAD2]">{invite.group_name}</p>
@@ -852,16 +821,20 @@ export default function AvatarMenuModal({
                               </li>
                             ))}
                           </ul>
-                        </div>
-                      ) : null}
+                        ) : (
+                          <p className="text-sm app-muted">
+                            No group invitations are waiting for you.
+                          </p>
+                        )}
+                      </div>
 
                       <Divider className="bg-[#E0B15C]/10" />
 
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-3">
-                          <h3 className="text-lg font-semibold text-[#F7EAD2]">
-                            Create a group
-                          </h3>
+                      <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-[#F7EAD2]">
+                          Create a group
+                        </h3>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                           <Input
                             label="Group name"
                             placeholder="Movie night"
@@ -869,9 +842,10 @@ export default function AvatarMenuModal({
                             onChange={(e) => setGroupName(e.target.value)}
                             variant="bordered"
                             classNames={inputClassNames}
+                            className="flex-1"
                           />
                           <Button
-                            className="app-outline-button"
+                            className="app-outline-button w-full sm:w-auto"
                             variant="bordered"
                             onPress={() => createGroupMutation.mutate()}
                             isDisabled={!groupName.trim()}
@@ -879,31 +853,6 @@ export default function AvatarMenuModal({
                           >
                             Create group
                           </Button>
-                        </div>
-
-                        <div className="space-y-3">
-                          <h3 className="text-lg font-semibold text-[#F7EAD2]">
-                            Join with a code
-                          </h3>
-                          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                            <Input
-                              label="Join with a code"
-                              placeholder="Enter code"
-                              value={groupInviteCode}
-                              onChange={(e) => setGroupInviteCode(e.target.value)}
-                              variant="bordered"
-                              classNames={inputClassNames}
-                            />
-                            <Button
-                              className="app-outline-button w-full sm:w-auto"
-                              variant="bordered"
-                              onPress={() => acceptGroupInviteMutation.mutate()}
-                              isDisabled={!groupInviteCode.trim()}
-                              isLoading={acceptGroupInviteMutation.isPending}
-                            >
-                              Join
-                            </Button>
-                          </div>
                         </div>
                       </div>
 
@@ -917,7 +866,7 @@ export default function AvatarMenuModal({
                                   Group settings
                                 </h3>
                                 <p className="mt-1 text-sm app-muted">
-                                  Invite people or manage {selectedGroup.name}.
+                                  Manage {selectedGroup.name}.
                                 </p>
                               </div>
                               <Button
@@ -990,36 +939,6 @@ export default function AvatarMenuModal({
                                     ) : null}
                                   </div>
                                 </form>
-                              ) : null}
-                              <div className="flex flex-wrap items-center gap-3">
-                                <Button
-                                  className="app-outline-button"
-                                  variant="bordered"
-                                  onPress={() => createGroupInviteMutation.mutate()}
-                                  isDisabled={!selectedGroup}
-                                  isLoading={createGroupInviteMutation.isPending}
-                                >
-                                  Invite people
-                                </Button>
-                              </div>
-                              {createdGroupInvite ? (
-                                <div className="space-y-2">
-                                  <InviteShareActions
-                                    path={`/invite/group/${createdGroupInvite.token}`}
-                                    code={createdGroupInvite.code}
-                                    title={`Join ${selectedGroup.name} on Arbiter`}
-                                    text="Join my movie group on Arbiter."
-                                  />
-                                  <Button
-                                    size="sm"
-                                    variant="light"
-                                    className="app-secondary-button"
-                                    isLoading={regenerateGroupInviteMutation.isPending}
-                                    onPress={() => regenerateGroupInviteMutation.mutate()}
-                                  >
-                                    Create a new link
-                                  </Button>
-                                </div>
                               ) : null}
                               <div className="border-t border-[#D77B69]/18 pt-4">
                                 {isOwner ? (

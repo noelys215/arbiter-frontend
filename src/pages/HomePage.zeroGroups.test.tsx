@@ -9,12 +9,16 @@ vi.mock("../features/auth/auth.api", () => ({
 }));
 vi.mock("../features/groups/groups.api", () => ({
   getGroups: vi.fn(async () => []),
+  getGroupInvitations: vi.fn(async () => [{ id: "group-invite" }]),
 }));
 vi.mock("../features/friends/friends.api", () => ({
   getFriends: vi.fn(async () => [
     { id: "friend", display_name: "Existing Friend", username: "friend" },
   ]),
-  getFriendRequests: vi.fn(async () => ({ incoming: [], outgoing: [] })),
+  getFriendRequests: vi.fn(async () => ({
+    incoming: [{ id: "friend-request" }],
+    outgoing: [],
+  })),
 }));
 vi.mock("../features/watchlist/watchlist.api", () => ({
   getGroupWatchlistPage: vi.fn(),
@@ -24,7 +28,9 @@ vi.mock("./HomePage/hooks/useWatchlistRealtime", () => ({
   useWatchlistRealtime: vi.fn(),
 }));
 vi.mock("./HomePage/components/TopBar", () => ({
-  default: () => <button>Account controls</button>,
+  default: ({ pendingNotificationCount }: { pendingNotificationCount: number }) => (
+    <button>Account controls · {pendingNotificationCount} pending</button>
+  ),
 }));
 vi.mock("./HomePage/components/NoGroupsCard", () => ({
   default: () => <section>No groups yet</section>,
@@ -58,7 +64,7 @@ describe("HomePage with zero groups", () => {
 
     expect(await screen.findByText("No groups yet")).toBeInTheDocument();
     expect(screen.getByText("Friends visible: 1")).toBeInTheDocument();
-    expect(screen.getByText("Account controls")).toBeInTheDocument();
+    expect(screen.getByText("Account controls · 2 pending")).toBeInTheDocument();
     expect(screen.getByText("Account modal available")).toBeInTheDocument();
   });
 });

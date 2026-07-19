@@ -8,19 +8,19 @@ type TopBarProps = {
   me: MeResponse | undefined;
   onAvatarClick: () => void;
   accountTriggerRef: RefObject<HTMLButtonElement | null>;
-  pendingFriendRequestCount: number;
+  pendingNotificationCount: number;
 };
 
 export default function TopBar({
   me,
   onAvatarClick,
   accountTriggerRef,
-  pendingFriendRequestCount,
+  pendingNotificationCount,
 }: TopBarProps) {
   const notificationLabel =
-    pendingFriendRequestCount === 1
-      ? "1 pending friend request"
-      : `${pendingFriendRequestCount} pending friend requests`;
+    pendingNotificationCount === 1
+      ? "1 pending request"
+      : `${pendingNotificationCount} pending requests`;
   return (
     <nav
       className="sticky top-0 z-50 border-b border-[#E0B15C]/12 bg-[#100806]/88 px-4 py-3 backdrop-blur-sm sm:px-6"
@@ -44,10 +44,10 @@ export default function TopBar({
           <Badge
             content={
               <span aria-hidden="true">
-                {pendingFriendRequestCount > 99 ? "99+" : pendingFriendRequestCount}
+                {pendingNotificationCount > 99 ? "99+" : pendingNotificationCount}
               </span>
             }
-            isInvisible={pendingFriendRequestCount === 0}
+            isInvisible={pendingNotificationCount === 0}
             placement="top-right"
             shape="circle"
             size="sm"
@@ -63,7 +63,7 @@ export default function TopBar({
               className="app-account-trigger h-12 w-12 min-w-12 rounded-full border border-[#E0B15C]/20 p-0 transition hover:border-[#E0B15C]/55 sm:h-14 sm:w-14 sm:min-w-14"
               onPress={onAvatarClick}
               aria-label={
-                pendingFriendRequestCount > 0
+                pendingNotificationCount > 0
                   ? `Open account menu, ${notificationLabel}`
                   : "Open account menu"
               }
