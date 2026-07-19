@@ -1,4 +1,4 @@
-import { api, apiJson, jsonBody } from "../../lib/api";
+import { apiJson, jsonBody } from "../../lib/api";
 import type { AvatarSource } from "../avatar/avatarTypes";
 
 export type Friend = {
@@ -12,24 +12,7 @@ export type Friend = {
   avatar_seed: string | null;
 };
 
-export type InviteResponse = {
-  code: string;
-  expires_at: string;
-};
-
-export type LinkInviteResponse = InviteResponse & {
-  id: string;
-  token: string;
-  max_uses: number;
-  uses_count: number;
-};
-
 export type InvitePublicUser = Omit<Friend, "email">;
-
-export type FriendInvitePreview = {
-  inviter: InvitePublicUser;
-  expires_at: string;
-};
 
 export type FriendRequest = {
   id: string;
@@ -78,39 +61,6 @@ export async function cancelFriendRequest(requestId: string) {
     `/friends/requests/${encodeURIComponent(requestId)}`,
     { method: "DELETE" },
   );
-}
-
-export async function createFriendInvite() {
-  return apiJson<InviteResponse>("/friends/invite", { method: "POST" });
-}
-
-export async function createFriendLinkInvite() {
-  return apiJson<LinkInviteResponse>("/friends/invites", { method: "POST" });
-}
-
-export async function previewFriendInvite(token: string) {
-  return apiJson<FriendInvitePreview>(`/invites/friend/${encodeURIComponent(token)}`);
-}
-
-export async function acceptFriendLinkInvite(token: string) {
-  return apiJson<{ ok: boolean; already_friends: boolean }>(
-    `/invites/friend/${encodeURIComponent(token)}/accept`,
-    { method: "POST" },
-  );
-}
-
-export async function revokeFriendInvite(inviteId: string) {
-  const response = await api(`/friends/invites/${encodeURIComponent(inviteId)}`, {
-    method: "DELETE",
-  });
-  if (!response.ok) throw new Error("Could not revoke invitation");
-}
-
-export async function acceptFriendInvite(code: string) {
-  return apiJson<{ ok: boolean }>("/friends/accept", {
-    method: "POST",
-    ...jsonBody({ code }),
-  });
 }
 
 export async function unfriend(userId: string) {

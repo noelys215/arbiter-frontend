@@ -9,7 +9,7 @@ import ArbiterAvatar from "../../../components/ArbiterAvatar";
 import { unfriend } from "../../../features/friends/friends.api";
 import type { Friend } from "../../../features/friends/friends.api";
 import {
-  createGroupLinkInvite,
+  createGroupInvitation,
   getGroup,
   getGroupInvitations,
 } from "../../../features/groups/groups.api";
@@ -59,8 +59,7 @@ export default function RightRail({ friends, selectedGroup, currentUserId, onOpe
     () =>
       new Set(
         (outgoingInvitesQuery.data ?? [])
-          .map((invite) => invite.target?.id)
-          .filter((id): id is string => Boolean(id)),
+          .map((invite) => invite.target.id),
       ),
     [outgoingInvitesQuery.data],
   );
@@ -84,7 +83,7 @@ export default function RightRail({ friends, selectedGroup, currentUserId, onOpe
       if (!selectedGroup) {
         return Promise.reject(new Error("No group selected"));
       }
-      return createGroupLinkInvite(selectedGroup.id, userId);
+      return createGroupInvitation(selectedGroup.id, userId);
     },
     onMutate: (userId) => {
       setPendingInviteId(userId);

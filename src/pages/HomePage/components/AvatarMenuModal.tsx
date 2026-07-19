@@ -33,7 +33,7 @@ import {
 } from "../../../features/friends/friendFilters";
 import {
   createGroup,
-  createGroupLinkInvite,
+  createGroupInvitation,
   decideGroupInvitation,
   deleteGroup,
   getGroup,
@@ -211,7 +211,7 @@ export default function AvatarMenuModal({
   const targetedGroupInviteMutation = useMutation({
     mutationFn: (friendId: string) => {
       if (!selectedGroup) return Promise.reject(new Error("No group selected"));
-      return createGroupLinkInvite(selectedGroup.id, friendId);
+      return createGroupInvitation(selectedGroup.id, friendId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

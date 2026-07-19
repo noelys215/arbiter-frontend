@@ -24,42 +24,22 @@ export type GroupDetail = Group & {
   members: GroupMember[];
 };
 
-export type InviteResponse = {
-    code: string;
-};
-
-export type GroupLinkInvite = {
+export type GroupInvite = {
   id: string;
-  token: string;
-  code: string;
   group_id: string;
-  target_user_id: string | null;
+  target_user_id: string;
   expires_at: string;
-  max_uses: number;
-  uses_count: number;
 };
 
 export type GroupInvitePublicUser = Omit<GroupMember, "email">;
-
-export type GroupInvitePreview = {
-  group_id: string;
-  group_name: string;
-  inviter: GroupInvitePublicUser;
-  member_count: number;
-  expires_at: string;
-  targeted: boolean;
-};
 
 export type GroupInvitation = {
   id: string;
   group_id: string;
   group_name: string;
   inviter: GroupInvitePublicUser;
-  target: GroupInvitePublicUser | null;
+  target: GroupInvitePublicUser;
   expires_at: string;
-  max_uses: number;
-  uses_count: number;
-  targeted: boolean;
 };
 
 export type AddGroupMembersPayload = {
@@ -109,35 +89,13 @@ export async function getGroup(groupId: string) {
   return apiJson<GroupDetail>(`/groups/${groupId}`);
 }
 
-export async function acceptGroupInvite(code: string) {
-  const response = await api("/groups/accept-invite", {
-    method: "POST",
-    ...jsonBody({ code }),
-  });
-  if (!response.ok) {
-    const error = new Error("Accept invite failed");
-    (error as Error & { status?: number }).status = response.status;
-    throw error;
-  }
-  return response;
-}
-
-export async function createGroupInvite(groupId: string) {
-  return apiJson<InviteResponse>(`/groups/${groupId}/invite`, {
-    method: "POST",
-  });
-}
-
-export async function createGroupLinkInvite(
+export async function createGroupInvitation(
   groupId: string,
-  targetUserId?: string,
+  targetUserId: string,
 ) {
-  return apiJson<GroupLinkInvite>(`/groups/${groupId}/invites`, {
+  return apiJson<GroupInvite>(`/groups/${groupId}/invites`, {
     method: "POST",
-    ...jsonBody({
-      target_user_id: targetUserId ?? null,
-      max_uses: targetUserId ? 1 : 25,
-    }),
+    ...jsonBody({ target_user_id: targetUserId }),
   });
 }
 
@@ -157,20 +115,6 @@ export async function decideGroupInvitation(
   }>(`/group-invites/${encodeURIComponent(inviteId)}/decision`, {
     method: "POST",
     ...jsonBody({ decision }),
-  });
-}
-
-export async function previewGroupInvite(token: string) {
-  return apiJson<GroupInvitePreview>(`/invites/group/${encodeURIComponent(token)}`);
-}
-
-export async function acceptGroupLinkInvite(token: string) {
-  return apiJson<{
-    ok: boolean;
-    decision: "accepted";
-    already_member: boolean;
-  }>(`/invites/group/${encodeURIComponent(token)}/accept`, {
-    method: "POST",
   });
 }
 

@@ -9,7 +9,6 @@ import {
 import { subscribeToAuthSuccess } from "../features/auth/authHandoff";
 import SkipLink from "../components/SkipLink";
 import { API_BASE, IS_LOCAL_DEV } from "../lib/api";
-import { getValidInviteReturnPath } from "../lib/inviteReturnPath";
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   google_oauth_failed: "Google sign-in failed. Please try again.",
@@ -29,7 +28,6 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
-  const returnTo = getValidInviteReturnPath(searchParams.get("return_to"));
   const emailHelpId = useId();
   const emailErrorId = useId();
   const statusId = useId();
@@ -50,9 +48,7 @@ export default function LoginPage() {
         !configuredGoogleLoginUrlIsLocal
       ? configuredGoogleLoginUrl
       : `${API_BASE}/auth/google/login`;
-  const googleLoginUrl = returnTo
-    ? `${baseGoogleLoginUrl}${baseGoogleLoginUrl.includes("?") ? "&" : "?"}return_to=${encodeURIComponent(returnTo)}`
-    : baseGoogleLoginUrl;
+  const googleLoginUrl = baseGoogleLoginUrl;
   const localAuthBypassToken = (
     import.meta.env.VITE_LOCAL_AUTH_BYPASS_TOKEN as string | undefined
   )?.trim();
@@ -110,10 +106,10 @@ export default function LoginPage() {
     if (!magicSentTo) return;
     const unsubscribe = subscribeToAuthSuccess(() => {
       void queryClient.invalidateQueries({ queryKey: ["me"] });
-      void navigate(returnTo ?? "/app", { replace: true });
+      void navigate("/app", { replace: true });
     });
     return unsubscribe;
-  }, [magicSentTo, navigate, queryClient, returnTo]);
+  }, [magicSentTo, navigate, queryClient]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -128,7 +124,7 @@ export default function LoginPage() {
     }
     setEmailError(null);
     magicLinkMutation.mutate(
-      { email: normalizedEmail, ...(returnTo ? { return_to: returnTo } : {}) },
+      { email: normalizedEmail },
       {
         onSuccess: () => {
           setMagicSentTo(normalizedEmail);
@@ -143,7 +139,7 @@ export default function LoginPage() {
       {
         onSuccess: () => {
           void queryClient.invalidateQueries({ queryKey: ["me"] });
-          void navigate(returnTo ?? "/app", { replace: true });
+          void navigate("/app", { replace: true });
         },
       },
     );
