@@ -494,11 +494,11 @@ export default function AvatarMenuModal({
                           Send a friend request
                         </h3>
                         <p className="text-sm app-muted">
-                          Enter their email, username, or display name.
+                          Enter their email or username.
                         </p>
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                           <Input
-                            label="Email, username, or display name"
+                            label="Email or username"
                             placeholder="@username or friend@example.com"
                             autoComplete="off"
                             value={friendRequestIdentifier}
