@@ -90,7 +90,7 @@ export default function AvatarMenuModal({
   const avatarSelectorModal = useDisclosure();
 
   // Friend request state
-  const [friendRequestEmail, setFriendRequestEmail] = useState("");
+  const [friendRequestIdentifier, setFriendRequestIdentifier] = useState("");
   const [friendRequestMessage, setFriendRequestMessage] = useState<string | null>(
     null,
   );
@@ -170,11 +170,11 @@ export default function AvatarMenuModal({
 
   // Friend request mutations
   const sendFriendRequestMutation = useMutation({
-    mutationFn: () => sendFriendRequest(friendRequestEmail.trim()),
+    mutationFn: () => sendFriendRequest(friendRequestIdentifier.trim()),
     onSuccess: async () => {
-      setFriendRequestEmail("");
+      setFriendRequestIdentifier("");
       setFriendRequestMessage(
-        "Request sent if an Arbiter account uses that email.",
+        "Request sent if that person has an Arbiter account.",
       );
       await queryClient.invalidateQueries({
         queryKey: ["friend-requests"],
@@ -485,7 +485,7 @@ export default function AvatarMenuModal({
                         onSubmit={(event) => {
                           event.preventDefault();
                           setFriendRequestMessage(null);
-                          if (friendRequestEmail.trim()) {
+                          if (friendRequestIdentifier.trim()) {
                             sendFriendRequestMutation.mutate();
                           }
                         }}
@@ -494,17 +494,16 @@ export default function AvatarMenuModal({
                           Send a friend request
                         </h3>
                         <p className="text-sm app-muted">
-                          Enter the email they use for Arbiter.
+                          Enter their email, username, or display name.
                         </p>
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                           <Input
-                            type="email"
-                            label="Email"
-                            placeholder="friend@example.com"
-                            autoComplete="email"
-                            value={friendRequestEmail}
+                            label="Email, username, or display name"
+                            placeholder="@username or friend@example.com"
+                            autoComplete="off"
+                            value={friendRequestIdentifier}
                             onValueChange={(value) => {
-                              setFriendRequestEmail(value);
+                              setFriendRequestIdentifier(value);
                               setFriendRequestMessage(null);
                             }}
                             variant="bordered"
@@ -514,7 +513,7 @@ export default function AvatarMenuModal({
                           <Button
                             type="submit"
                             className="app-primary-button w-full sm:w-auto"
-                            isDisabled={!friendRequestEmail.trim()}
+                            isDisabled={!friendRequestIdentifier.trim()}
                             isLoading={sendFriendRequestMutation.isPending}
                           >
                             Send request

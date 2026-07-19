@@ -35,10 +35,10 @@ export async function getFriendRequests() {
   return apiJson<FriendRequestsResponse>("/friends/requests");
 }
 
-export async function sendFriendRequest(email: string) {
+export async function sendFriendRequest(identifier: string) {
   return apiJson<{ ok: boolean }>("/friends/requests", {
     method: "POST",
-    ...jsonBody({ email }),
+    ...jsonBody({ identifier }),
   });
 }
 
