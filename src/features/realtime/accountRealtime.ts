@@ -4,6 +4,7 @@ export type AccountRealtimeMessage = {
   type?:
     | "account_connected"
     | "friendship_updated"
+    | "friend_request_updated"
     | "group_invite_updated"
     | "group_updated"
     | "profile_updated"
@@ -29,6 +30,10 @@ export async function invalidateAccountQueries(
         backgroundOptions,
       ),
       queryClient.invalidateQueries(
+        { queryKey: ["friend-requests"] },
+        backgroundOptions,
+      ),
+      queryClient.invalidateQueries(
         { queryKey: ["groups"] },
         backgroundOptions,
       ),
@@ -47,6 +52,14 @@ export async function invalidateAccountQueries(
   if (message.type === "friendship_updated") {
     await queryClient.invalidateQueries(
       { queryKey: ["friends"] },
+      backgroundOptions,
+    );
+    return;
+  }
+
+  if (message.type === "friend_request_updated") {
+    await queryClient.invalidateQueries(
+      { queryKey: ["friend-requests"] },
       backgroundOptions,
     );
     return;

@@ -14,6 +14,7 @@ vi.mock("../features/friends/friends.api", () => ({
   getFriends: vi.fn(async () => [
     { id: "friend", display_name: "Existing Friend", username: "friend" },
   ]),
+  getFriendRequests: vi.fn(async () => ({ incoming: [], outgoing: [] })),
 }));
 vi.mock("../features/watchlist/watchlist.api", () => ({
   getGroupWatchlistPage: vi.fn(),

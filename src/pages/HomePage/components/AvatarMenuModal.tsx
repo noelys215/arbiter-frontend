@@ -19,11 +19,14 @@ import KoFiSupportLink from "../../../components/KoFiSupportLink";
 import { logout, updateDisplayName } from "../../../features/auth/auth.api";
 import type { MeResponse } from "../../../features/auth/auth.api";
 import {
-  acceptFriendInvite,
-  createFriendLinkInvite,
-  revokeFriendInvite,
+  cancelFriendRequest,
+  decideFriendRequest,
+  sendFriendRequest,
 } from "../../../features/friends/friends.api";
-import type { Friend } from "../../../features/friends/friends.api";
+import type {
+  Friend,
+  FriendRequestsResponse,
+} from "../../../features/friends/friends.api";
 import {
   filterFriendsByGroup,
   type FriendFilter,
@@ -55,6 +58,7 @@ type AvatarMenuModalProps = {
   me: MeResponse | undefined;
   groups: Group[] | undefined;
   friends: Friend[] | undefined;
+  friendRequests: FriendRequestsResponse | undefined;
   selectedGroup: Group | null;
   onGroupCleared: () => void;
   onOpenFeedback?: () => void;
@@ -73,6 +77,7 @@ export default function AvatarMenuModal({
   me,
   groups,
   friends,
+  friendRequests,
   selectedGroup,
   onGroupCleared,
   onOpenFeedback,
@@ -82,13 +87,11 @@ export default function AvatarMenuModal({
   const confirmModal = useDisclosure();
   const avatarSelectorModal = useDisclosure();
 
-  // Friend invite state
-  const [friendInviteCode, setFriendInviteCode] = useState("");
-  const [createdFriendInvite, setCreatedFriendInvite] = useState<{
-    id: string;
-    token: string;
-    code: string;
-  } | null>(null);
+  // Friend request state
+  const [friendRequestEmail, setFriendRequestEmail] = useState("");
+  const [friendRequestMessage, setFriendRequestMessage] = useState<string | null>(
+    null,
+  );
 
   // Group invite state
   const [groupInviteCode, setGroupInviteCode] = useState("");
@@ -174,38 +177,43 @@ export default function AvatarMenuModal({
     },
   });
 
-  // Friend invite mutations
-  const createFriendInviteMutation = useMutation({
-    mutationFn: createFriendLinkInvite,
-    onSuccess: (data) => {
-      setCreatedFriendInvite(data);
-    },
-  });
-  const regenerateFriendInviteMutation = useMutation({
-    mutationFn: async () => {
-      if (createdFriendInvite) await revokeFriendInvite(createdFriendInvite.id);
-      return createFriendLinkInvite();
-    },
-    onSuccess: (data) => setCreatedFriendInvite(data),
-  });
-
-  const acceptFriendInviteMutation = useMutation({
-    mutationFn: () => acceptFriendInvite(friendInviteCode.trim()),
+  // Friend request mutations
+  const sendFriendRequestMutation = useMutation({
+    mutationFn: () => sendFriendRequest(friendRequestEmail.trim()),
     onSuccess: async () => {
-      setFriendInviteCode("");
+      setFriendRequestEmail("");
+      setFriendRequestMessage(
+        "Request sent if an Arbiter account uses that email.",
+      );
       await queryClient.invalidateQueries({
-        queryKey: ["friends"],
+        queryKey: ["friend-requests"],
         refetchType: "all",
       });
     },
   });
-  const acceptFriendInviteErrorDetail =
-    acceptFriendInviteMutation.error &&
-    typeof acceptFriendInviteMutation.error === "object" &&
-    "detail" in acceptFriendInviteMutation.error &&
-    typeof (acceptFriendInviteMutation.error as { detail?: unknown })
-      .detail === "string"
-      ? (acceptFriendInviteMutation.error as { detail?: string }).detail
+  const friendRequestDecisionMutation = useMutation({
+    mutationFn: ({
+      requestId,
+      decision,
+    }: {
+      requestId: string;
+      decision: "accept" | "decline";
+    }) => decideFriendRequest(requestId, decision),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["friend-requests"] }),
+        queryClient.invalidateQueries({ queryKey: ["friends"] }),
+      ]);
+    },
+  });
+  const cancelFriendRequestMutation = useMutation({
+    mutationFn: cancelFriendRequest,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["friend-requests"] }),
+  });
+  const friendRequestError =
+    sendFriendRequestMutation.error instanceof Error
+      ? sendFriendRequestMutation.error.message
       : null;
 
   // Group invite mutations
@@ -505,70 +513,58 @@ export default function AvatarMenuModal({
 
                   <Tab key="friends" title="Friends">
                     <section className="space-y-5">
-                      <div className="space-y-3">
+                      <form
+                        className="space-y-3"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          setFriendRequestMessage(null);
+                          if (friendRequestEmail.trim()) {
+                            sendFriendRequestMutation.mutate();
+                          }
+                        }}
+                      >
                         <h3 className="text-lg font-semibold text-[#F7EAD2]">
-                          Invite a friend
+                          Send a friend request
                         </h3>
-                        <p className="text-sm app-muted">Share this link to connect on Arbiter.</p>
-                        {!createdFriendInvite ? (
+                        <p className="text-sm app-muted">
+                          Enter the email they use for Arbiter.
+                        </p>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                          <Input
+                            type="email"
+                            label="Email"
+                            placeholder="friend@example.com"
+                            autoComplete="email"
+                            value={friendRequestEmail}
+                            onValueChange={(value) => {
+                              setFriendRequestEmail(value);
+                              setFriendRequestMessage(null);
+                            }}
+                            variant="bordered"
+                            classNames={inputClassNames}
+                            className="flex-1"
+                          />
                           <Button
-                            className="app-primary-button"
-                            onPress={() => createFriendInviteMutation.mutate()}
-                            isLoading={createFriendInviteMutation.isPending}
+                            type="submit"
+                            className="app-primary-button w-full sm:w-auto"
+                            isDisabled={!friendRequestEmail.trim()}
+                            isLoading={sendFriendRequestMutation.isPending}
                           >
-                            Create invite
+                            Send request
                           </Button>
-                        ) : (
-                          <div className="space-y-2">
-                            <InviteShareActions
-                              path={`/invite/friend/${createdFriendInvite.token}`}
-                              code={createdFriendInvite.code}
-                              title={`Connect with ${me?.display_name ?? "me"} on Arbiter`}
-                              text="Join me on Arbiter for movie nights."
-                            />
-                            <Button
-                              size="sm"
-                              variant="light"
-                              className="app-secondary-button"
-                              isLoading={regenerateFriendInviteMutation.isPending}
-                              onPress={() => regenerateFriendInviteMutation.mutate()}
-                            >
-                              Create a new link
-                            </Button>
-                          </div>
-                        )}
-                        <details className="pt-1">
-                          <summary className="cursor-pointer py-2 text-sm font-medium text-[#EAD9BC] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#F2C16E]">
-                            Have an invite code?
-                          </summary>
-                          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end">
-                            <Input
-                              label="Friend invite code"
-                              placeholder="Enter code"
-                              value={friendInviteCode}
-                              onChange={(e) => setFriendInviteCode(e.target.value)}
-                              variant="bordered"
-                              classNames={inputClassNames}
-                              className="sm:max-w-xs"
-                            />
-                            <Button
-                              className="app-outline-button w-full sm:w-auto"
-                              variant="bordered"
-                              onPress={() => acceptFriendInviteMutation.mutate()}
-                              isDisabled={!friendInviteCode.trim()}
-                              isLoading={acceptFriendInviteMutation.isPending}
-                            >
-                              Join
-                            </Button>
-                          </div>
-                        </details>
-                        {acceptFriendInviteMutation.isError ? (
-                          <p className="text-sm text-[#D77B69]" role="alert">
-                            {acceptFriendInviteErrorDetail ||
-                              "Unable to accept friend invite right now."}
-                          </p>
-                        ) : null}
-                      </div>
+                        </div>
+                        <div className="min-h-5 text-sm" aria-live="polite">
+                          {friendRequestError ? (
+                            <p className="app-text-destructive" role="alert">
+                              {friendRequestError}
+                            </p>
+                          ) : friendRequestMessage ? (
+                            <p className="app-text-secondary">
+                              {friendRequestMessage}
+                            </p>
+                          ) : null}
+                        </div>
+                      </form>
 
                       <Divider className="bg-[#E0B15C]/10" />
 
@@ -641,6 +637,153 @@ export default function AvatarMenuModal({
                             {friendFilter === "in-group"
                               ? `None of your friends are in ${selectedGroup?.name ?? "this group"} yet.`
                               : "All of your friends are already in this group."}
+                          </p>
+                        ) : null}
+                      </div>
+
+                      <Divider className="bg-[#E0B15C]/10" />
+
+                      <div>
+                        <div className="flex items-baseline justify-between gap-3">
+                          <h3 className="text-lg font-semibold text-[#F7EAD2]">
+                            Pending requests
+                          </h3>
+                          {(friendRequests?.incoming.length ?? 0) > 0 ? (
+                            <span className="text-xs font-semibold uppercase tracking-[0.12em] app-text-metadata">
+                              {friendRequests?.incoming.length} waiting
+                            </span>
+                          ) : null}
+                        </div>
+
+                        {(friendRequests?.incoming.length ?? 0) > 0 ? (
+                          <ul className="mt-3 divide-y app-rule" aria-label="Incoming friend requests">
+                            {friendRequests?.incoming.map((request) => {
+                              const label = request.user.display_name || request.user.username;
+                              const isPending =
+                                friendRequestDecisionMutation.isPending &&
+                                friendRequestDecisionMutation.variables?.requestId === request.id;
+                              return (
+                                <li
+                                  key={request.id}
+                                  className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <ArbiterAvatar
+                                      user={request.user}
+                                      size="sm"
+                                      label={label}
+                                      className="bg-[#E0B15C]/20 text-[#E0B15C]"
+                                    />
+                                    <div>
+                                      <p className="text-sm font-semibold text-[#F7EAD2]">
+                                        {label}
+                                      </p>
+                                      <p className="text-xs app-text-metadata">
+                                        Wants to connect
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      className="app-primary-button"
+                                      isLoading={
+                                        isPending &&
+                                        friendRequestDecisionMutation.variables?.decision === "accept"
+                                      }
+                                      isDisabled={isPending}
+                                      onPress={() =>
+                                        friendRequestDecisionMutation.mutate({
+                                          requestId: request.id,
+                                          decision: "accept",
+                                        })
+                                      }
+                                      aria-label={`Accept friend request from ${label}`}
+                                    >
+                                      Accept
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="light"
+                                      className="app-secondary-button"
+                                      isLoading={
+                                        isPending &&
+                                        friendRequestDecisionMutation.variables?.decision === "decline"
+                                      }
+                                      isDisabled={isPending}
+                                      onPress={() =>
+                                        friendRequestDecisionMutation.mutate({
+                                          requestId: request.id,
+                                          decision: "decline",
+                                        })
+                                      }
+                                      aria-label={`Decline friend request from ${label}`}
+                                    >
+                                      Not now
+                                    </Button>
+                                  </div>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        ) : (
+                          <p className="mt-2 text-sm app-muted">
+                            No requests are waiting for you.
+                          </p>
+                        )}
+
+                        {(friendRequests?.outgoing.length ?? 0) > 0 ? (
+                          <div className="mt-5">
+                            <h4 className="text-sm font-semibold text-[#EAD9BC]">
+                              Sent
+                            </h4>
+                            <ul className="mt-2 divide-y app-rule" aria-label="Sent friend requests">
+                              {friendRequests?.outgoing.map((request) => {
+                                const label = request.user.display_name || request.user.username;
+                                return (
+                                  <li
+                                    key={request.id}
+                                    className="flex items-center justify-between gap-3 py-3"
+                                  >
+                                    <div className="flex min-w-0 items-center gap-3">
+                                      <ArbiterAvatar
+                                        user={request.user}
+                                        size="sm"
+                                        label={label}
+                                        className="bg-[#E0B15C]/20 text-[#E0B15C]"
+                                      />
+                                      <div className="min-w-0">
+                                        <p className="truncate text-sm text-[#F7EAD2]">
+                                          {label}
+                                        </p>
+                                        <p className="text-xs app-text-metadata">Pending</p>
+                                      </div>
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      variant="light"
+                                      className="app-secondary-button"
+                                      isLoading={
+                                        cancelFriendRequestMutation.isPending &&
+                                        cancelFriendRequestMutation.variables === request.id
+                                      }
+                                      onPress={() =>
+                                        cancelFriendRequestMutation.mutate(request.id)
+                                      }
+                                      aria-label={`Cancel friend request to ${label}`}
+                                    >
+                                      Cancel
+                                    </Button>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        ) : null}
+                        {friendRequestDecisionMutation.isError ||
+                        cancelFriendRequestMutation.isError ? (
+                          <p className="mt-3 text-sm app-text-destructive" role="alert">
+                            We couldn’t update that request. Please try again.
                           </p>
                         ) : null}
                       </div>

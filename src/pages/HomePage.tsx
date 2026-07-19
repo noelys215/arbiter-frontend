@@ -3,7 +3,10 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getMe } from "../features/auth/auth.api";
 import { getGroups } from "../features/groups/groups.api";
-import { getFriends } from "../features/friends/friends.api";
+import {
+  getFriendRequests,
+  getFriends,
+} from "../features/friends/friends.api";
 import {
   getGroupWatchlistPage,
   searchTmdb,
@@ -66,6 +69,10 @@ export default function HomePage() {
   const { data: friends } = useQuery({
     queryKey: ["friends"],
     queryFn: getFriends,
+  });
+  const { data: friendRequests } = useQuery({
+    queryKey: ["friend-requests"],
+    queryFn: getFriendRequests,
   });
 
   const tmdbQuery = useQuery({
@@ -257,6 +264,7 @@ export default function HomePage() {
         me={me}
         accountTriggerRef={accountTriggerRef}
         onAvatarClick={avatarModal.onOpen}
+        pendingFriendRequestCount={friendRequests?.incoming.length ?? 0}
       />
 
       <div id="main-content" tabIndex={-1} className="app-shell py-7 sm:py-9">
@@ -424,6 +432,7 @@ export default function HomePage() {
         me={me}
         groups={groups}
         friends={friends}
+        friendRequests={friendRequests}
         selectedGroup={selectedGroup}
         onGroupCleared={() => setSelectedGroupId(null)}
         onOpenFeedback={
