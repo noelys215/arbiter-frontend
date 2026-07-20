@@ -28,12 +28,15 @@ export default function SessionPage() {
     shuffleMutation,
 
     hasSubmittedDeck,
-    vibeInputMode,
-    setVibeInputMode,
+    moodCues,
+    moodCuesLoading,
+    selectedMoodCueIds,
+    customMoodText,
+    setCustomMoodText,
+    maxRuntime,
+    setMaxRuntime,
     availableGenreTags,
     selectedTags,
-    aiMoodInput,
-    setAiMoodInput,
     sessionContext,
 
     userLocked,
@@ -75,6 +78,7 @@ export default function SessionPage() {
     personalPreviewCards,
 
     handleToggleTag,
+    handleToggleMoodCue,
     handleGenerateDeck,
     handleConfirmDeal,
     handleBackToVibeSelection,
@@ -134,20 +138,26 @@ export default function SessionPage() {
         {!hasSubmittedDeck ? (
           <VibeSelectionCard
             selectedGroupName={selectedGroup?.name ?? "Current group"}
-            vibeInputMode={vibeInputMode}
-            onVibeInputModeChange={setVibeInputMode}
+            moodCues={moodCues}
+            moodCuesLoading={moodCuesLoading}
+            selectedMoodCueIds={selectedMoodCueIds}
+            onToggleMoodCue={handleToggleMoodCue}
             availableGenreTags={availableGenreTags}
-            selectedTags={selectedTags}
-            onToggleTag={handleToggleTag}
-            aiMoodInput={aiMoodInput}
-            onAiMoodInputChange={setAiMoodInput}
-            sessionContext={sessionContext}
+            selectedGenreTags={selectedTags}
+            onToggleGenre={handleToggleTag}
+            maxRuntime={maxRuntime}
+            onMaxRuntimeChange={setMaxRuntime}
+            customMoodText={customMoodText}
+            onCustomMoodTextChange={setCustomMoodText}
             isGenerating={generateDeckMutation.isPending}
             isGenerateDisabled={
               !resolvedGroupId ||
               userLocked ||
               sessionPhase === "swiping" ||
-              (selectedTags.length === 0 && aiMoodInput.trim().length === 0)
+              (selectedMoodCueIds.length === 0 &&
+                selectedTags.length === 0 &&
+                maxRuntime === null &&
+                customMoodText.trim().length === 0)
             }
             generateLabel={
               generateDeckMutation.isPending

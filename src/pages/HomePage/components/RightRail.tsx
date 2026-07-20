@@ -5,6 +5,7 @@ import {
 } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import ArbiterAvatar from "../../../components/ArbiterAvatar";
 import { unfriend } from "../../../features/friends/friends.api";
 import type { Friend } from "../../../features/friends/friends.api";
@@ -146,6 +147,12 @@ export default function RightRail({ friends, selectedGroup, currentUserId, onOpe
               </AvatarGroup>
             ) : null}
             </div>
+            <Link
+              to={`/app/groups/${selectedGroup.id}/movie-nights`}
+              className="mt-4 inline-flex min-h-11 items-center border-b border-[#E0B15C]/28 text-sm font-semibold text-[#EAD9BC] outline-none transition-colors hover:border-[#E0B15C] hover:text-[#F7EAD2] focus-visible:ring-3 focus-visible:ring-[#F2C16E]"
+            >
+              Movie Nights <span aria-hidden="true" className="ml-2">→</span>
+            </Link>
           </section>
         ) : null}
 

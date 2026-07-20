@@ -124,9 +124,13 @@ describe("invalidateAccountQueries", () => {
       group_id: "group-a",
     });
 
-    expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(3);
+    expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(4);
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
       { queryKey: ["session-history", "group-a"] },
+      { cancelRefetch: false },
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ["session-completion"], refetchType: "active" },
       { cancelRefetch: false },
     );
   });

@@ -42,12 +42,14 @@ export type CreateSessionResponse = {
   session_id: string;
   ends_at: string;
   constraints: {
+    mood_cues: string[];
     moods: string[];
     avoid: string[];
     max_runtime: number | null;
     format: "movie" | "tv" | "any";
     energy: "low" | "med" | "high" | null;
     free_text: string;
+    custom_mood_text: string;
     parsed_by_ai: boolean;
     ai_version: string | null;
   };
@@ -259,7 +261,7 @@ export async function getSessionCompletion(sessionId: string) {
 
 export async function updateSessionWatchedStatus(
   sessionId: string,
-  status: "watched" | "not_watched",
+  status: "watched" | "not_watched" | "unconfirmed",
 ) {
   return apiJson<CompletedSession>(`/sessions/${sessionId}/completion/watched`, {
     method: "PATCH",

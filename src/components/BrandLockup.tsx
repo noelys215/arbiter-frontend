@@ -7,6 +7,7 @@ type BrandLockupProps = {
   versionClassName?: string;
   showVersion?: boolean;
   versionText?: string;
+  titleAs?: "h1" | "span";
 };
 
 function cx(...parts: Array<string | undefined>) {
@@ -20,7 +21,9 @@ export default function BrandLockup({
   versionClassName,
   showVersion = true,
   versionText = `v${APP_VERSION}`,
+  titleAs = "h1",
 }: BrandLockupProps) {
+  const Title = titleAs;
   return (
     <div className={cx("flex items-center", className)}>
       <img
@@ -33,14 +36,14 @@ export default function BrandLockup({
         )}
       />
       <div className="flex items-baseline gap-2">
-        <h1
+        <Title
           className={cx(
             "text-4xl font-semibold text-[#E0B15C] sm:text-5xl",
             titleClassName,
           )}
         >
           Arbiter
-        </h1>
+        </Title>
         {showVersion ? (
           <span
             className={cx(

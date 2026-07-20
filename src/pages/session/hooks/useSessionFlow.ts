@@ -5,6 +5,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import type { SwipeDeckHandle, SwipeDirection } from "../../../components/SwipeDeck";
 import { getMe } from "../../../features/auth/auth.api";
 import { getGroups, type Group } from "../../../features/groups/groups.api";
+import { getMoodCues } from "../../../features/sessions/moodCues.api";
+import { sessionQueryKeys } from "../../../features/sessions/sessionQueryKeys";
 import {
   completeSession,
   createSession,
@@ -39,8 +41,9 @@ import {
   GROUP_STORAGE_KEY,
   ROUND_TIMER_SECONDS,
   SESSION_CONTEXT_STORAGE_PREFIX,
+  RUNTIME_VIBE_TAGS,
 } from "../constants";
-import type { SessionContext, SwipeVote, VibeInputMode } from "../types";
+import type { SessionContext, SwipeVote } from "../types";
 import {
   clamp,
   deriveAvailableGenreTags,
@@ -193,25 +196,6 @@ function resolveRestoredCardIndex({
   return cards.length - 1;
 }
 
-function resolveEffectiveVibeInputMode({
-  requestedMode,
-  hasTags,
-  hasMood,
-}: {
-  requestedMode: VibeInputMode;
-  hasTags: boolean;
-  hasMood: boolean;
-}): VibeInputMode {
-  if (requestedMode === "tags") {
-    if (hasTags) return "tags";
-    if (hasMood) return "ai";
-    return "tags";
-  }
-  if (hasMood) return "ai";
-  if (hasTags) return "tags";
-  return "ai";
-}
-
 function buildSessionStateCacheFromCreateResponse({
   response,
   phase,
@@ -255,8 +239,9 @@ export function useSessionFlow() {
   });
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [aiMoodInput, setAiMoodInput] = useState("");
-  const [vibeInputMode, setVibeInputMode] = useState<VibeInputMode>("tags");
+  const [selectedMoodCueIds, setSelectedMoodCueIds] = useState<string[]>([]);
+  const [customMoodText, setCustomMoodText] = useState("");
+  const [maxRuntime, setMaxRuntime] = useState<number | null>(null);
 
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [hydratedSessionStorageKey, setHydratedSessionStorageKey] = useState<
@@ -298,6 +283,11 @@ export function useSessionFlow() {
     isLoading: groupsLoading,
     isError: groupsError,
   } = useQuery({ queryKey: ["groups"], queryFn: getGroups });
+  const moodCuesQuery = useQuery({
+    queryKey: sessionQueryKeys.moodCues,
+    queryFn: getMoodCues,
+    staleTime: Infinity,
+  });
 
   const resolvedGroupId = useMemo(() => {
     if (!groups || groups.length === 0) return null;
@@ -493,7 +483,9 @@ export function useSessionFlow() {
     const items = Array.isArray(watchlistQuery.data)
       ? (watchlistQuery.data as WatchlistItem[])
       : [];
-    return deriveAvailableGenreTags(items);
+    return deriveAvailableGenreTags(items).filter(
+      (tag) => !(RUNTIME_VIBE_TAGS as readonly string[]).includes(tag),
+    );
   }, [watchlistQuery.data]);
 
   useEffect(() => {
@@ -627,11 +619,19 @@ export function useSessionFlow() {
               )
               .map((mood) => toDisplayGenreLabel(mood))
           : [];
-        const manualTagsUsed = vibeInputMode === "tags" ? selectedTags : [];
+        const selectedCueLabels = selectedMoodCueIds
+          .map((cueId) =>
+            moodCuesQuery.data?.find((cue) => cue.id === cueId)?.label,
+          )
+          .filter((label): label is string => Boolean(label));
         const context: SessionContext = {
-          tags: uniqueStrings([...manualTagsUsed, ...inferredTags]),
-          moodSummary: vibeInputMode === "ai" ? aiMoodInput.trim() : "",
-          aiWhy: response.ai_why,
+          tags: uniqueStrings([
+            ...selectedCueLabels,
+            ...selectedTags,
+            ...inferredTags,
+          ]),
+          moodSummary: customMoodText.trim(),
+          aiWhy: null,
         };
         localStorage.setItem(
           getSessionContextStorageKey(nextSessionId),
@@ -907,19 +907,26 @@ export function useSessionFlow() {
     });
   };
 
+  const handleToggleMoodCue = (cueId: string) => {
+    setSelectedMoodCueIds((previous) => {
+      if (previous.includes(cueId)) {
+        return previous.filter((value) => value !== cueId);
+      }
+      if (previous.length >= 3) return previous;
+      return [...previous, cueId];
+    });
+  };
+
   const handleGenerateDeck = () => {
     if (!resolvedGroupId || generateDeckMutation.isPending) return;
-    const mood = aiMoodInput.trim();
     const tags = uniqueStrings(selectedTags);
-    const hasTags = tags.length > 0;
-    const hasMood = mood.length > 0;
-    if (!hasTags && !hasMood) return;
-
-    const effectiveMode = resolveEffectiveVibeInputMode({
-      requestedMode: vibeInputMode,
-      hasTags,
-      hasMood,
-    });
+    const note = customMoodText.trim();
+    if (
+      selectedMoodCueIds.length === 0 &&
+      tags.length === 0 &&
+      maxRuntime === null &&
+      note.length === 0
+    ) return;
 
     setDeckPhase("dealing");
     deckSectionRef.current?.scrollIntoView({
@@ -931,8 +938,12 @@ export function useSessionFlow() {
       groupId: resolvedGroupId,
       intent: "deal",
       payload: {
-        constraints: effectiveMode === "tags" ? { moods: tags } : {},
-        text: effectiveMode === "ai" ? mood : undefined,
+        constraints: {
+          mood_cues: selectedMoodCueIds,
+          moods: tags,
+          max_runtime: maxRuntime,
+          custom_mood_text: note,
+        },
         confirm_ready: false,
         duration_seconds: ROUND_TIMER_SECONDS,
         candidate_count: DEAL_CANDIDATE_COUNT,
@@ -1129,12 +1140,15 @@ export function useSessionFlow() {
     shuffleMutation,
 
     hasSubmittedDeck,
-    vibeInputMode,
-    setVibeInputMode,
+    moodCues: moodCuesQuery.data ?? [],
+    moodCuesLoading: moodCuesQuery.isPending,
+    selectedMoodCueIds,
+    customMoodText,
+    setCustomMoodText,
+    maxRuntime,
+    setMaxRuntime,
     availableGenreTags,
     selectedTags,
-    aiMoodInput,
-    setAiMoodInput,
     sessionContext,
 
     userLocked,
@@ -1179,6 +1193,7 @@ export function useSessionFlow() {
     personalPreviewCards,
 
     handleToggleTag,
+    handleToggleMoodCue,
     handleGenerateDeck,
     handleConfirmDeal,
     handleBackToVibeSelection,

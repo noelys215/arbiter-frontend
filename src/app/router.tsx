@@ -7,6 +7,8 @@ import MagicLinkVerifyPage from "../pages/MagicLinkVerifyPage";
 import PrivacyPolicyPage from "../pages/PrivacyPolicyPage";
 import DataDeletionPage from "../pages/DataDeletionPage";
 import SessionPage from "../pages/SessionPage";
+import MovieNightsPage from "../pages/movieNights/MovieNightsPage";
+import MovieNightDetailPage from "../pages/movieNights/MovieNightDetailPage";
 
 export default function AppRouter() {
   return (
@@ -37,6 +39,22 @@ export default function AppRouter() {
           element={
             <RequireAuth>
               <SessionPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/app/groups/:groupId/movie-nights"
+          element={
+            <RequireAuth>
+              <MovieNightsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/app/groups/:groupId/movie-nights/:sessionId"
+          element={
+            <RequireAuth>
+              <MovieNightDetailPage />
             </RequireAuth>
           }
         />

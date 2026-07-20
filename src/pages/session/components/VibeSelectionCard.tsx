@@ -1,16 +1,26 @@
-import { Button, Chip, Textarea } from "@heroui/react";
-import type { SessionContext, VibeInputMode } from "../types";
+import { Button, Textarea } from "@heroui/react";
+import type { MoodCue } from "../../../features/sessions/moodCues.api";
+
+const CATEGORY_LABELS: Record<MoodCue["category"], string> = {
+  energy: "Energy",
+  effect: "How it should leave you",
+  occasion: "The occasion",
+  taste: "Taste",
+};
 
 type VibeSelectionCardProps = {
   selectedGroupName: string;
-  vibeInputMode: VibeInputMode;
-  onVibeInputModeChange: (mode: VibeInputMode) => void;
+  moodCues: MoodCue[];
+  moodCuesLoading: boolean;
+  selectedMoodCueIds: string[];
+  onToggleMoodCue: (cueId: string) => void;
   availableGenreTags: string[];
-  selectedTags: string[];
-  onToggleTag: (tag: string) => void;
-  aiMoodInput: string;
-  onAiMoodInputChange: (value: string) => void;
-  sessionContext: SessionContext;
+  selectedGenreTags: string[];
+  onToggleGenre: (tag: string) => void;
+  maxRuntime: number | null;
+  onMaxRuntimeChange: (minutes: number | null) => void;
+  customMoodText: string;
+  onCustomMoodTextChange: (value: string) => void;
   isGenerating: boolean;
   isGenerateDisabled: boolean;
   generateLabel: string;
@@ -19,194 +29,198 @@ type VibeSelectionCardProps = {
 
 export default function VibeSelectionCard({
   selectedGroupName,
-  vibeInputMode,
-  onVibeInputModeChange,
+  moodCues,
+  moodCuesLoading,
+  selectedMoodCueIds,
+  onToggleMoodCue,
   availableGenreTags,
-  selectedTags,
-  onToggleTag,
-  aiMoodInput,
-  onAiMoodInputChange,
-  sessionContext,
+  selectedGenreTags,
+  onToggleGenre,
+  maxRuntime,
+  onMaxRuntimeChange,
+  customMoodText,
+  onCustomMoodTextChange,
   isGenerating,
   isGenerateDisabled,
   generateLabel,
   onGenerate,
 }: VibeSelectionCardProps) {
+  const groupedCues = moodCues.reduce<Partial<Record<MoodCue["category"], MoodCue[]>>>(
+    (groups, cue) => {
+      (groups[cue.category] ??= []).push(cue);
+      return groups;
+    },
+    {},
+  );
+  const selectedCount = selectedMoodCueIds.length;
+  const renderCueGroup = (category: MoodCue["category"]) => {
+    const cues = groupedCues[category] ?? [];
+    if (cues.length === 0) return null;
+    return (
+      <fieldset key={category}>
+        <legend className="text-xs font-semibold uppercase tracking-[0.14em] text-[#CDB58E]">
+          {CATEGORY_LABELS[category]}
+        </legend>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {cues.map((cue) => {
+            const selected = selectedMoodCueIds.includes(cue.id);
+            const limitReached = selectedCount >= 3 && !selected;
+            return (
+              <Button
+                key={cue.id}
+                size="sm"
+                variant="light"
+                className={`min-h-11 min-w-0 whitespace-normal border px-3 py-1.5 text-left text-sm font-semibold leading-5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E] ${
+                  selected
+                    ? "border-[#E0B15C]/65 bg-[#E0B15C]/16 text-[#F7EAD2]"
+                    : "border-[#E0B15C]/10 bg-[#E0B15C]/[0.02] text-[#EAD9BC] hover:border-[#E0B15C]/28 hover:bg-[#E0B15C]/7"
+                }`}
+                aria-pressed={selected}
+                isDisabled={limitReached}
+                title={cue.description}
+                onPress={() => onToggleMoodCue(cue.id)}
+              >
+                {selected ? <span aria-hidden="true" className="text-[#F2C16E]">✓</span> : null}
+                {cue.label}
+              </Button>
+            );
+          })}
+        </div>
+      </fieldset>
+    );
+  };
   const selectionSummary =
-    vibeInputMode === "ai"
-      ? aiMoodInput.trim().length > 0
-        ? "Mood ready."
-        : "Describe the mood to continue."
-      : selectedTags.length === 0
-        ? "Choose one or more tags."
-        : selectedTags.length === 1
-          ? "1 mood selected."
-          : `${selectedTags.length} moods selected.`;
+    selectedCount === 0
+      ? "Choose up to three cues, then add any details that matter."
+      : selectedCount === 1
+        ? "1 feeling selected."
+        : `${selectedCount} feelings selected.`;
 
   return (
     <section
-      className="w-full self-center rounded-xl border border-[#E0B15C]/12 bg-[#1C110F]/58 px-5 py-5 sm:px-6 sm:py-4 lg:max-w-[62rem]"
+      className="w-full self-center rounded-xl border border-[#E0B15C]/12 bg-[#1C110F]/58 px-5 py-6 sm:px-7 lg:max-w-[62rem]"
       aria-labelledby="mood-selection-heading"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-2xl">
           <p className="session-title-micro text-xs text-[#D9C7A8]">
-            <span className="sm:hidden">
-              Before the vote · {selectedGroupName}
-            </span>
+            <span className="sm:hidden">Before the vote · {selectedGroupName}</span>
             <span className="hidden sm:inline">Before the vote</span>
           </p>
-          <h2
-            id="mood-selection-heading"
-            className="app-heading-serif mt-1 text-3xl leading-none text-[#F7EAD2]"
-          >
-            Set the mood.
+          <h2 id="mood-selection-heading" className="app-heading-serif mt-1 text-3xl leading-none text-[#F7EAD2] sm:text-4xl">
+            What should tonight feel like?
           </h2>
-          <p className="mt-2 text-sm leading-6 text-[#EAD9BC] sm:text-base">
-            Choose a few cues, or describe the night you have in mind.
+          <p className="mt-3 text-sm leading-6 text-[#EAD9BC] sm:text-base">
+            Pick the feeling first. Genres and runtime can stay in the background.
           </p>
         </div>
-
-        <p className="hidden max-w-60 truncate text-sm text-[#BFA986] sm:block sm:pt-1 sm:text-right">
-          Session for{" "}
-          <span className="font-semibold text-[#EAD9BC]">
-            {selectedGroupName}
-          </span>
+        <p className="hidden max-w-60 truncate pt-1 text-right text-sm text-[#BFA986] sm:block">
+          Session for <span className="font-semibold text-[#EAD9BC]">{selectedGroupName}</span>
         </p>
       </div>
 
-      <div
-        className="mt-4 inline-flex max-w-full gap-6 border-b border-[#E0B15C]/12 sm:mt-3"
-        role="group"
-        aria-label="Mood selection mode"
-      >
-        <Button
-          size="sm"
-          variant="light"
-          className={`h-11 min-w-0 rounded-none border-b-2 px-0 text-sm font-semibold data-[hover=true]:!bg-transparent focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E] sm:h-9 ${
-            vibeInputMode === "tags"
-              ? "border-[#E0B15C] text-[#F7EAD2]"
-              : "border-transparent text-[#EAD9BC] hover:text-[#F7EAD2]"
-          }`}
-          aria-pressed={vibeInputMode === "tags"}
-          onPress={() => onVibeInputModeChange("tags")}
-        >
-          Choose tags
-        </Button>
-        <Button
-          size="sm"
-          variant="light"
-          className={`h-11 min-w-0 rounded-none border-b-2 px-0 text-sm font-semibold data-[hover=true]:!bg-transparent focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E] sm:h-9 ${
-            vibeInputMode === "ai"
-              ? "border-[#E0B15C] text-[#F7EAD2]"
-              : "border-transparent text-[#EAD9BC] hover:text-[#F7EAD2]"
-          }`}
-          aria-pressed={vibeInputMode === "ai"}
-          onPress={() => onVibeInputModeChange("ai")}
-        >
-          Describe the mood
-        </Button>
-      </div>
-
-      <div className="mt-5 sm:mt-4">
-        {vibeInputMode === "tags" ? (
-          availableGenreTags.length > 0 ? (
-            <div
-              className="flex flex-wrap gap-x-2 gap-y-1.5 sm:gap-2"
-              role="group"
-              aria-label="Mood tags"
-            >
-              {availableGenreTags.map((tag) => {
-                const selected = selectedTags.includes(tag);
-                return (
-                  <Button
-                    key={tag}
-                    size="sm"
-                    variant="light"
-                    className={`min-h-11 min-w-0 whitespace-normal border px-3 py-1.5 text-sm font-semibold leading-5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E] sm:min-h-9 ${
-                      selected
-                        ? "border-[#E0B15C]/65 bg-[#E0B15C]/16 text-[#F7EAD2]"
-                        : "border-[#E0B15C]/12 bg-[#E0B15C]/[0.025] text-[#EAD9BC] hover:border-[#E0B15C]/30 hover:bg-[#E0B15C]/7"
-                    }`}
-                    aria-pressed={selected}
-                    onPress={() => onToggleTag(tag)}
-                  >
-                    {selected ? (
-                      <span aria-hidden="true" className="text-[#F2C16E]">
-                        ✓
-                      </span>
-                    ) : null}
-                    {tag}
-                  </Button>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="border-l-2 border-[#E0B15C]/28 pl-4">
-              <p className="text-sm font-semibold text-[#F7EAD2]">
-                No mood cues yet.
-              </p>
-              <p className="mt-1 text-sm leading-6 text-[#EAD9BC]">
-                Add a few more titles, or describe the night you have in mind.
-              </p>
-            </div>
-          )
+      <div className="mt-7" aria-busy={moodCuesLoading}>
+        {moodCuesLoading ? (
+          <p className="text-sm text-[#D9C7A8]" role="status">Opening tonight’s choices…</p>
         ) : (
-          <Textarea
-            label="What are you in the mood for?"
-            labelPlacement="outside"
-            placeholder="Something tense, atmospheric, and under two hours…"
-            value={aiMoodInput}
-            onValueChange={onAiMoodInputChange}
-            minRows={2}
-            variant="bordered"
-            classNames={{
-              label: "pb-2 text-sm font-semibold !text-[#F7EAD2]",
-              input:
-                "!text-base !text-[#F7EAD2] placeholder:!text-[#BFA986] caret-[#E0B15C]",
-              inputWrapper:
-                "min-h-[5.25rem] border-[#E0B15C]/24 !bg-[#22130F]/70 data-[hover=true]:border-[#E0B15C]/40 data-[focus=true]:border-[#E0B15C] data-[focus=true]:ring-1 data-[focus=true]:ring-[#E0B15C]/60 data-[focus=true]:!bg-[#22130F]/70",
-            }}
-          />
-        )}
-
-        {sessionContext.tags.length > 0 ? (
-          <div
-            className="mt-4 flex flex-wrap gap-2"
-            role="group"
-            aria-label="Mood cues"
-          >
-            {sessionContext.tags.map((tag) => (
-              <Chip
-                key={tag}
-                variant="flat"
-                classNames={{
-                  base: "bg-[#E0B15C]/10",
-                  content: "text-[#EAD9BC]",
-                }}
-              >
-                {tag}
-              </Chip>
-            ))}
+          <div>
+            <div className="grid gap-x-8 gap-y-7 md:grid-cols-2">
+              {renderCueGroup("energy")}
+              {renderCueGroup("effect")}
+            </div>
+            <details className="mt-5 border-t border-[#E0B15C]/10 pt-3">
+              <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold text-[#EAD9BC] outline-none focus-visible:ring-3 focus-visible:ring-[#F2C16E]">
+                More feelings and occasions
+              </summary>
+              <div className="grid gap-x-8 gap-y-7 pb-2 pt-4 md:grid-cols-2">
+                {renderCueGroup("occasion")}
+                {renderCueGroup("taste")}
+              </div>
+            </details>
           </div>
-        ) : null}
+        )}
       </div>
 
-      <div className="mt-4 flex flex-col gap-4 border-t border-[#E0B15C]/10 pt-4 sm:mt-2.5 sm:flex-row sm:items-center sm:justify-between sm:pt-2.5">
-        <p
-          className="text-sm text-[#DAC49F]"
-          role="status"
-          aria-live="polite"
-        >
-          {selectionSummary}
-        </p>
-        <Button
-          size="lg"
-          className="app-primary-button session-deal-button h-11 w-full px-6 sm:w-auto"
-          isLoading={isGenerating}
-          isDisabled={isGenerateDisabled}
-          onPress={onGenerate}
-        >
+      <div className="mt-8 border-t border-[#E0B15C]/10 pt-6">
+        <Textarea
+          label="A note for tonight (optional)"
+          labelPlacement="outside"
+          placeholder="Something romantic but not cheesy."
+          description="A short note for your group. It won’t be interpreted by AI."
+          value={customMoodText}
+          onValueChange={onCustomMoodTextChange}
+          maxLength={240}
+          minRows={2}
+          variant="bordered"
+          classNames={{
+            label: "pb-2 text-sm font-semibold !text-[#F7EAD2]",
+            description: "text-[#CDB58E]",
+            input: "!text-base !text-[#F7EAD2] placeholder:!text-[#BFA986] caret-[#E0B15C]",
+            inputWrapper: "min-h-[5rem] border-[#E0B15C]/24 !bg-[#22130F]/70 data-[hover=true]:border-[#E0B15C]/40 data-[focus=true]:border-[#E0B15C] data-[focus=true]:ring-1 data-[focus=true]:ring-[#E0B15C]/60 data-[focus=true]:!bg-[#22130F]/70",
+          }}
+        />
+        <p className="mt-1 text-right text-xs text-[#CDB58E]">{customMoodText.length} / 240</p>
+      </div>
+
+      <details className="mt-5 border-t border-[#E0B15C]/10 pt-5">
+        <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold text-[#EAD9BC] outline-none focus-visible:ring-3 focus-visible:ring-[#F2C16E]">
+          Genre and runtime preferences
+        </summary>
+        <div className="pb-2 pt-4">
+          {availableGenreTags.length > 0 ? (
+            <fieldset>
+              <legend className="text-xs font-semibold uppercase tracking-[0.14em] text-[#CDB58E]">Genres</legend>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {availableGenreTags.map((tag) => {
+                  const selected = selectedGenreTags.includes(tag);
+                  return (
+                    <Button
+                      key={tag}
+                      size="sm"
+                      variant="light"
+                      className={`min-h-11 min-w-0 border px-3 text-sm focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E] ${selected ? "border-[#E0B15C]/55 bg-[#E0B15C]/12 text-[#F7EAD2]" : "border-[#E0B15C]/10 text-[#EAD9BC]"}`}
+                      aria-pressed={selected}
+                      onPress={() => onToggleGenre(tag)}
+                    >
+                      {selected ? <span aria-hidden="true">✓</span> : null}{tag}
+                    </Button>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ) : null}
+          <fieldset className="mt-6">
+            <legend className="text-xs font-semibold uppercase tracking-[0.14em] text-[#CDB58E]">Maximum runtime</legend>
+            <div
+              className="mt-3 flex flex-wrap gap-2"
+              role="group"
+              aria-label="Maximum runtime"
+            >
+              {[
+                { value: null, label: "Any length" },
+                { value: 30, label: "30 minutes" },
+                { value: 90, label: "90 minutes" },
+                { value: 120, label: "Two hours" },
+              ].map((option) => (
+                <Button
+                  key={option.label}
+                  size="sm"
+                  variant="light"
+                  aria-pressed={maxRuntime === option.value}
+                  className={`min-h-11 min-w-0 border px-3 text-sm focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E] ${maxRuntime === option.value ? "border-[#E0B15C]/55 bg-[#E0B15C]/12 text-[#F7EAD2]" : "border-[#E0B15C]/10 text-[#EAD9BC]"}`}
+                  onPress={() => onMaxRuntimeChange(option.value)}
+                >
+                  {maxRuntime === option.value ? <span aria-hidden="true">✓</span> : null}{option.label}
+                </Button>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+      </details>
+
+      <div className="mt-5 flex flex-col gap-4 border-t border-[#E0B15C]/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-[#DAC49F]" role="status" aria-live="polite">{selectionSummary}</p>
+        <Button size="lg" className="app-primary-button session-deal-button h-11 w-full px-6 sm:w-auto" isLoading={isGenerating} isDisabled={isGenerateDisabled} onPress={onGenerate}>
           {generateLabel}
         </Button>
       </div>

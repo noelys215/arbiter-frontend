@@ -137,6 +137,10 @@ export async function invalidateAccountQueries(
           { queryKey: ["session-history", message.group_id] },
           backgroundOptions,
         ),
+        queryClient.invalidateQueries(
+          { queryKey: ["session-completion"], refetchType: "active" },
+          backgroundOptions,
+        ),
       );
     }
     await Promise.all(invalidations);
