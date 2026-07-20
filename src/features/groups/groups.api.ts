@@ -42,23 +42,12 @@ export type GroupInvitation = {
   expires_at: string;
 };
 
-export type AddGroupMembersPayload = {
-  member_user_ids: string[];
-};
-
-export type AddGroupMembersResponse = {
-  ok: boolean;
-  added_user_ids: string[];
-  skipped_user_ids: string[];
-};
-
 export async function getGroups() {
   return apiJson<Group[]>("/groups");
 }
 
 export type CreateGroupPayload = {
   name: string;
-  member_user_ids?: string[];
 };
 
 export async function createGroup(payload: CreateGroupPayload) {
@@ -72,16 +61,6 @@ export async function updateGroup(groupId: string, name: string) {
   return apiJson<Group>(`/groups/${groupId}`, {
     method: "PATCH",
     ...jsonBody({ name }),
-  });
-}
-
-export async function addGroupMembers(
-  groupId: string,
-  payload: AddGroupMembersPayload,
-) {
-  return apiJson<AddGroupMembersResponse>(`/groups/${groupId}/members`, {
-    method: "POST",
-    ...jsonBody(payload),
   });
 }
 
@@ -143,4 +122,14 @@ export async function deleteGroup(groupId: string) {
     throw error;
   }
   return response;
+}
+
+export async function transferGroupOwnership(
+  groupId: string,
+  newOwnerUserId: string,
+) {
+  return apiJson<Group>(`/groups/${encodeURIComponent(groupId)}/transfer-ownership`, {
+    method: "POST",
+    ...jsonBody({ new_owner_user_id: newOwnerUserId }),
+  });
 }

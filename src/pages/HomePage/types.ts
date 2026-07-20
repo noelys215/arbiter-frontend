@@ -1,5 +1,5 @@
 export type ConfirmAction = {
-  type: "unfriend" | "leave" | "delete";
+  type: "unfriend" | "block" | "leave" | "delete" | "transfer";
   id: string;
   label: string;
 };

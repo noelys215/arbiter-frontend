@@ -34,6 +34,10 @@ export async function invalidateAccountQueries(
         backgroundOptions,
       ),
       queryClient.invalidateQueries(
+        { queryKey: ["blocked-users"] },
+        backgroundOptions,
+      ),
+      queryClient.invalidateQueries(
         { queryKey: ["groups"] },
         backgroundOptions,
       ),
@@ -50,10 +54,16 @@ export async function invalidateAccountQueries(
   }
 
   if (message.type === "friendship_updated") {
-    await queryClient.invalidateQueries(
-      { queryKey: ["friends"] },
-      backgroundOptions,
-    );
+    await Promise.all([
+      queryClient.invalidateQueries(
+        { queryKey: ["friends"] },
+        backgroundOptions,
+      ),
+      queryClient.invalidateQueries(
+        { queryKey: ["blocked-users"] },
+        backgroundOptions,
+      ),
+    ]);
     return;
   }
 

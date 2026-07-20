@@ -12,7 +12,7 @@ describe("invalidateAccountQueries", () => {
     const queryClient = invalidator();
     await invalidateAccountQueries(queryClient, { type: "account_connected" });
 
-    expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(5);
+    expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(6);
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
       { queryKey: ["friends"] },
       { cancelRefetch: false },
@@ -22,21 +22,29 @@ describe("invalidateAccountQueries", () => {
       { cancelRefetch: false },
     );
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ["blocked-users"] },
+      { cancelRefetch: false },
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
       { queryKey: ["group-detail"], refetchType: "active" },
       { cancelRefetch: false },
     );
   });
 
-  it("invalidates only friends for friendship events", async () => {
+  it("invalidates friends and blocks for friendship events", async () => {
     const queryClient = invalidator();
     await invalidateAccountQueries(queryClient, {
       type: "friendship_updated",
       reason: "friendship_created",
     });
 
-    expect(queryClient.invalidateQueries).toHaveBeenCalledOnce();
+    expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(2);
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
       { queryKey: ["friends"] },
+      { cancelRefetch: false },
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ["blocked-users"] },
       { cancelRefetch: false },
     );
   });

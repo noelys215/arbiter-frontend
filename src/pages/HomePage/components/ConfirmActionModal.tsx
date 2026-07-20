@@ -23,6 +23,18 @@ export default function ConfirmActionModal({
   onConfirm,
   isLoading,
 }: ConfirmActionModalProps) {
+  const isTransfer = confirmAction?.type === "transfer";
+  const description =
+    confirmAction?.type === "delete"
+      ? "This will permanently delete the group."
+      : confirmAction?.type === "leave"
+        ? "You will be removed from this group."
+        : confirmAction?.type === "block"
+          ? "This removes the friendship and prevents future requests until you unblock them."
+          : isTransfer
+            ? "They will manage invitations, the group name, and group settings. You will remain a member."
+            : "This will remove the friendship.";
+
   return (
     <Modal
       isOpen={isOpen}
@@ -40,11 +52,7 @@ export default function ConfirmActionModal({
             <ModalHeader className="text-white">Confirm action</ModalHeader>
             <ModalBody>
               <p className="text-sm text-[#EDEDED]">
-                {confirmAction?.type === "delete"
-                  ? "This will permanently delete the group."
-                  : confirmAction?.type === "leave"
-                    ? "You will be removed from this group."
-                    : "This will remove the friendship."}
+                {description}
               </p>
               <p className="text-sm text-[#D9C7A8]">{confirmAction?.label}</p>
             </ModalBody>
@@ -57,12 +65,12 @@ export default function ConfirmActionModal({
                 Cancel
               </Button>
               <Button
-                className="border-[#D77B69]/50 text-[#D77B69] hover:bg-[#D77B69]/10"
-                variant="bordered"
+                className={isTransfer ? "app-primary-button" : "app-danger-button"}
+                variant={isTransfer ? "solid" : "bordered"}
                 onPress={onConfirm}
                 isLoading={isLoading}
               >
-                Confirm
+                {isTransfer ? "Transfer ownership" : "Confirm"}
               </Button>
             </ModalFooter>
           </>

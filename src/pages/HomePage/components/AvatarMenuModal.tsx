@@ -19,9 +19,12 @@ import KoFiSupportLink from "../../../components/KoFiSupportLink";
 import { logout, updateDisplayName } from "../../../features/auth/auth.api";
 import type { MeResponse } from "../../../features/auth/auth.api";
 import {
+  blockUser,
   cancelFriendRequest,
   decideFriendRequest,
+  getBlockedUsers,
   sendFriendRequest,
+  unblockUser,
 } from "../../../features/friends/friends.api";
 import type {
   Friend,
@@ -39,6 +42,7 @@ import {
   getGroup,
   getGroupInvitations,
   leaveGroup,
+  transferGroupOwnership,
   updateGroup,
 } from "../../../features/groups/groups.api";
 import type {
@@ -137,6 +141,11 @@ export default function AvatarMenuModal({
     queryFn: () => getGroupInvitations(selectedGroup?.id),
     enabled: Boolean(selectedGroup?.id && isOwner),
   });
+  const blockedUsersQuery = useQuery({
+    queryKey: ["blocked-users"],
+    queryFn: getBlockedUsers,
+    enabled: isOpen,
+  });
   const memberIds = useMemo(
     () => new Set((groupDetailQuery.data?.members ?? []).map((member) => member.id)),
     [groupDetailQuery.data?.members],
@@ -172,9 +181,14 @@ export default function AvatarMenuModal({
   const sendFriendRequestMutation = useMutation({
     mutationFn: () => sendFriendRequest(friendRequestIdentifier.trim()),
     onSuccess: async () => {
+      const cleanedIdentifier = friendRequestIdentifier.trim();
+      const isEmail =
+        !cleanedIdentifier.startsWith("@") && cleanedIdentifier.includes("@");
       setFriendRequestIdentifier("");
       setFriendRequestMessage(
-        "Request sent if that person has an Arbiter account.",
+        isEmail
+          ? "Request sent if that email belongs to an Arbiter account."
+          : "Friend request sent.",
       );
       await queryClient.invalidateQueries({
         queryKey: ["friend-requests"],
@@ -201,6 +215,22 @@ export default function AvatarMenuModal({
     mutationFn: cancelFriendRequest,
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["friend-requests"] }),
+  });
+  const blockUserMutation = useMutation({
+    mutationFn: blockUser,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["friends"] }),
+        queryClient.invalidateQueries({ queryKey: ["friend-requests"] }),
+        queryClient.invalidateQueries({ queryKey: ["group-invitations"] }),
+        queryClient.invalidateQueries({ queryKey: ["blocked-users"] }),
+      ]);
+    },
+  });
+  const unblockUserMutation = useMutation({
+    mutationFn: unblockUser,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["blocked-users"] }),
   });
   const friendRequestError =
     sendFriendRequestMutation.error instanceof Error
@@ -260,6 +290,22 @@ export default function AvatarMenuModal({
     },
   });
 
+  const transferOwnershipMutation = useMutation({
+    mutationFn: (newOwnerUserId: string) => {
+      if (!selectedGroup) return Promise.reject(new Error("No group selected"));
+      return transferGroupOwnership(selectedGroup.id, newOwnerUserId);
+    },
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["groups"] }),
+        queryClient.invalidateQueries({
+          queryKey: ["group-detail", selectedGroup?.id],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["group-invitations"] }),
+      ]);
+    },
+  });
+
   // Leave/Delete group mutations
   const leaveGroupMutation = useMutation({
     mutationFn: () =>
@@ -292,13 +338,20 @@ export default function AvatarMenuModal({
       deleteGroupMutation.mutate();
     } else if (confirmAction.type === "leave") {
       leaveGroupMutation.mutate();
+    } else if (confirmAction.type === "block") {
+      blockUserMutation.mutate(confirmAction.id);
+    } else if (confirmAction.type === "transfer") {
+      transferOwnershipMutation.mutate(confirmAction.id);
     }
     confirmModal.onClose();
     setConfirmAction(null);
   };
 
   const isConfirmPending =
-    leaveGroupMutation.isPending || deleteGroupMutation.isPending;
+    leaveGroupMutation.isPending ||
+    deleteGroupMutation.isPending ||
+    blockUserMutation.isPending ||
+    transferOwnershipMutation.isPending;
   const cleanedDisplayName = displayName.trim();
   const canSaveDisplayName =
     cleanedDisplayName.length > 0 &&
@@ -576,19 +629,36 @@ export default function AvatarMenuModal({
                                     <p className="text-xs app-text-metadata">@{friend.username}</p>
                                   </div>
                                 </div>
-                                {selectedGroup && isOwner ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {selectedGroup && isOwner ? (
+                                    <Button
+                                      size="sm"
+                                      variant="light"
+                                      className="app-secondary-button"
+                                      isDisabled={inGroup || pending}
+                                      isLoading={targetedGroupInviteMutation.isPending && targetedGroupInviteMutation.variables === friend.id}
+                                      onPress={() => targetedGroupInviteMutation.mutate(friend.id)}
+                                      aria-label={inGroup ? `${label} is already in ${selectedGroup.name}` : pending ? `${label} has a pending invitation to ${selectedGroup.name}` : `Invite ${label} to ${selectedGroup.name}`}
+                                    >
+                                      {inGroup ? "In group" : pending ? "Pending" : `Invite to ${selectedGroup.name}`}
+                                    </Button>
+                                  ) : null}
                                   <Button
                                     size="sm"
                                     variant="light"
-                                    className="app-secondary-button self-start sm:self-auto"
-                                    isDisabled={inGroup || pending}
-                                    isLoading={targetedGroupInviteMutation.isPending && targetedGroupInviteMutation.variables === friend.id}
-                                    onPress={() => targetedGroupInviteMutation.mutate(friend.id)}
-                                    aria-label={inGroup ? `${label} is already in ${selectedGroup.name}` : pending ? `${label} has a pending invitation to ${selectedGroup.name}` : `Invite ${label} to ${selectedGroup.name}`}
+                                    className="app-danger-button"
+                                    onPress={() =>
+                                      openConfirm({
+                                        type: "block",
+                                        id: friend.id,
+                                        label: `Block ${label}`,
+                                      })
+                                    }
+                                    aria-label={`Block ${label}`}
                                   >
-                                    {inGroup ? "In group" : pending ? "Pending" : `Invite to ${selectedGroup.name}`}
+                                    Block
                                   </Button>
-                                ) : null}
+                                </div>
                               </li>
                               );
                             })}
@@ -649,7 +719,7 @@ export default function AvatarMenuModal({
                                       </p>
                                     </div>
                                   </div>
-                                  <div className="flex gap-2">
+                                  <div className="flex flex-wrap gap-2">
                                     <Button
                                       size="sm"
                                       className="app-primary-button"
@@ -686,6 +756,21 @@ export default function AvatarMenuModal({
                                       aria-label={`Decline friend request from ${label}`}
                                     >
                                       Not now
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="light"
+                                      className="app-danger-button"
+                                      onPress={() =>
+                                        openConfirm({
+                                          type: "block",
+                                          id: request.user.id,
+                                          label: `Block ${label}`,
+                                        })
+                                      }
+                                      aria-label={`Block ${label}`}
+                                    >
+                                      Block
                                     </Button>
                                   </div>
                                 </li>
@@ -753,6 +838,66 @@ export default function AvatarMenuModal({
                           </p>
                         ) : null}
                       </div>
+
+                      {(blockedUsersQuery.data?.length ?? 0) > 0 ? (
+                        <div className="border-t app-rule pt-5">
+                          <h3 className="text-lg font-semibold text-[#F7EAD2]">
+                            Blocked accounts
+                          </h3>
+                          <p className="mt-1 text-sm app-muted">
+                            Blocked people cannot send you friend or group requests.
+                          </p>
+                          <ul className="mt-3 divide-y app-rule">
+                            {blockedUsersQuery.data?.map((blockedUser) => {
+                              const label =
+                                blockedUser.display_name || blockedUser.username;
+                              return (
+                                <li
+                                  key={blockedUser.id}
+                                  className="flex items-center justify-between gap-3 py-3"
+                                >
+                                  <div className="flex min-w-0 items-center gap-3">
+                                    <ArbiterAvatar
+                                      user={blockedUser}
+                                      size="sm"
+                                      label={label}
+                                      className="bg-[#E0B15C]/20 text-[#E0B15C]"
+                                    />
+                                    <div className="min-w-0">
+                                      <p className="truncate text-sm text-[#F7EAD2]">
+                                        {label}
+                                      </p>
+                                      <p className="text-xs app-text-metadata">
+                                        @{blockedUser.username}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="light"
+                                    className="app-secondary-button"
+                                    isLoading={
+                                      unblockUserMutation.isPending &&
+                                      unblockUserMutation.variables === blockedUser.id
+                                    }
+                                    onPress={() =>
+                                      unblockUserMutation.mutate(blockedUser.id)
+                                    }
+                                    aria-label={`Unblock ${label}`}
+                                  >
+                                    Unblock
+                                  </Button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      ) : null}
+                      {blockUserMutation.isError || unblockUserMutation.isError ? (
+                        <p className="text-sm app-text-destructive" role="alert">
+                          We couldn’t update that block. Please try again.
+                        </p>
+                      ) : null}
                     </section>
                   </Tab>
 
@@ -938,6 +1083,68 @@ export default function AvatarMenuModal({
                                     ) : null}
                                   </div>
                                 </form>
+                              ) : null}
+                              {isOwner &&
+                              (groupDetailQuery.data?.members.length ?? 0) > 1 ? (
+                                <div className="border-t app-rule pt-4">
+                                  <h4 className="text-sm font-semibold text-[#F7EAD2]">
+                                    Transfer ownership
+                                  </h4>
+                                  <p className="mt-1 text-sm app-muted">
+                                    Choose a member to manage this group. You will remain a member.
+                                  </p>
+                                  <ul className="mt-3 divide-y app-rule">
+                                    {groupDetailQuery.data?.members
+                                      .filter((member) => member.id !== me?.id)
+                                      .map((member) => {
+                                        const label =
+                                          member.display_name || member.username || "Member";
+                                        return (
+                                          <li
+                                            key={member.id}
+                                            className="flex items-center justify-between gap-3 py-3"
+                                          >
+                                            <div className="flex min-w-0 items-center gap-3">
+                                              <ArbiterAvatar
+                                                user={member}
+                                                size="sm"
+                                                label={label}
+                                                className="bg-[#E0B15C]/20 text-[#E0B15C]"
+                                              />
+                                              <div className="min-w-0">
+                                                <p className="truncate text-sm text-[#F7EAD2]">
+                                                  {label}
+                                                </p>
+                                                <p className="text-xs app-text-metadata">
+                                                  @{member.username}
+                                                </p>
+                                              </div>
+                                            </div>
+                                            <Button
+                                              size="sm"
+                                              variant="light"
+                                              className="app-secondary-button"
+                                              onPress={() =>
+                                                openConfirm({
+                                                  type: "transfer",
+                                                  id: member.id,
+                                                  label: `Make ${label} the owner of ${selectedGroup.name}`,
+                                                })
+                                              }
+                                              aria-label={`Transfer ownership of ${selectedGroup.name} to ${label}`}
+                                            >
+                                              Make owner
+                                            </Button>
+                                          </li>
+                                        );
+                                      })}
+                                  </ul>
+                                  {transferOwnershipMutation.isError ? (
+                                    <p className="mt-3 text-sm app-text-destructive" role="alert">
+                                      We couldn’t transfer ownership. Please try again.
+                                    </p>
+                                  ) : null}
+                                </div>
                               ) : null}
                               <div className="border-t border-[#D77B69]/18 pt-4">
                                 {isOwner ? (

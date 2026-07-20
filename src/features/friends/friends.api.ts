@@ -14,6 +14,10 @@ export type Friend = {
 
 export type InvitePublicUser = Omit<Friend, "email">;
 
+export type BlockedUser = InvitePublicUser & {
+  blocked_at: string;
+};
+
 export type FriendRequest = {
   id: string;
   direction: "incoming" | "outgoing";
@@ -33,6 +37,10 @@ export async function getFriends() {
 
 export async function getFriendRequests() {
   return apiJson<FriendRequestsResponse>("/friends/requests");
+}
+
+export async function getBlockedUsers() {
+  return apiJson<BlockedUser[]>("/friends/blocked");
 }
 
 export async function sendFriendRequest(identifier: string) {
@@ -68,4 +76,18 @@ export async function unfriend(userId: string) {
     method: "POST",
     ...jsonBody({ user_id: userId }),
   });
+}
+
+export async function blockUser(userId: string) {
+  return apiJson<{ ok: boolean; already_blocked: boolean }>(
+    `/friends/${encodeURIComponent(userId)}/block`,
+    { method: "POST" },
+  );
+}
+
+export async function unblockUser(userId: string) {
+  return apiJson<{ ok: boolean; already_blocked: boolean }>(
+    `/friends/${encodeURIComponent(userId)}/block`,
+    { method: "DELETE" },
+  );
 }
