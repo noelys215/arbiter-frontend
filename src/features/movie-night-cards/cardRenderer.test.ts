@@ -77,7 +77,8 @@ describe("movie night card rendering", () => {
     );
 
     expect(svg).toContain('width="1080" height="1080"');
-    expect(svg).toContain("A Beautiful Film");
+    expect(svg).toContain("A Beautiful");
+    expect(svg).toContain(">Film<");
     expect(svg).toContain("Easygoing");
     expect(svg).toContain("1 participant");
     expect(svg).not.toContain("Match Club");
@@ -126,5 +127,35 @@ describe("movie night card rendering", () => {
     );
     expect(withoutArtwork).not.toContain("<image");
     expect(withoutArtwork).toContain("FEATURE PRESENTATION");
+  });
+
+  it("bounds long titles, mood text, and group names within their layout zones", () => {
+    const longNight: CompletedSession = {
+      ...night,
+      group_name: "The Extremely Long Friends and Family International Cinema Society",
+      candidates: [
+        {
+          ...night.candidates[0],
+          title: "The Assassination of Jesse James by the Coward Robert Ford",
+        },
+      ],
+    };
+    const svg = buildMovieNightCardSvg(
+      {
+        night: longNight,
+        moodLabels: ["Beautiful to look at", "Something unsettling", "Critically acclaimed"],
+      },
+      {
+        format: "portrait",
+        template: "editorial",
+        includeGroupName: true,
+        includeMood: true,
+        includeAttribution: true,
+      },
+    );
+
+    expect((svg.match(/<tspan/g) ?? []).length).toBeLessThanOrEqual(6);
+    expect(svg).toContain("…");
+    expect(svg).not.toContain(longNight.group_name);
   });
 });
