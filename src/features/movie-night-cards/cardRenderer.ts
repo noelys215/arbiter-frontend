@@ -15,6 +15,7 @@ export type CardOptions = {
 export type MovieNightCardData = {
   night: CompletedSession;
   moodLabels: string[];
+  artworkDataUrl?: string | null;
 };
 
 const DIMENSIONS: Record<CardFormat, { width: number; height: number }> = {
@@ -73,8 +74,20 @@ export function buildMovieNightCardSvg(
   const mood = options.includeMood ? data.moodLabels.slice(0, 3).join(" · ") : "";
   const group = options.includeGroupName ? data.night.group_name : "A private movie night";
   const artHeight = portrait ? 980 : 610;
-  const contentTop = options.template === "editorial" ? artHeight - (portrait ? 80 : 60) : portrait ? 210 : 150;
-  const artwork = `<rect x="0" y="0" width="${width}" height="${artHeight}" fill="#2A1713"/><line x1="${width * 0.64}" y1="${artHeight * 0.18}" x2="${width * 0.64}" y2="${artHeight * 0.72}" stroke="#E0B15C" stroke-width="6" stroke-opacity="0.32"/>`;
+  const contentTop = artHeight - (portrait ? 80 : 60);
+  const posterWidth = portrait ? 600 : 400;
+  const posterHeight = portrait ? 900 : 560;
+  const posterX = (width - posterWidth) / 2;
+  const posterY = (artHeight - posterHeight) / 2;
+  const fallbackInitial = escapeXml(winner.title.trim().charAt(0).toUpperCase() || "A");
+  const artwork = data.artworkDataUrl
+    ? `<rect x="0" y="0" width="${width}" height="${artHeight}" fill="#2A1713"/>
+       <rect x="${posterX - 12}" y="${posterY - 12}" width="${posterWidth + 24}" height="${posterHeight + 24}" fill="#100806" stroke="#E0B15C" stroke-opacity="0.28"/>
+       <image x="${posterX}" y="${posterY}" width="${posterWidth}" height="${posterHeight}" href="${escapeXml(data.artworkDataUrl)}" preserveAspectRatio="xMidYMid slice"/>`
+    : `<rect x="0" y="0" width="${width}" height="${artHeight}" fill="#2A1713"/>
+       <rect x="${posterX}" y="${posterY}" width="${posterWidth}" height="${posterHeight}" fill="#1C110F" stroke="#E0B15C" stroke-opacity="0.28"/>
+       <text x="${width / 2}" y="${artHeight / 2 + (portrait ? 72 : 50)}" text-anchor="middle" fill="#E0B15C" fill-opacity="0.7" font-family="Georgia, serif" font-size="${portrait ? 220 : 150}">${fallbackInitial}</text>
+       <text x="${width / 2}" y="${artHeight - (portrait ? 58 : 34)}" text-anchor="middle" fill="#D9C7A8" font-family="Arial, sans-serif" font-size="${portrait ? 24 : 18}" letter-spacing="5">FEATURE PRESENTATION</text>`;
   const titleY = contentTop + (portrait ? 225 : 170);
   const metadataY = titleY + titleLines.length * (titleSize * 1.03) + (portrait ? 56 : 38);
   const titleBlock = options.template === "programme"

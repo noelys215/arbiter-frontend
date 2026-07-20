@@ -13,9 +13,10 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import type { CompletedSession } from "../sessions/sessions.api";
-import { getCriteria } from "../sessions/historyPresentation";
+import { getCriteria, getWinner } from "../sessions/historyPresentation";
 import { getMoodCues } from "../sessions/moodCues.api";
 import { sessionQueryKeys } from "../sessions/sessionQueryKeys";
+import { getMovieNightArtwork } from "../movies/movies.api";
 import {
   renderMovieNightCard,
   type CardFormat,
@@ -47,6 +48,14 @@ export default function MovieNightCardDialog({
     queryFn: getMoodCues,
     staleTime: Infinity,
   });
+  const winner = getWinner(night);
+  const artworkQuery = useQuery({
+    queryKey: ["movie-night-card-artwork", night.group_id, winner?.id ?? null],
+    queryFn: () => getMovieNightArtwork(night.group_id, winner!.id),
+    enabled: isOpen && Boolean(winner?.poster_path),
+    staleTime: Infinity,
+    retry: 1,
+  });
   const criteria = getCriteria(night);
   const moodLabels = useMemo(() => {
     const byId = new Map((cuesQuery.data ?? []).map((cue) => [cue.id, cue.label]));
@@ -54,14 +63,14 @@ export default function MovieNightCardDialog({
   }, [criteria.mood_cues, cuesQuery.data]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || artworkQuery.isFetching) return;
     let active = true;
     const timer = window.setTimeout(async () => {
       setIsGenerating(true);
       setError(null);
       try {
         const result = await renderMovieNightCard(
-          { night, moodLabels },
+          { night, moodLabels, artworkDataUrl: artworkQuery.data ?? null },
           { format, template, includeGroupName, includeMood, includeAttribution },
         );
         if (!active) return;
@@ -81,7 +90,7 @@ export default function MovieNightCardDialog({
       active = false;
       window.clearTimeout(timer);
     };
-  }, [format, includeAttribution, includeGroupName, includeMood, isOpen, moodLabels, night, template]);
+  }, [artworkQuery.data, artworkQuery.isFetching, format, includeAttribution, includeGroupName, includeMood, isOpen, moodLabels, night, template]);
 
   useEffect(() => () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -117,6 +126,7 @@ export default function MovieNightCardDialog({
     label: "text-sm text-[#EAD9BC]",
     control: "border-[#E0B15C]/55 after:bg-[#E0B15C]",
   };
+  const isPreparing = isGenerating || artworkQuery.isFetching;
 
   return (
     <Modal
@@ -126,7 +136,7 @@ export default function MovieNightCardDialog({
       scrollBehavior="inside"
       classNames={{
         backdrop: "bg-[#080403]/72",
-        base: "border border-[#E0B15C]/20 bg-[#1C110F] text-[#F7EAD2] sm:rounded-lg",
+        base: "max-h-[calc(100dvh-1rem)] border border-[#E0B15C]/20 bg-[#1C110F] text-[#F7EAD2] sm:max-h-[calc(100dvh-2rem)] sm:rounded-lg",
         closeButton: "m-2 h-11 w-11 text-[#F7EAD2] hover:bg-[#E0B15C]/10",
       }}
     >
@@ -137,13 +147,13 @@ export default function MovieNightCardDialog({
               <h2 className="app-heading-serif text-3xl text-[#F7EAD2]">Create a movie night card</h2>
               <p className="text-sm font-normal text-[#D8C5A5]">A private keepsake, ready to save or share.</p>
             </ModalHeader>
-            <ModalBody className="grid gap-7 px-5 py-4 sm:px-7 lg:grid-cols-[minmax(0,1fr)_17rem]">
-              <div className="flex min-h-[22rem] items-center justify-center rounded-md border border-[#E0B15C]/14 bg-[#100806] p-4" aria-label="Movie night card preview">
-                {isGenerating ? <Spinner color="warning" label="Preparing card" /> : previewUrl ? (
-                  <img src={previewUrl} alt="Preview of the shareable movie night card" className={`max-h-[20rem] max-w-full object-contain sm:max-h-[34rem] ${format === "square" ? "aspect-square" : "aspect-[9/16]"}`} />
+            <ModalBody className="grid min-h-0 items-start gap-5 overflow-y-auto px-5 py-3 sm:px-7 xl:grid-cols-[minmax(0,1fr)_17rem] xl:gap-7">
+              <div className="flex h-[min(20rem,42dvh)] min-h-[16rem] items-center justify-center rounded-md border border-[#E0B15C]/14 bg-[#100806] p-3 sm:h-[min(24rem,44dvh)] xl:h-[min(34rem,60dvh)] xl:min-h-[22rem] xl:p-4" aria-label="Movie night card preview">
+                {isPreparing ? <Spinner color="warning" label="Preparing card" /> : previewUrl ? (
+                  <img src={previewUrl} alt="Preview of the shareable movie night card" className={`h-full max-h-full max-w-full object-contain ${format === "square" ? "aspect-square" : "aspect-[9/16]"}`} />
                 ) : null}
               </div>
-              <div className="space-y-7">
+              <div className="grid gap-5 sm:grid-cols-2 xl:block xl:space-y-7">
                 <RadioGroup label="Format" value={format} onValueChange={(value) => setFormat(value as CardFormat)} orientation="horizontal" classNames={{ label: "text-sm font-semibold text-[#F7EAD2]", wrapper: "gap-2" }}>
                   <Radio value="square" classNames={radioClassNames}>Square</Radio>
                   <Radio value="portrait" classNames={radioClassNames}>Portrait</Radio>
@@ -152,20 +162,22 @@ export default function MovieNightCardDialog({
                   <Radio value="editorial" classNames={radioClassNames}>Editorial poster</Radio>
                   <Radio value="programme" classNames={radioClassNames}>Minimal programme</Radio>
                 </RadioGroup>
-                <div className="space-y-3" aria-labelledby="card-privacy-heading">
+                <div className="space-y-3 sm:col-span-2 xl:col-span-1" aria-labelledby="card-privacy-heading">
                   <h3 id="card-privacy-heading" className="text-sm font-semibold text-[#F7EAD2]">Include on the card</h3>
-                  <Checkbox isSelected={includeGroupName} onValueChange={setIncludeGroupName} classNames={{ label: "text-sm text-[#EAD9BC]", wrapper: "after:bg-[#E0B15C]" }}>Group name</Checkbox>
-                  <Checkbox isSelected={includeMood} onValueChange={setIncludeMood} isDisabled={moodLabels.length === 0} classNames={{ label: "text-sm text-[#EAD9BC]", wrapper: "after:bg-[#E0B15C]" }}>Tonight’s mood</Checkbox>
-                  <Checkbox isSelected={includeAttribution} onValueChange={setIncludeAttribution} classNames={{ label: "text-sm text-[#EAD9BC]", wrapper: "after:bg-[#E0B15C]" }}>Arbiter attribution</Checkbox>
+                  <div className="flex flex-col items-start gap-2">
+                    <Checkbox isSelected={includeGroupName} onValueChange={setIncludeGroupName} classNames={{ label: "text-sm text-[#EAD9BC]", wrapper: "after:bg-[#E0B15C]" }}>Group name</Checkbox>
+                    <Checkbox isSelected={includeMood} onValueChange={setIncludeMood} isDisabled={moodLabels.length === 0} classNames={{ label: "text-sm text-[#EAD9BC]", wrapper: "after:bg-[#E0B15C]" }}>Tonight’s mood</Checkbox>
+                    <Checkbox isSelected={includeAttribution} onValueChange={setIncludeAttribution} classNames={{ label: "text-sm text-[#EAD9BC]", wrapper: "after:bg-[#E0B15C]" }}>Arbiter attribution</Checkbox>
+                  </div>
                   <p className="text-xs leading-5 text-[#CDB58E]">Participant names, avatars, votes, and private links are never included.</p>
                 </div>
               </div>
               {error ? <p className="lg:col-span-2 text-sm text-[#F0A494]" role="alert">{error}</p> : null}
             </ModalBody>
-            <ModalFooter className="border-t border-[#E0B15C]/12 px-5 py-4 sm:px-7">
-              <Button variant="light" className="app-secondary-button h-11" onPress={onClose}>Close</Button>
-              <Button variant="bordered" className="h-11 border-[#E0B15C]/38 text-[#EAD9BC]" onPress={download} isDisabled={!generated || isGenerating}>Save image</Button>
-              <Button className="app-primary-button h-11" onPress={() => void share()} isDisabled={!generated || isGenerating}>{"share" in navigator ? "Share card" : "Save card"}</Button>
+            <ModalFooter className="grid shrink-0 grid-cols-2 gap-2 border-t border-[#E0B15C]/12 px-5 py-3 sm:flex sm:px-7 sm:py-4">
+              <Button variant="light" className="app-secondary-button order-3 col-span-2 h-11 sm:order-none sm:mr-auto" onPress={onClose}>Close</Button>
+              <Button variant="bordered" className="h-11 border-[#E0B15C]/38 text-[#EAD9BC]" onPress={download} isDisabled={!generated || isPreparing}>Save image</Button>
+              <Button className="app-primary-button h-11" onPress={() => void share()} isDisabled={!generated || isPreparing}>{"share" in navigator ? "Share card" : "Save card"}</Button>
             </ModalFooter>
           </>
         )}

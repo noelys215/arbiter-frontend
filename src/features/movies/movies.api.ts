@@ -1,4 +1,4 @@
-import { apiJson } from "../../lib/api";
+import { api, apiJson } from "../../lib/api";
 import type { AvatarSource } from "../avatar/avatarTypes";
 
 export type MoviePerson = {
@@ -76,4 +76,22 @@ export async function getMovieDetail(
   return apiJson<MovieDetail>(
     `/groups/${encodeURIComponent(groupId)}/movie-details/${encodeURIComponent(reference)}${suffix}`,
   );
+}
+
+export async function getMovieNightArtwork(
+  groupId: string,
+  candidateId: string,
+) {
+  const response = await api(
+    `/groups/${encodeURIComponent(groupId)}/movie-night-artwork/${encodeURIComponent(candidateId)}`,
+    { headers: { Accept: "image/*" } },
+  );
+  if (!response.ok) throw new Error("Movie artwork is unavailable");
+  const blob = await response.blob();
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Movie artwork is unavailable"));
+    reader.readAsDataURL(blob);
+  });
 }

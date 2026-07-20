@@ -103,4 +103,28 @@ describe("movie night card rendering", () => {
     expect(svg).toContain("Match Club");
     expect(svg).not.toContain(">Arbiter<");
   });
+
+  it("embeds available poster artwork and provides a designed missing-art fallback", () => {
+    const options = {
+      format: "square" as const,
+      template: "editorial" as const,
+      includeGroupName: false,
+      includeMood: false,
+      includeAttribution: true,
+    };
+    const withArtwork = buildMovieNightCardSvg(
+      { night, moodLabels: [], artworkDataUrl: "data:image/jpeg;base64,cG9zdGVy" },
+      options,
+    );
+    expect(withArtwork).toContain("<image");
+    expect(withArtwork).toContain("data:image/jpeg;base64,cG9zdGVy");
+    expect(withArtwork).not.toContain("FEATURE PRESENTATION");
+
+    const withoutArtwork = buildMovieNightCardSvg(
+      { night, moodLabels: [], artworkDataUrl: null },
+      options,
+    );
+    expect(withoutArtwork).not.toContain("<image");
+    expect(withoutArtwork).toContain("FEATURE PRESENTATION");
+  });
 });
