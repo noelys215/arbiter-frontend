@@ -1,4 +1,4 @@
-import { apiJson, jsonBody } from "../../lib/api";
+import { api, apiJson, jsonBody } from "../../lib/api";
 import type { AvatarSource } from "../avatar/avatarTypes";
 
 export type SessionTitle = {
@@ -66,7 +66,14 @@ export type CreateSessionResponse = {
 
 export type SessionStateResponse = {
   session_id: string;
-  status: "active" | "complete" | string;
+  status:
+    | "setup"
+    | "active"
+    | "winner_selected"
+    | "completed"
+    | "cancelled"
+    | "complete"
+    | string;
   phase?: "collecting" | "swiping" | "waiting" | "complete" | string;
   round?: number;
   user_locked?: boolean;
@@ -88,6 +95,71 @@ export type SessionStateResponse = {
         watchlist_item_id?: string;
       }>;
   vote_summaries?: SessionVoteSummary[];
+};
+
+export type CompletedSessionParticipant = {
+  id: string;
+  user_id: string | null;
+  display_name: string;
+  avatar_url: string | null;
+  avatar_source: AvatarSource | null;
+  avatar_style: string | null;
+  avatar_seed: string | null;
+  joined_at: string | null;
+  submitted_votes: boolean;
+  role: "host" | "participant";
+  participation_status: "participated" | "left";
+  criteria: Record<string, unknown> | null;
+};
+
+export type CompletedSessionCandidate = {
+  id: string;
+  source_watchlist_item_id: string;
+  source: string | null;
+  source_id: string | null;
+  media_type: string | null;
+  title: string;
+  release_year: number | null;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  runtime_minutes: number | null;
+  genres: string[];
+  overview: string | null;
+  position: number;
+  yes_count: number | null;
+  no_count: number | null;
+  total_vote_count: number | null;
+  is_winner: boolean;
+  is_finalist: boolean;
+};
+
+export type CompletedSession = {
+  session_id: string;
+  group_id: string;
+  group_name: string;
+  status: "winner_selected" | "completed";
+  created_at: string;
+  started_at: string | null;
+  winner_selected_at: string;
+  completed_at: string | null;
+  criteria: Record<string, unknown>;
+  winner_candidate_id: string;
+  decision_duration_seconds: number | null;
+  winner_unanimous: boolean | null;
+  had_tie: boolean | null;
+  tie_resolution: string | null;
+  watched_status: "unconfirmed" | "watched" | "not_watched";
+  watched_confirmed_at: string | null;
+  teleparty_was_shared: boolean;
+  teleparty_shared_at: string | null;
+  teleparty_handoff_at: string | null;
+  participants: CompletedSessionParticipant[];
+  candidates: CompletedSessionCandidate[];
+};
+
+export type CompletedSessionPage = {
+  items: CompletedSession[];
+  next_cursor: string | null;
 };
 
 export type SessionVote = "yes" | "no";
@@ -173,4 +245,46 @@ export async function setSessionWatchPartyLink(
     method: "PATCH",
     ...jsonBody(payload),
   });
+}
+
+export async function completeSession(sessionId: string) {
+  return apiJson<CompletedSession>(`/sessions/${sessionId}/completion`, {
+    method: "POST",
+  });
+}
+
+export async function getSessionCompletion(sessionId: string) {
+  return apiJson<CompletedSession>(`/sessions/${sessionId}/completion`);
+}
+
+export async function updateSessionWatchedStatus(
+  sessionId: string,
+  status: "watched" | "not_watched",
+) {
+  return apiJson<CompletedSession>(`/sessions/${sessionId}/completion/watched`, {
+    method: "PATCH",
+    ...jsonBody({ status }),
+  });
+}
+
+export async function markSessionWatchPartyHandoff(sessionId: string) {
+  const response = await api(`/sessions/${sessionId}/watch-party/handoff`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error(`Request failed (${response.status})`);
+  }
+}
+
+export async function getGroupMovieNights(
+  groupId: string,
+  options: { limit?: number; cursor?: string | null } = {},
+) {
+  const params = new URLSearchParams();
+  if (options.limit) params.set("limit", String(options.limit));
+  if (options.cursor) params.set("cursor", options.cursor);
+  const query = params.size > 0 ? `?${params.toString()}` : "";
+  return apiJson<CompletedSessionPage>(
+    `/groups/${encodeURIComponent(groupId)}/movie-nights${query}`,
+  );
 }

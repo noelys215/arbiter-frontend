@@ -6,13 +6,17 @@ import type { SwipeDeckHandle, SwipeDirection } from "../../../components/SwipeD
 import { getMe } from "../../../features/auth/auth.api";
 import { getGroups, type Group } from "../../../features/groups/groups.api";
 import {
+  completeSession,
   createSession,
   endSession,
+  getSessionCompletion,
   getSessionState,
+  markSessionWatchPartyHandoff,
   setSessionWatchPartyLink,
   shuffleSession,
   submitSessionVote,
   undoSessionVote,
+  updateSessionWatchedStatus,
   type CreateSessionPayload,
   type SessionCandidate,
   type SessionStateResponse,
@@ -81,14 +85,18 @@ function normalizeSessionRound(round: unknown): number {
 
 function deriveSessionPhase(state: SessionStateResponse): string {
   if (typeof state.phase === "string") return state.phase;
-  if (state.status === "complete") return "complete";
+  if (isResultStatus(state.status)) return "complete";
   return state.candidates.length > 0 ? "swiping" : "collecting";
+}
+
+function isResultStatus(status: string): boolean {
+  return ["winner_selected", "completed", "complete"].includes(status);
 }
 
 function getSessionRefetchInterval(
   data: SessionStateResponse | undefined,
 ): number | false {
-  if (data?.status === "complete") {
+  if (data && isResultStatus(data.status)) {
     const hasWinner = Boolean(data.result_watchlist_item_id);
     const hasWatchPartyUrl =
       typeof data.watch_party_url === "string" &&
@@ -97,6 +105,7 @@ function getSessionRefetchInterval(
     if (hasWinner && !hasWatchPartyUrl && !data.ended_by_leader) return 5000;
     return false;
   }
+  if (data?.status === "setup") return 5000;
   if (data?.status !== "active") return false;
   if (data?.phase === "collecting" || data?.phase === "waiting") return 5000;
   return 2000;
@@ -166,7 +175,7 @@ function resolveRestoredCardIndex({
   if (cards.length === 0) return -1;
 
   if (storedIndex !== null) {
-    if (storedIndex < 0 && sessionStatus === "complete" && winnerId) {
+    if (storedIndex < 0 && isResultStatus(sessionStatus) && winnerId) {
       const winnerIndex = findWinnerIndex(cards, winnerId);
       if (winnerIndex >= 0) return winnerIndex;
     }
@@ -250,6 +259,9 @@ export function useSessionFlow() {
   const [vibeInputMode, setVibeInputMode] = useState<VibeInputMode>("tags");
 
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [hydratedSessionStorageKey, setHydratedSessionStorageKey] = useState<
+    string | null
+  >(null);
   const [deckCards, setDeckCards] = useState<SessionCandidate[]>([]);
   const [deckPhase, setDeckPhase] = useState<DeckPhase>("idle");
   const [shuffleSeed, setShuffleSeed] = useState(0);
@@ -339,11 +351,13 @@ export function useSessionFlow() {
   useEffect(() => {
     if (!activeSessionStorageKey) {
       setActiveSessionId(null);
+      setHydratedSessionStorageKey(null);
       return;
     }
 
     const stored = localStorage.getItem(activeSessionStorageKey);
     setActiveSessionId(stored);
+    setHydratedSessionStorageKey(activeSessionStorageKey);
   }, [activeSessionStorageKey]);
 
   useEffect(() => {
@@ -390,13 +404,13 @@ export function useSessionFlow() {
     const state = sessionStateQuery.data;
     if (!state) return;
     if (
-      state.status === "complete" &&
+      state.status === "cancelled" &&
       activeSessionStorageKey &&
       activeSessionId &&
       state.ended_by_leader
     ) {
       setLeaderEndedSessionNotice(true);
-      setSessionStatus("complete");
+      setSessionStatus("cancelled");
       setSessionPhase("ended_by_leader");
       setDeckCards([]);
       setCurrentIndex(-1);
@@ -421,7 +435,7 @@ export function useSessionFlow() {
       setWinnerWatchlistItemId(state.result_watchlist_item_id);
     }
 
-    if (state.status === "complete") {
+    if (isResultStatus(state.status)) {
       const completeDeck = buildStackCards(nextCandidates);
       const winnerIndex = findWinnerIndex(
         completeDeck,
@@ -439,7 +453,7 @@ export function useSessionFlow() {
       setCurrentIndex(nextCandidates.length - 1);
     }
 
-    if (previousRoundRef.current !== nextRound && state.status !== "complete") {
+    if (previousRoundRef.current !== nextRound && !isResultStatus(state.status)) {
       previousRoundRef.current = nextRound;
       processedVotesRef.current = new Set();
       setLocalVotes({});
@@ -676,6 +690,7 @@ export function useSessionFlow() {
 
   useEffect(() => {
     if (!resolvedGroupId) return;
+    if (hydratedSessionStorageKey !== activeSessionStorageKey) return;
     if (leaderEndedSessionNotice) return;
     if (activeSessionId) return;
     if (generateDeckMutation.isPending) return;
@@ -694,7 +709,9 @@ export function useSessionFlow() {
     });
   }, [
     activeSessionId,
+    activeSessionStorageKey,
     generateDeckMutation,
+    hydratedSessionStorageKey,
     leaderEndedSessionNotice,
     resolvedGroupId,
   ]);
@@ -749,6 +766,47 @@ export function useSessionFlow() {
       queryClient.setQueryData(["session-state", variables.sessionId], response);
     },
   });
+  const completionQuery = useQuery({
+    queryKey: ["session-completion", activeSessionId],
+    queryFn: () => getSessionCompletion(activeSessionId ?? ""),
+    enabled: Boolean(activeSessionId && winnerWatchlistItemId),
+    retry: false,
+  });
+  const completeSessionMutation = useMutation({
+    mutationFn: (sessionId: string) => completeSession(sessionId),
+    onSuccess: (completion, sessionId) => {
+      queryClient.setQueryData(["session-completion", sessionId], completion);
+      void queryClient.invalidateQueries({
+        queryKey: ["session-state", sessionId],
+        exact: true,
+      });
+      if (resolvedGroupId) {
+        void queryClient.invalidateQueries({
+          queryKey: ["session-history", resolvedGroupId],
+        });
+      }
+    },
+  });
+  const watchedStatusMutation = useMutation({
+    mutationFn: ({
+      sessionId,
+      status,
+    }: {
+      sessionId: string;
+      status: "watched" | "not_watched";
+    }) => updateSessionWatchedStatus(sessionId, status),
+    onSuccess: (completion, variables) => {
+      queryClient.setQueryData(
+        ["session-completion", variables.sessionId],
+        completion,
+      );
+      if (resolvedGroupId) {
+        void queryClient.invalidateQueries({
+          queryKey: ["session-history", resolvedGroupId],
+        });
+      }
+    },
+  });
   const watchPartyError =
     watchPartyMutation.isError
       ? getMutationErrorMessage(watchPartyMutation.error) ??
@@ -758,6 +816,7 @@ export function useSessionFlow() {
   const totalCards = stackCards.length;
   const swipedCount = totalCards > 0 ? totalCards - currentIndex - 1 : 0;
   const isDeckComplete = totalCards > 0 && currentIndex < 0;
+  const hasResult = isResultStatus(sessionStatus);
   const hasVotes = Object.keys(localVotes).length > 0;
   const isGroupLeader = Boolean(
     me?.id && selectedGroup?.owner_id && me.id === selectedGroup.owner_id,
@@ -774,7 +833,7 @@ export function useSessionFlow() {
       ? Math.max(0, sessionStateQuery.data.user_seconds_left)
       : ROUND_TIMER_SECONDS;
   const showWaitingCard =
-    sessionStatus === "active" &&
+    ["setup", "active"].includes(sessionStatus) &&
     !tieBreakRequired &&
     (sessionPhase === "waiting" || sessionPhase === "collecting");
   const showLeaderEndedCard = leaderEndedSessionNotice;
@@ -782,20 +841,20 @@ export function useSessionFlow() {
     sessionPhase === "swiping" &&
     deckPhase === "ready" &&
     currentIndex >= 0 &&
-    sessionStatus !== "complete" &&
+    !hasResult &&
     !userLocked &&
     !showWaitingCard &&
     !shuffleMutation.isPending;
   const canUndoSwipe =
     Boolean(activeSessionId) &&
     Boolean(lastSwipedCard) &&
-    sessionStatus !== "complete" &&
+    !hasResult &&
     (sessionPhase === "swiping" || sessionPhase === "waiting") &&
     !undoVoteMutation.isPending;
   const showPlaceholderDeck =
     !showWaitingCard &&
     !tieBreakRequired &&
-    sessionStatus !== "complete" &&
+    !hasResult &&
     (stackCards.length === 0 || currentIndex < 0);
 
   const shortlistByBackendIds = useMemo(
@@ -1010,7 +1069,7 @@ export function useSessionFlow() {
     });
 
     const winnerIndex = findWinnerIndex(winnerDeck, winnerId);
-    setSessionStatus("complete");
+    setSessionStatus("winner_selected");
     setCurrentIndex(winnerIndex >= 0 ? winnerIndex : -1);
   };
 
@@ -1026,6 +1085,32 @@ export function useSessionFlow() {
     } catch {
       // Mutation state carries the API error; avoid unhandled promise rejection.
     }
+  };
+
+  const handleCompleteSession = async () => {
+    if (!activeSessionId || completeSessionMutation.isPending) return;
+    try {
+      await completeSessionMutation.mutateAsync(activeSessionId);
+    } catch {
+      // Mutation state renders the recoverable error without losing the winner.
+    }
+  };
+
+  const handleWatchedStatus = async (status: "watched" | "not_watched") => {
+    if (!activeSessionId || watchedStatusMutation.isPending) return;
+    try {
+      await watchedStatusMutation.mutateAsync({
+        sessionId: activeSessionId,
+        status,
+      });
+    } catch {
+      // Preserve the prior confirmation while the retry remains available.
+    }
+  };
+
+  const handleWatchPartyHandoff = () => {
+    if (!activeSessionId) return;
+    void markSessionWatchPartyHandoff(activeSessionId).catch(() => undefined);
   };
 
   return {
@@ -1063,6 +1148,11 @@ export function useSessionFlow() {
     tieBreakRequired,
     watchPartyUrl,
     watchPartyError,
+    completion: completionQuery.data ?? null,
+    completionError:
+      completeSessionMutation.isError || watchedStatusMutation.isError
+        ? "We couldn’t save the movie night. Please try again."
+        : null,
     showLeaderEndedCard,
     showPlaceholderDeck,
     showWaitingCard,
@@ -1097,6 +1187,11 @@ export function useSessionFlow() {
     handleProgrammaticSwipe,
     handleShuffleToDecide,
     handleSetWatchPartyUrl,
+    handleCompleteSession,
+    handleWatchedStatus,
+    handleWatchPartyHandoff,
+    completeSessionMutation,
+    watchedStatusMutation,
     watchPartyMutation,
     goHome: () => navigate("/app"),
     handleEndSession: () => {

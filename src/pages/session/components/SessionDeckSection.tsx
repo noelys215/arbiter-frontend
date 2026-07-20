@@ -1,11 +1,14 @@
 import { Button, Card, CardBody } from "@heroui/react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState, type RefObject } from "react";
 import SwipeDeck, {
   type SwipeDeckHandle,
   type SwipeDirection,
 } from "../../../components/SwipeDeck";
-import type { SessionCandidate } from "../../../features/sessions/sessions.api";
+import type {
+  CompletedSession,
+  SessionCandidate,
+} from "../../../features/sessions/sessions.api";
 import type { DeckPhase } from "../animations";
 import type { SessionContext, SwipeVote } from "../types";
 import { buildWhyLine, getReadableVote } from "../utils";
@@ -57,6 +60,8 @@ type SessionDeckSectionProps = {
   tieBreakRequired: boolean;
   watchPartyUrl: string | null;
   watchPartyError: string | null;
+  completion: CompletedSession | null;
+  completionError: string | null;
   showLeaderEndedCard: boolean;
   showPlaceholderDeck: boolean;
   showWaitingCard: boolean;
@@ -88,6 +93,11 @@ type SessionDeckSectionProps = {
   shuffleIsPending: boolean;
   watchPartyIsUpdating: boolean;
   onSetWatchPartyUrl: (url: string | null) => Promise<void>;
+  onCompleteSession: () => Promise<void>;
+  onWatchedStatus: (status: "watched" | "not_watched") => Promise<void>;
+  onWatchPartyHandoff: () => void;
+  completionIsPending: boolean;
+  watchedStatusIsPending: boolean;
   sortedCardsLength: number;
   isDeckComplete: boolean;
   onGoHome: () => void;
@@ -101,6 +111,8 @@ export default function SessionDeckSection({
   tieBreakRequired,
   watchPartyUrl,
   watchPartyError,
+  completion,
+  completionError,
   showLeaderEndedCard,
   showPlaceholderDeck,
   showWaitingCard,
@@ -128,10 +140,16 @@ export default function SessionDeckSection({
   shuffleIsPending,
   watchPartyIsUpdating,
   onSetWatchPartyUrl,
+  onCompleteSession,
+  onWatchedStatus,
+  onWatchPartyHandoff,
+  completionIsPending,
+  watchedStatusIsPending,
   sortedCardsLength,
   isDeckComplete,
   onGoHome,
 }: SessionDeckSectionProps) {
+  const shouldReduceMotion = useReducedMotion();
   const watchPartyInputId = "watch-party-url-input";
   const winnerCard = winnerWatchlistItemId
     ? (stackCards.find(
@@ -213,14 +231,18 @@ export default function SessionDeckSection({
             <motion.div
               className="absolute inset-0"
               animate={
-                deckPhase === "shuffling" || deckPhase === "revealingWinner"
+                !shouldReduceMotion &&
+                (deckPhase === "shuffling" || deckPhase === "revealingWinner")
                   ? {
                       x: [0, -8, 8, -6, 6, 0],
                       rotate: [0, -1.3, 1.1, -0.8, 0.8, 0],
                     }
                   : { x: 0, rotate: 0 }
               }
-              transition={{ duration: 0.72, ease: "easeInOut" }}
+              transition={{
+                duration: shouldReduceMotion ? 0 : 0.72,
+                ease: "easeInOut",
+              }}
             >
               <SwipeDeck
                 ref={swipeDeckRef}
@@ -306,7 +328,7 @@ export default function SessionDeckSection({
             <span>
               {Math.max(0, swipedCount)} / {Math.max(0, totalCards)}
             </span>
-            {sessionStatus === "active" ? (
+            {["setup", "active"].includes(sessionStatus) ? (
               <span className="text-[10px] uppercase tracking-widest text-[#E0B15C]/75">
                 {sessionPhase === "swiping"
                   ? `Swipe Timer · ${userSecondsLeft}s`
@@ -417,6 +439,7 @@ export default function SessionDeckSection({
                       href={watchPartyUrl ?? "#"}
                       target="_blank"
                       rel="noreferrer"
+                      onClick={onWatchPartyHandoff}
                       className="rounded-md border border-[#E0B15C]/45 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-[#E0B15C] transition-colors hover:border-[#E0B15C]/75 hover:text-[#F5D9A5]"
                     >
                       Join Teleparty
@@ -497,6 +520,77 @@ export default function SessionDeckSection({
               ) : null}
             </CardBody>
           </Card>
+        ) : null}
+
+        {winnerCard ? (
+          <div className="w-full border-t border-[#E0B15C]/20 pt-5">
+            {completion?.status === "completed" ? (
+              <div className="flex flex-col gap-3" aria-live="polite">
+                <div>
+                  <p className="session-title-micro text-xs text-[#E0B15C]/75">
+                    Movie night saved
+                  </p>
+                  <p className="mt-1 text-sm text-[#E8DCC8]">
+                    This result is now part of {completion.group_name}’s history.
+                  </p>
+                </div>
+                {isGroupLeader ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="mr-1 text-sm text-[#D9C7A8]">
+                      Did you watch it?
+                    </span>
+                    <Button
+                      size="sm"
+                      className={
+                        completion.watched_status === "watched"
+                          ? "min-h-11 border border-[#E0B15C]/70 bg-[#E0B15C] text-[#17110F]"
+                          : "min-h-11 border border-[#E0B15C]/40 bg-transparent text-[#F2DDBA]"
+                      }
+                      isLoading={watchedStatusIsPending}
+                      aria-pressed={completion.watched_status === "watched"}
+                      onPress={() => void onWatchedStatus("watched")}
+                    >
+                      We watched it
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="bordered"
+                      className="min-h-11 border-[#E0B15C]/30 text-[#D9C7A8]"
+                      isDisabled={watchedStatusIsPending}
+                      aria-pressed={completion.watched_status === "not_watched"}
+                      onPress={() => void onWatchedStatus("not_watched")}
+                    >
+                      Not tonight
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                <div>
+                  <p className="session-title-micro text-xs text-[#E0B15C]/75">
+                    Preserve the result
+                  </p>
+                  <p className="mt-1 text-sm text-[#D9C7A8]">
+                    Save this choice as a completed movie night.
+                  </p>
+                </div>
+                <Button
+                  className="min-h-11 border border-[#E0B15C]/65 bg-[#E0B15C] text-[#17110F]"
+                  isLoading={completionIsPending}
+                  isDisabled={completionIsPending}
+                  onPress={() => void onCompleteSession()}
+                >
+                  Finish movie night
+                </Button>
+              </div>
+            )}
+            {completionError ? (
+              <p className="mt-2 text-sm text-[#F1A799]" role="alert">
+                {completionError}
+              </p>
+            ) : null}
+          </div>
         ) : null}
 
         {isDeckComplete && !showWaitingCard && sessionPhase === "swiping" ? (

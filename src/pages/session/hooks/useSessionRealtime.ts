@@ -10,6 +10,7 @@ import {
 type SessionRealtimeMessage = {
   type?: string;
   session_id?: string;
+  reason?: string;
 };
 
 function buildSessionWebSocketUrl(sessionId: string): string {
@@ -81,6 +82,28 @@ export function useSessionRealtime(sessionId: string | null) {
             },
             { cancelRefetch: false },
           );
+          if (
+            message.type === "session_connected" ||
+            message.reason === "session_completed" ||
+            message.reason === "session_history_updated"
+          ) {
+            void queryClient.invalidateQueries(
+              {
+                queryKey: ["session-completion", sessionId],
+                exact: true,
+              },
+              { cancelRefetch: false },
+            );
+          }
+          if (
+            message.reason === "session_completed" ||
+            message.reason === "session_history_updated"
+          ) {
+            void queryClient.invalidateQueries(
+              { queryKey: ["session-history"] },
+              { cancelRefetch: false },
+            );
+          }
         }
       };
 

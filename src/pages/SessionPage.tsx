@@ -47,6 +47,8 @@ export default function SessionPage() {
     tieBreakRequired,
     watchPartyUrl,
     watchPartyError,
+    completion,
+    completionError,
     showLeaderEndedCard,
     showPlaceholderDeck,
     showWaitingCard,
@@ -81,11 +83,16 @@ export default function SessionPage() {
     handleProgrammaticSwipe,
     handleShuffleToDecide,
     handleSetWatchPartyUrl,
+    handleCompleteSession,
+    handleWatchedStatus,
+    handleWatchPartyHandoff,
     goHome,
     handleEndSession,
     handleLeaveSession,
     getReadableVote,
     watchPartyMutation,
+    completeSessionMutation,
+    watchedStatusMutation,
   } = useSessionFlow();
 
   if (groupsLoading) {
@@ -161,6 +168,8 @@ export default function SessionPage() {
           tieBreakRequired={tieBreakRequired}
           watchPartyUrl={watchPartyUrl}
           watchPartyError={watchPartyError}
+          completion={completion}
+          completionError={completionError}
           showLeaderEndedCard={showLeaderEndedCard}
           showPlaceholderDeck={showPlaceholderDeck}
           showWaitingCard={showWaitingCard}
@@ -188,6 +197,11 @@ export default function SessionPage() {
           shuffleIsPending={shuffleMutation.isPending}
           watchPartyIsUpdating={watchPartyMutation.isPending}
           onSetWatchPartyUrl={handleSetWatchPartyUrl}
+          onCompleteSession={handleCompleteSession}
+          onWatchedStatus={handleWatchedStatus}
+          onWatchPartyHandoff={handleWatchPartyHandoff}
+          completionIsPending={completeSessionMutation.isPending}
+          watchedStatusIsPending={watchedStatusMutation.isPending}
           sortedCardsLength={sortedCards.length}
           isDeckComplete={isDeckComplete}
           onGoHome={goHome}

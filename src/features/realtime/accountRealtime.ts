@@ -49,6 +49,10 @@ export async function invalidateAccountQueries(
         { queryKey: ["group-invitations"], refetchType: "active" },
         backgroundOptions,
       ),
+      queryClient.invalidateQueries(
+        { queryKey: ["session-history"], refetchType: "active" },
+        backgroundOptions,
+      ),
     ]);
     return;
   }
@@ -114,7 +118,7 @@ export async function invalidateAccountQueries(
   }
 
   if (message.type === "group_updated" && message.group_id) {
-    await Promise.all([
+    const invalidations = [
       queryClient.invalidateQueries(
         { queryKey: ["groups"] },
         backgroundOptions,
@@ -123,6 +127,18 @@ export async function invalidateAccountQueries(
         { queryKey: ["group-detail", message.group_id], exact: true },
         backgroundOptions,
       ),
-    ]);
+    ];
+    if (
+      message.reason === "session_completed" ||
+      message.reason === "session_history_updated"
+    ) {
+      invalidations.push(
+        queryClient.invalidateQueries(
+          { queryKey: ["session-history", message.group_id] },
+          backgroundOptions,
+        ),
+      );
+    }
+    await Promise.all(invalidations);
   }
 }
