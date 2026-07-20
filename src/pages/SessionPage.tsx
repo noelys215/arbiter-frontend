@@ -10,9 +10,11 @@ import ShortlistModal from "./session/components/ShortlistModal";
 import VibeSelectionCard from "./session/components/VibeSelectionCard";
 import { useSessionFlow } from "./session/hooks/useSessionFlow";
 import SkipLink from "../components/SkipLink";
+import { useLocation } from "react-router-dom";
 import "./session/SessionPage.css";
 
 export default function SessionPage() {
+  const location = useLocation();
   const {
     groups,
     groupsLoading,
@@ -171,6 +173,9 @@ export default function SessionPage() {
         ) : null}
 
         <SessionDeckSection
+          groupId={resolvedGroupId ?? ""}
+          sessionId={activeSessionId}
+          backgroundLocation={location}
           deckSectionRef={deckSectionRef}
           sessionPhase={sessionPhase}
           sessionStatus={sessionStatus}

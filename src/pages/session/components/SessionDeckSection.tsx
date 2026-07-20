@@ -1,6 +1,7 @@
-import { Button, Card, CardBody } from "@heroui/react";
+import { Button, Card, CardBody, useDisclosure } from "@heroui/react";
 import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useState, type RefObject } from "react";
+import { lazy, Suspense, useEffect, useState, type RefObject } from "react";
+import { Link, type Location } from "react-router-dom";
 import SwipeDeck, {
   type SwipeDeckHandle,
   type SwipeDirection,
@@ -19,6 +20,11 @@ import {
   WaitingForOthersCard,
 } from "./DeckOverlays";
 import SessionDeckCard from "./SessionDeckCard";
+import { movieDetailPath } from "../../../features/movies/moviePresentation";
+
+const MovieNightCardDialog = lazy(
+  () => import("../../../features/movie-night-cards/MovieNightCardDialog"),
+);
 
 type StreamingOption = {
   provider_name: string;
@@ -53,6 +59,9 @@ function normalizeStreamingOptions(raw: unknown): StreamingOption[] {
 }
 
 type SessionDeckSectionProps = {
+  groupId?: string;
+  sessionId?: string | null;
+  backgroundLocation?: Location;
   deckSectionRef: RefObject<HTMLDivElement | null>;
   sessionPhase: string;
   sessionStatus: string;
@@ -104,6 +113,9 @@ type SessionDeckSectionProps = {
 };
 
 export default function SessionDeckSection({
+  groupId = "",
+  sessionId = null,
+  backgroundLocation,
   deckSectionRef,
   sessionPhase,
   sessionStatus,
@@ -149,6 +161,7 @@ export default function SessionDeckSection({
   isDeckComplete,
   onGoHome,
 }: SessionDeckSectionProps) {
+  const cardDialog = useDisclosure();
   const shouldReduceMotion = useReducedMotion();
   const watchPartyInputId = "watch-party-url-input";
   const winnerCard = winnerWatchlistItemId
@@ -156,6 +169,7 @@ export default function SessionDeckSection({
         (card) => card.watchlist_item_id === winnerWatchlistItemId,
       ) ?? null)
     : null;
+  const detailCard = winnerCard ?? stackCards[currentIndex] ?? null;
   const isTmdbWinner = winnerCard?.title.source === "tmdb";
   const winnerStreamingOptions = normalizeStreamingOptions(
     winnerCard?.title.tmdb_streaming_options,
@@ -312,6 +326,21 @@ export default function SessionDeckSection({
             Yes
           </Button>
         </div>
+
+        {detailCard && groupId ? (
+          <Link
+            to={movieDetailPath(
+              groupId,
+              `watchlist-${detailCard.watchlist_item_id}`,
+              sessionId,
+            )}
+            state={backgroundLocation ? { backgroundLocation } : undefined}
+            className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-[#D9C7A8] transition-colors hover:text-[#F2C16E] focus-visible:outline-3 focus-visible:outline-[#F2C16E]"
+            aria-label={`Open details for ${detailCard.title.name}`}
+          >
+            Film details
+          </Link>
+        ) : null}
 
         <div
           className={`flex w-full flex-wrap items-center gap-2 text-xs text-[#D9C7A8] ${
@@ -564,6 +593,14 @@ export default function SessionDeckSection({
                     </Button>
                   </div>
                 ) : null}
+                <Button
+                  size="sm"
+                  variant="bordered"
+                  className="min-h-11 w-fit border-[#E0B15C]/38 text-[#EAD9BC]"
+                  onPress={cardDialog.onOpen}
+                >
+                  Create card
+                </Button>
               </div>
             ) : (
               <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
@@ -624,6 +661,15 @@ export default function SessionDeckSection({
           </Card>
         ) : null}
       </div>
+      <Suspense fallback={null}>
+        {completion?.status === "completed" && cardDialog.isOpen ? (
+          <MovieNightCardDialog
+            isOpen={cardDialog.isOpen}
+            onOpenChange={cardDialog.onOpenChange}
+            night={completion}
+          />
+        ) : null}
+      </Suspense>
     </section>
   );
 }

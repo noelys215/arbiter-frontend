@@ -1,6 +1,8 @@
 import { Button, Pagination, Spinner } from "@heroui/react";
 import type { ReactNode } from "react";
+import { Link, useLocation } from "react-router-dom";
 import type { WatchlistItem } from "../../../features/watchlist/watchlist.api";
+import { movieDetailPath } from "../../../features/movies/moviePresentation";
 import type { WatchlistMeta } from "../types";
 
 type WatchlistListProps = {
@@ -40,6 +42,7 @@ export default function WatchlistList({
   totalPages,
   onPageChange,
 }: WatchlistListProps) {
+  const location = useLocation();
   if (!selectedGroupId) {
     return (
       <p className="text-sm app-text-secondary" role="status" aria-live="polite">
@@ -99,9 +102,16 @@ export default function WatchlistList({
               ) : null}
               {renderPoster(meta.poster, meta.name, "row")}
               <div className="min-w-0 flex-1">
-                <p className="text-[1.35rem] font-bold leading-7 text-[#F7EAD2] break-words">
-                  {meta.name}
-                </p>
+                <h3 className="text-[1.35rem] font-bold leading-7 text-[#F7EAD2] break-words">
+                  <Link
+                    to={movieDetailPath(selectedGroupId, `watchlist-${item.id}`)}
+                    state={{ backgroundLocation: location }}
+                    className="rounded-sm underline decoration-transparent underline-offset-4 transition-colors hover:text-[#F2C16E] hover:decoration-[#E0B15C]/45"
+                    aria-label={`Open details for ${meta.name}`}
+                  >
+                    {meta.name}
+                  </Link>
+                </h3>
                 {meta.editorialLine || addedBy ? (
                   <div className="mt-1 flex flex-col gap-1">
                     {meta.editorialLine ? (

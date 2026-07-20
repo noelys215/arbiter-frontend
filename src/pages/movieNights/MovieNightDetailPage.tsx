@@ -1,7 +1,7 @@
-import { AvatarGroup, Button, Spinner } from "@heroui/react";
+import { AvatarGroup, Button, Spinner, useDisclosure } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { lazy, Suspense, useMemo } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import ArbiterAvatar from "../../components/ArbiterAvatar";
 import { getMe } from "../../features/auth/auth.api";
 import { getGroup } from "../../features/groups/groups.api";
@@ -23,6 +23,11 @@ import {
 } from "../../features/sessions/sessions.api";
 import { tmdbPosterUrl } from "../../lib/tmdb";
 import MovieNightsShell from "./MovieNightsShell";
+import { movieDetailPath } from "../../features/movies/moviePresentation";
+
+const MovieNightCardDialog = lazy(
+  () => import("../../features/movie-night-cards/MovieNightCardDialog"),
+);
 
 const watchedOptions = [
   { value: "watched", label: "Watched" },
@@ -33,6 +38,8 @@ const watchedOptions = [
 export default function MovieNightDetailPage() {
   const { groupId = "", sessionId = "" } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const cardDialog = useDisclosure();
   const queryClient = useQueryClient();
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: getMe });
   const groupQuery = useQuery({
@@ -160,6 +167,23 @@ export default function MovieNightDetailPage() {
                 {decisionSummary(night)}
                 {duration ? ` · Decided in ${duration}` : ""}
               </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link
+                  to={movieDetailPath(
+                    groupId,
+                    winner.source_title_id
+                      ? `title-${winner.source_title_id}`
+                      : `history-${winner.id}`,
+                  )}
+                  state={{ backgroundLocation: location }}
+                  className="inline-flex min-h-11 items-center rounded-md border border-[#E0B15C]/35 px-4 text-sm font-semibold text-[#EAD9BC] transition-colors hover:border-[#E0B15C]/60 hover:text-[#F2C16E]"
+                >
+                  View film details
+                </Link>
+                <Button className="app-primary-button h-11 px-5" onPress={cardDialog.onOpen}>
+                  Create card
+                </Button>
+              </div>
             </div>
           </div>
         </header>
@@ -273,6 +297,15 @@ export default function MovieNightDetailPage() {
           </aside>
         </div>
       </article>
+      <Suspense fallback={null}>
+        {cardDialog.isOpen ? (
+          <MovieNightCardDialog
+            isOpen={cardDialog.isOpen}
+            onOpenChange={cardDialog.onOpenChange}
+            night={night}
+          />
+        ) : null}
+      </Suspense>
     </MovieNightsShell>
   );
 }

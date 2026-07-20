@@ -1,6 +1,8 @@
 import { Button, Input, Spinner } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { movieDetailPath } from "../../../features/movies/moviePresentation";
 import { addTmdbToWatchlist } from "../../../features/watchlist/watchlist.api";
 import type { TmdbSearchResult } from "../../../features/watchlist/watchlist.api";
 import type { InputClassNames } from "../types";
@@ -34,6 +36,7 @@ export default function AddToWatchlistCard({
   inputClassNames,
   renderPoster,
 }: AddToWatchlistCardProps) {
+  const location = useLocation();
   const queryClient = useQueryClient();
   const addTmdbMutation = useMutation({
     mutationFn: (item: TmdbSearchResult) =>
@@ -100,28 +103,33 @@ export default function AddToWatchlistCard({
               aria-label="TMDB search results"
             >
               {tmdbResults.map((item) => (
-                <li key={`${item.tmdb_id}-${item.media_type}`}>
-                  <button
-                    type="button"
-                    className="flex w-full items-center gap-3 rounded-lg border border-transparent py-2 text-left transition hover:border-[#E0B15C]/25 hover:bg-[#E0B15C]/5"
-                    onClick={() => {
-                      if (!selectedGroupId) return;
-                      addTmdbMutation.mutate(item);
-                    }}
-                    disabled={!selectedGroupId || addTmdbMutation.isPending}
-                  >
+                <li key={`${item.tmdb_id}-${item.media_type}`} className="flex items-center gap-3 rounded-lg border border-transparent py-2 transition hover:border-[#E0B15C]/20 hover:bg-[#E0B15C]/5">
                     {renderPoster(item.poster_path ?? null, item.title)}
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold app-text-primary">
-                        {item.title}
-                      </p>
+                    <div className="min-w-0 flex-1">
+                      {selectedGroupId ? (
+                        <Link
+                          to={movieDetailPath(selectedGroupId, `tmdb-${item.media_type}-${item.tmdb_id}`)}
+                          state={{ backgroundLocation: location }}
+                          className="rounded-sm text-sm font-semibold app-text-primary hover:text-[#F2C16E]"
+                        >
+                          {item.title}
+                        </Link>
+                      ) : <p className="text-sm font-semibold app-text-primary">{item.title}</p>}
                       <p className="text-xs app-text-metadata">
                         {item.media_type.toUpperCase()}{" "}
                         {item.year ? `• ${item.year}` : ""}
                       </p>
                     </div>
-                    <span className="text-xs font-semibold text-[#F5D9A5]">Add</span>
-                  </button>
+                    <Button
+                      size="sm"
+                      variant="light"
+                      className="min-w-0 px-3 text-xs font-semibold text-[#F5D9A5]"
+                      onPress={() => addTmdbMutation.mutate(item)}
+                      isDisabled={!selectedGroupId || addTmdbMutation.isPending}
+                      aria-label={`Add ${item.title} to watchlist`}
+                    >
+                      Add
+                    </Button>
                 </li>
               ))}
             </ul>

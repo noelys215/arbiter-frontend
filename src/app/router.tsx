@@ -1,4 +1,10 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 import RequireAuth from "./RequireAuth";
 import HomePage from "../pages/HomePage";
 import LandingPage from "../pages/LandingPage";
@@ -9,11 +15,17 @@ import DataDeletionPage from "../pages/DataDeletionPage";
 import SessionPage from "../pages/SessionPage";
 import MovieNightsPage from "../pages/movieNights/MovieNightsPage";
 import MovieNightDetailPage from "../pages/movieNights/MovieNightDetailPage";
+import MovieDetailPage from "../pages/movies/MovieDetailPage";
+import type { MovieDetailLocationState } from "../features/movies/moviePresentation";
 
-export default function AppRouter() {
+function AppRoutes() {
+  const location = useLocation();
+  const state = location.state as MovieDetailLocationState | null;
+  const backgroundLocation = state?.backgroundLocation;
+
   return (
-    <BrowserRouter>
-      <Routes>
+    <>
+      <Routes location={backgroundLocation ?? location}>
         <Route path="/" element={<LandingPage />} />
         <Route path="/about" element={<LandingPage />} />
         <Route path="/how-it-works" element={<LandingPage />} />
@@ -58,8 +70,36 @@ export default function AppRouter() {
             </RequireAuth>
           }
         />
+        <Route
+          path="/app/groups/:groupId/movies/:reference"
+          element={
+            <RequireAuth>
+              <MovieDetailPage />
+            </RequireAuth>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      {backgroundLocation ? (
+        <Routes>
+          <Route
+            path="/app/groups/:groupId/movies/:reference"
+            element={
+              <RequireAuth>
+                <MovieDetailPage presentation="overlay" />
+              </RequireAuth>
+            }
+          />
+        </Routes>
+      ) : null}
+    </>
+  );
+}
+
+export default function AppRouter() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
     </BrowserRouter>
   );
 }
