@@ -5,6 +5,7 @@ import {
   Routes,
   useLocation,
 } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import RequireAuth from "./RequireAuth";
 import HomePage from "../pages/HomePage";
 import LandingPage from "../pages/LandingPage";
@@ -15,8 +16,25 @@ import DataDeletionPage from "../pages/DataDeletionPage";
 import SessionPage from "../pages/SessionPage";
 import MovieNightsPage from "../pages/movieNights/MovieNightsPage";
 import MovieNightDetailPage from "../pages/movieNights/MovieNightDetailPage";
-import MovieDetailPage from "../pages/movies/MovieDetailPage";
 import type { MovieDetailLocationState } from "../features/movies/moviePresentation";
+
+const MovieDetailPage = lazy(() => import("../pages/movies/MovieDetailPage"));
+
+function MovieDetailRoute({ presentation }: { presentation?: "page" | "overlay" }) {
+  return (
+    <RequireAuth>
+      <Suspense
+        fallback={
+          <div className="flex min-h-[24rem] items-center justify-center bg-[#140C0A] text-sm text-[#EAD9BC]" role="status">
+            Opening film details…
+          </div>
+        }
+      >
+        <MovieDetailPage presentation={presentation} />
+      </Suspense>
+    </RequireAuth>
+  );
+}
 
 function AppRoutes() {
   const location = useLocation();
@@ -72,11 +90,7 @@ function AppRoutes() {
         />
         <Route
           path="/app/groups/:groupId/movies/:reference"
-          element={
-            <RequireAuth>
-              <MovieDetailPage />
-            </RequireAuth>
-          }
+          element={<MovieDetailRoute />}
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -84,11 +98,7 @@ function AppRoutes() {
         <Routes>
           <Route
             path="/app/groups/:groupId/movies/:reference"
-            element={
-              <RequireAuth>
-                <MovieDetailPage presentation="overlay" />
-              </RequireAuth>
-            }
+            element={<MovieDetailRoute presentation="overlay" />}
           />
         </Routes>
       ) : null}
