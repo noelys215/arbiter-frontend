@@ -75,7 +75,8 @@ describe("VibeSelectionCard", () => {
 
       expect(summary).not.toBeNull();
       expect(details).not.toHaveAttribute("open");
-      expect(indicator).toHaveTextContent("+");
+      expect(indicator).toHaveAttribute("aria-hidden", "true");
+      expect(indicator?.querySelectorAll("span")).toHaveLength(2);
 
       fireEvent.click(summary!);
       expect(details).toHaveAttribute("open");
