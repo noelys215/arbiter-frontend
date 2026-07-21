@@ -1,11 +1,15 @@
 import { useOverlayState } from "@heroui/react";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import KoFiSupportLink from "../components/KoFiSupportLink";
 import SkipLink from "../components/SkipLink";
 import { feedbackAvailability } from "../config/appMetadata";
-import FeedbackDialog from "../features/feedback/FeedbackDialog";
+import LazyLoadingState from "../components/LazyLoadingState";
 import LegalModal from "./components/LegalModal";
+
+const FeedbackDialog = lazy(
+  () => import("../features/feedback/FeedbackDialog"),
+);
 
 const pageCopy: Record<
   string,
@@ -365,13 +369,17 @@ export default function LandingPage() {
         onOpenChange={legalModal.setOpen}
         onSwitchKind={setLegalKind}
       />
-      {feedbackAvailability.public ? (
-        <FeedbackDialog
-          isOpen={feedbackModal.isOpen}
-          onOpenChange={feedbackModal.setOpen}
-          source="landing_footer"
-          returnFocusRef={feedbackTriggerRef}
-        />
+      {feedbackAvailability.public && feedbackModal.isOpen ? (
+        <Suspense
+          fallback={<LazyLoadingState label="Opening feedback…" overlay />}
+        >
+          <FeedbackDialog
+            isOpen={feedbackModal.isOpen}
+            onOpenChange={feedbackModal.setOpen}
+            source="landing_footer"
+            returnFocusRef={feedbackTriggerRef}
+          />
+        </Suspense>
       ) : null}
     </div>
   );

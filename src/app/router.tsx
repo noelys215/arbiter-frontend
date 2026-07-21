@@ -5,35 +5,89 @@ import {
   Routes,
   useLocation,
 } from "react-router-dom";
-import { lazy, Suspense } from "react";
-import RequireAuth from "./RequireAuth";
-import HomePage from "../pages/HomePage";
-import LandingPage from "../pages/LandingPage";
-import LoginPage from "../pages/LoginPage";
-import MagicLinkVerifyPage from "../pages/MagicLinkVerifyPage";
-import PrivacyPolicyPage from "../pages/PrivacyPolicyPage";
-import DataDeletionPage from "../pages/DataDeletionPage";
-import SessionPage from "../pages/SessionPage";
-import MovieNightsPage from "../pages/movieNights/MovieNightsPage";
-import MovieNightDetailPage from "../pages/movieNights/MovieNightDetailPage";
+import { lazy, Suspense, type ReactNode } from "react";
+import LazyLoadingState from "../components/LazyLoadingState";
 import type { MovieDetailLocationState } from "../features/movies/moviePresentation";
+import {
+  loadDataDeletionPage,
+  loadHomePage,
+  loadInsightsPage,
+  loadLandingPage,
+  loadLoginPage,
+  loadMagicLinkVerifyPage,
+  loadMovieDetailPage,
+  loadMovieNightDetailPage,
+  loadMovieNightsPage,
+  loadPrivacyPolicyPage,
+  loadRequireAuth,
+  loadSessionPage,
+} from "./routeLoaders";
 
-const MovieDetailPage = lazy(() => import("../pages/movies/MovieDetailPage"));
-const InsightsPage = lazy(() => import("../pages/insights/InsightsPage"));
+const RequireAuth = lazy(loadRequireAuth);
+const LandingPage = lazy(loadLandingPage);
+const LoginPage = lazy(loadLoginPage);
+const MagicLinkVerifyPage = lazy(loadMagicLinkVerifyPage);
+const PrivacyPolicyPage = lazy(loadPrivacyPolicyPage);
+const DataDeletionPage = lazy(loadDataDeletionPage);
+const HomePage = lazy(loadHomePage);
+const SessionPage = lazy(loadSessionPage);
+const MovieNightsPage = lazy(loadMovieNightsPage);
+const MovieNightDetailPage = lazy(loadMovieNightDetailPage);
+const InsightsPage = lazy(loadInsightsPage);
+const MovieDetailPage = lazy(loadMovieDetailPage);
 
-function MovieDetailRoute({ presentation }: { presentation?: "page" | "overlay" }) {
+function RouteBoundary({
+  children,
+  label,
+  overlay = false,
+}: {
+  children: ReactNode;
+  label: string;
+  overlay?: boolean;
+}) {
   return (
-    <RequireAuth>
-      <Suspense
-        fallback={
-          <div className="flex min-h-[24rem] items-center justify-center bg-[#140C0A] text-sm text-[#EAD9BC]" role="status">
-            Opening film details…
-          </div>
-        }
-      >
+    <Suspense fallback={<LazyLoadingState label={label} overlay={overlay} />}>
+      {children}
+    </Suspense>
+  );
+}
+
+function ProtectedRoute({
+  children,
+  loadingLabel,
+}: {
+  children: ReactNode;
+  loadingLabel: string;
+}) {
+  return (
+    <RouteBoundary label={loadingLabel}>
+      <RequireAuth>{children}</RequireAuth>
+    </RouteBoundary>
+  );
+}
+
+function LandingRoute() {
+  return (
+    <RouteBoundary label="Opening Arbiter…">
+      <LandingPage />
+    </RouteBoundary>
+  );
+}
+
+function MovieDetailRoute({
+  presentation,
+}: {
+  presentation?: "page" | "overlay";
+}) {
+  return (
+    <RouteBoundary
+      label="Opening film details…"
+      overlay={presentation === "overlay"}
+    >
+      <RequireAuth>
         <MovieDetailPage presentation={presentation} />
-      </Suspense>
-    </RequireAuth>
+      </RequireAuth>
+    </RouteBoundary>
   );
 }
 
@@ -45,64 +99,98 @@ function AppRoutes() {
   return (
     <>
       <Routes location={backgroundLocation ?? location}>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/about" element={<LandingPage />} />
-        <Route path="/how-it-works" element={<LandingPage />} />
-        <Route path="/movie-night-picker" element={<LandingPage />} />
-        <Route path="/watch-party-picker" element={<LandingPage />} />
-        <Route path="/auth/magic-link/verify" element={<MagicLinkVerifyPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<LandingRoute />} />
+        <Route path="/about" element={<LandingRoute />} />
+        <Route path="/how-it-works" element={<LandingRoute />} />
+        <Route path="/movie-night-picker" element={<LandingRoute />} />
+        <Route path="/watch-party-picker" element={<LandingRoute />} />
+        <Route
+          path="/auth/magic-link/verify"
+          element={
+            <RouteBoundary label="Verifying your sign-in…">
+              <MagicLinkVerifyPage />
+            </RouteBoundary>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <RouteBoundary label="Opening sign in…">
+              <LoginPage />
+            </RouteBoundary>
+          }
+        />
         <Route path="/register" element={<Navigate to="/login" replace />} />
-        <Route path="/privacy" element={<PrivacyPolicyPage />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-        <Route path="/data-deletion" element={<DataDeletionPage />} />
-        <Route path="/delete-data" element={<DataDeletionPage />} />
+        <Route
+          path="/privacy"
+          element={
+            <RouteBoundary label="Opening privacy policy…">
+              <PrivacyPolicyPage />
+            </RouteBoundary>
+          }
+        />
+        <Route
+          path="/privacy-policy"
+          element={
+            <RouteBoundary label="Opening privacy policy…">
+              <PrivacyPolicyPage />
+            </RouteBoundary>
+          }
+        />
+        <Route
+          path="/data-deletion"
+          element={
+            <RouteBoundary label="Opening data deletion…">
+              <DataDeletionPage />
+            </RouteBoundary>
+          }
+        />
+        <Route
+          path="/delete-data"
+          element={
+            <RouteBoundary label="Opening data deletion…">
+              <DataDeletionPage />
+            </RouteBoundary>
+          }
+        />
         <Route
           path="/app"
           element={
-            <RequireAuth>
+            <ProtectedRoute loadingLabel="Opening your watchlist…">
               <HomePage />
-            </RequireAuth>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/app/session"
           element={
-            <RequireAuth>
+            <ProtectedRoute loadingLabel="Opening the movie night…">
               <SessionPage />
-            </RequireAuth>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/app/groups/:groupId/movie-nights"
           element={
-            <RequireAuth>
+            <ProtectedRoute loadingLabel="Opening movie nights…">
               <MovieNightsPage />
-            </RequireAuth>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/app/groups/:groupId/movie-nights/:sessionId"
           element={
-            <RequireAuth>
+            <ProtectedRoute loadingLabel="Opening this movie night…">
               <MovieNightDetailPage />
-            </RequireAuth>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/app/groups/:groupId/insights"
           element={
-            <RequireAuth>
-              <Suspense
-                fallback={
-                  <div className="flex min-h-[28rem] items-center justify-center bg-[#140C0A] text-sm text-[#EAD9BC]" role="status">
-                    Opening group insights…
-                  </div>
-                }
-              >
-                <InsightsPage />
-              </Suspense>
-            </RequireAuth>
+            <ProtectedRoute loadingLabel="Opening group insights…">
+              <InsightsPage />
+            </ProtectedRoute>
           }
         />
         <Route

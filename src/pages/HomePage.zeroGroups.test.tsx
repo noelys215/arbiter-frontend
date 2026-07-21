@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import HomePage from "./HomePage";
@@ -28,8 +28,16 @@ vi.mock("./HomePage/hooks/useWatchlistRealtime", () => ({
   useWatchlistRealtime: vi.fn(),
 }));
 vi.mock("./HomePage/components/TopBar", () => ({
-  default: ({ pendingNotificationCount }: { pendingNotificationCount: number }) => (
-    <button>Account controls · {pendingNotificationCount} pending</button>
+  default: ({
+    onAvatarClick,
+    pendingNotificationCount,
+  }: {
+    onAvatarClick: () => void;
+    pendingNotificationCount: number;
+  }) => (
+    <button onClick={onAvatarClick}>
+      Account controls · {pendingNotificationCount} pending
+    </button>
   ),
 }));
 vi.mock("./HomePage/components/NoGroupsCard", () => ({
@@ -64,7 +72,7 @@ describe("HomePage with zero groups", () => {
 
     expect(await screen.findByText("No groups yet")).toBeInTheDocument();
     expect(screen.getByText("Friends visible: 1")).toBeInTheDocument();
-    expect(screen.getByText("Account controls · 2 pending")).toBeInTheDocument();
-    expect(screen.getByText("Account modal available")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Account controls · 2 pending"));
+    expect(await screen.findByText("Account modal available")).toBeInTheDocument();
   });
 });

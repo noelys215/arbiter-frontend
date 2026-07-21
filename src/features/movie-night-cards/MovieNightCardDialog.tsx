@@ -8,11 +8,7 @@ import { getCriteria, getWinner } from "../sessions/historyPresentation";
 import { getMoodCues } from "../sessions/moodCues.api";
 import { sessionQueryKeys } from "../sessions/sessionQueryKeys";
 import { getMovieNightArtwork } from "../movies/movies.api";
-import {
-  renderMovieNightCard,
-  type CardFormat,
-  type CardTemplate,
-} from "./cardRenderer";
+import type { CardFormat, CardTemplate } from "./cardRenderer";
 
 type MovieNightCardDialogProps = {
   isOpen: boolean;
@@ -60,6 +56,8 @@ export default function MovieNightCardDialog({
       setIsGenerating(true);
       setError(null);
       try {
+        const { renderMovieNightCard } = await import("./cardRenderer");
+        if (!active) return;
         const result = await renderMovieNightCard(
           { night, moodLabels, artworkDataUrl: artworkQuery.data ?? null },
           { format, template, includeGroupName, includeMood, includeAttribution },

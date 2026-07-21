@@ -25,6 +25,7 @@ import {
 import { tmdbPosterUrl } from "../../lib/tmdb";
 import MovieNightsShell from "./MovieNightsShell";
 import { movieDetailPath } from "../../features/movies/moviePresentation";
+import LazyLoadingState from "../../components/LazyLoadingState";
 
 const MovieNightCardDialog = lazy(
   () => import("../../features/movie-night-cards/MovieNightCardDialog"),
@@ -302,7 +303,9 @@ export default function MovieNightDetailPage() {
           </aside>
         </div>
       </article>
-      <Suspense fallback={null}>
+      <Suspense
+        fallback={<LazyLoadingState label="Opening card creator…" overlay />}
+      >
         {cardDialog.isOpen ? (
           <MovieNightCardDialog
             isOpen={cardDialog.isOpen}

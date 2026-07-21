@@ -1,6 +1,6 @@
 import { useOverlayState } from "@heroui/react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { getMe } from "../features/auth/auth.api";
 import {
   getGroupInvitations,
@@ -22,7 +22,6 @@ import { theaterSelectClassNames } from "../lib/selectTheme";
 import AppSelect from "../components/ui/AppSelect";
 import { TMDB_GENRE_LABEL_BY_ID } from "./session/constants";
 import AddToWatchlistCard from "./HomePage/components/AddToWatchlistCard";
-import AvatarMenuModal from "./HomePage/components/AvatarMenuModal";
 import ManualAddModal from "./HomePage/components/ManualAddModal";
 import NoGroupsCard from "./HomePage/components/NoGroupsCard";
 import RightRail from "./HomePage/components/RightRail";
@@ -32,7 +31,14 @@ import { useWatchlistRealtime } from "./HomePage/hooks/useWatchlistRealtime";
 import type { InputClassNames, WatchlistMeta } from "./HomePage/types";
 import SkipLink from "../components/SkipLink";
 import { feedbackAvailability } from "../config/appMetadata";
-import FeedbackDialog from "../features/feedback/FeedbackDialog";
+import LazyLoadingState from "../components/LazyLoadingState";
+
+const AvatarMenuModal = lazy(
+  () => import("./HomePage/components/AvatarMenuModal"),
+);
+const FeedbackDialog = lazy(
+  () => import("../features/feedback/FeedbackDialog"),
+);
 
 const GROUP_STORAGE_KEY = "arbiter:lastGroupId";
 
@@ -415,43 +421,55 @@ export default function HomePage() {
         inputClassNames={inputClassNames}
       />
 
-      <AvatarMenuModal
-        isOpen={avatarModal.isOpen}
-        onOpenChange={(nextOpen) => {
-          if (nextOpen) {
-            avatarModal.open();
-            return;
-          }
-          avatarModal.close();
-          window.requestAnimationFrame(() => {
-            window.requestAnimationFrame(() => accountTriggerRef.current?.focus());
-          });
-        }}
-        me={me}
-        groups={groups}
-        friends={friends}
-        friendRequests={friendRequests}
-        groupInvitations={groupInvitations}
-        selectedGroup={selectedGroup}
-        onGroupCleared={() => setSelectedGroupId(null)}
-        onOpenFeedback={
-          feedbackAvailability.account
-            ? () => {
-                avatarModal.close();
-                window.requestAnimationFrame(feedbackModal.open);
+      {avatarModal.isOpen ? (
+        <Suspense
+          fallback={<LazyLoadingState label="Opening account…" overlay />}
+        >
+          <AvatarMenuModal
+            isOpen={avatarModal.isOpen}
+            onOpenChange={(nextOpen) => {
+              if (nextOpen) {
+                avatarModal.open();
+                return;
               }
-            : undefined
-        }
-      />
-      {feedbackAvailability.account ? (
-        <FeedbackDialog
-          isOpen={feedbackModal.isOpen}
-          onOpenChange={feedbackModal.setOpen}
-          source="account_profile"
-          isAuthenticated
-          selectedGroupId={resolvedSelectedGroupId}
-          returnFocusRef={accountTriggerRef}
-        />
+              avatarModal.close();
+              window.requestAnimationFrame(() => {
+                window.requestAnimationFrame(() =>
+                  accountTriggerRef.current?.focus(),
+                );
+              });
+            }}
+            me={me}
+            groups={groups}
+            friends={friends}
+            friendRequests={friendRequests}
+            groupInvitations={groupInvitations}
+            selectedGroup={selectedGroup}
+            onGroupCleared={() => setSelectedGroupId(null)}
+            onOpenFeedback={
+              feedbackAvailability.account
+                ? () => {
+                    avatarModal.close();
+                    window.requestAnimationFrame(feedbackModal.open);
+                  }
+                : undefined
+            }
+          />
+        </Suspense>
+      ) : null}
+      {feedbackAvailability.account && feedbackModal.isOpen ? (
+        <Suspense
+          fallback={<LazyLoadingState label="Opening feedback…" overlay />}
+        >
+          <FeedbackDialog
+            isOpen={feedbackModal.isOpen}
+            onOpenChange={feedbackModal.setOpen}
+            source="account_profile"
+            isAuthenticated
+            selectedGroupId={resolvedSelectedGroupId}
+            returnFocusRef={accountTriggerRef}
+          />
+        </Suspense>
       ) : null}
     </div>
   );

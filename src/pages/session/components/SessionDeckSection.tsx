@@ -21,6 +21,7 @@ import {
 } from "./DeckOverlays";
 import SessionDeckCard from "./SessionDeckCard";
 import { movieDetailPath } from "../../../features/movies/moviePresentation";
+import LazyLoadingState from "../../../components/LazyLoadingState";
 
 const MovieNightCardDialog = lazy(
   () => import("../../../features/movie-night-cards/MovieNightCardDialog"),
@@ -661,7 +662,9 @@ export default function SessionDeckSection({
           </Card>
         ) : null}
       </div>
-      <Suspense fallback={null}>
+      <Suspense
+        fallback={<LazyLoadingState label="Opening card creator…" overlay />}
+      >
         {completion?.status === "completed" && cardDialog.isOpen ? (
           <MovieNightCardDialog
             isOpen={cardDialog.isOpen}

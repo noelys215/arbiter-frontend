@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import type { WatchlistItem } from "../../../features/watchlist/watchlist.api";
 import { movieDetailPath } from "../../../features/movies/moviePresentation";
 import type { WatchlistMeta } from "../types";
+import { loadMovieDetailPage } from "../../../app/routeLoaders";
 
 type WatchlistListProps = {
   selectedGroupId: string | null;
@@ -122,6 +123,8 @@ export default function WatchlistList({
                     state={{ backgroundLocation: location }}
                     className="rounded-sm underline decoration-transparent underline-offset-4 transition-colors hover:text-[#F2C16E] hover:decoration-[#E0B15C]/45"
                     aria-label={`Open details for ${meta.name}`}
+                    onMouseEnter={() => void loadMovieDetailPage()}
+                    onFocus={() => void loadMovieDetailPage()}
                   >
                     {meta.name}
                   </Link>

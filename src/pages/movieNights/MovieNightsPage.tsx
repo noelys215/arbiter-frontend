@@ -16,6 +16,10 @@ import { sessionQueryKeys } from "../../features/sessions/sessionQueryKeys";
 import { getGroupMovieNights } from "../../features/sessions/sessions.api";
 import { tmdbPosterUrl } from "../../lib/tmdb";
 import MovieNightsShell from "./MovieNightsShell";
+import {
+  loadInsightsPage,
+  loadMovieNightDetailPage,
+} from "../../app/routeLoaders";
 
 export default function MovieNightsPage() {
   const { groupId = "" } = useParams();
@@ -66,7 +70,14 @@ export default function MovieNightsPage() {
           <div className="flex flex-wrap items-center gap-5 self-start sm:self-auto">
             <nav aria-label="Group archive" className="flex min-h-11 items-center gap-5 text-sm font-semibold">
               <span className="inline-flex min-h-11 items-center border-b border-[#E0B15C] text-[#F7EAD2]" aria-current="page">Movie Nights</span>
-              <Link to={`/app/groups/${groupId}/insights`} className="inline-flex min-h-11 items-center border-b border-transparent text-[#CDB58E] outline-none hover:text-[#F7EAD2] focus-visible:ring-3 focus-visible:ring-[#F2C16E]">Insights</Link>
+              <Link
+                to={`/app/groups/${groupId}/insights`}
+                className="inline-flex min-h-11 items-center border-b border-transparent text-[#CDB58E] outline-none hover:text-[#F7EAD2] focus-visible:ring-3 focus-visible:ring-[#F2C16E]"
+                onMouseEnter={() => void loadInsightsPage()}
+                onFocus={() => void loadInsightsPage()}
+              >
+                Insights
+              </Link>
             </nav>
             <Button variant="tertiary" className="app-secondary-button h-11 px-4" onPress={() => navigate("/app")}>Back to watchlist</Button>
           </div>
@@ -131,6 +142,8 @@ export default function MovieNightsPage() {
                   >
                     <Link
                       to={`/app/groups/${groupId}/movie-nights/${night.session_id}`}
+                      onMouseEnter={() => void loadMovieNightDetailPage()}
+                      onFocus={() => void loadMovieNightDetailPage()}
                       className="group grid min-h-44 grid-cols-[76px_minmax(0,1fr)] gap-5 py-6 outline-none focus-visible:ring-3 focus-visible:ring-[#F2C16E] sm:grid-cols-[94px_minmax(0,1fr)_auto] sm:items-center sm:gap-7 sm:py-7"
                     >
                       <div className="aspect-[2/3] overflow-hidden rounded-sm bg-[#2A1813]">

@@ -17,6 +17,10 @@ import {
 import type { Group } from "../../../features/groups/groups.api";
 import type { ConfirmAction } from "../types";
 import ConfirmActionModal from "./ConfirmActionModal";
+import {
+  loadInsightsPage,
+  loadMovieNightsPage,
+} from "../../../app/routeLoaders";
 
 type RightRailProps = {
   friends: Friend[] | undefined;
@@ -148,8 +152,22 @@ export default function RightRail({ friends, selectedGroup, currentUserId, onOpe
             ) : null}
             </div>
             <nav aria-label={`${selectedGroup.name} pages`} className="mt-4 flex flex-wrap gap-x-5">
-              <Link to={`/app/groups/${selectedGroup.id}/movie-nights`} className="inline-flex min-h-11 items-center border-b border-[#E0B15C]/28 text-sm font-semibold text-[#EAD9BC] outline-none transition-colors hover:border-[#E0B15C] hover:text-[#F7EAD2] focus-visible:ring-3 focus-visible:ring-[#F2C16E]">Movie Nights</Link>
-              <Link to={`/app/groups/${selectedGroup.id}/insights`} className="inline-flex min-h-11 items-center border-b border-[#E0B15C]/28 text-sm font-semibold text-[#EAD9BC] outline-none transition-colors hover:border-[#E0B15C] hover:text-[#F7EAD2] focus-visible:ring-3 focus-visible:ring-[#F2C16E]">Insights <span aria-hidden="true" className="ml-2">→</span></Link>
+              <Link
+                to={`/app/groups/${selectedGroup.id}/movie-nights`}
+                className="inline-flex min-h-11 items-center border-b border-[#E0B15C]/28 text-sm font-semibold text-[#EAD9BC] outline-none transition-colors hover:border-[#E0B15C] hover:text-[#F7EAD2] focus-visible:ring-3 focus-visible:ring-[#F2C16E]"
+                onMouseEnter={() => void loadMovieNightsPage()}
+                onFocus={() => void loadMovieNightsPage()}
+              >
+                Movie Nights
+              </Link>
+              <Link
+                to={`/app/groups/${selectedGroup.id}/insights`}
+                className="inline-flex min-h-11 items-center border-b border-[#E0B15C]/28 text-sm font-semibold text-[#EAD9BC] outline-none transition-colors hover:border-[#E0B15C] hover:text-[#F7EAD2] focus-visible:ring-3 focus-visible:ring-[#F2C16E]"
+                onMouseEnter={() => void loadInsightsPage()}
+                onFocus={() => void loadInsightsPage()}
+              >
+                Insights <span aria-hidden="true" className="ml-2">→</span>
+              </Link>
             </nav>
           </section>
         ) : null}
