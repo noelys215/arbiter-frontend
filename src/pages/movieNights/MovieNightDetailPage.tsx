@@ -68,6 +68,9 @@ export default function MovieNightDetailPage() {
       void queryClient.invalidateQueries({
         queryKey: sessionQueryKeys.history(groupId),
       });
+      void queryClient.invalidateQueries({
+        queryKey: ["group-insights", groupId],
+      });
     },
   });
 

@@ -53,6 +53,10 @@ export async function invalidateAccountQueries(
         { queryKey: ["session-history"], refetchType: "active" },
         backgroundOptions,
       ),
+      queryClient.invalidateQueries(
+        { queryKey: ["group-insights"], refetchType: "active" },
+        backgroundOptions,
+      ),
     ]);
     return;
   }
@@ -139,6 +143,10 @@ export async function invalidateAccountQueries(
         ),
         queryClient.invalidateQueries(
           { queryKey: ["session-completion"], refetchType: "active" },
+          backgroundOptions,
+        ),
+        queryClient.invalidateQueries(
+          { queryKey: ["group-insights", message.group_id] },
           backgroundOptions,
         ),
       );

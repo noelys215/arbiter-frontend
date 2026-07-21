@@ -784,6 +784,9 @@ export function useSessionFlow() {
         void queryClient.invalidateQueries({
           queryKey: ["session-history", resolvedGroupId],
         });
+        void queryClient.invalidateQueries({
+          queryKey: ["group-insights", resolvedGroupId],
+        });
       }
     },
   });
@@ -803,6 +806,9 @@ export function useSessionFlow() {
       if (resolvedGroupId) {
         void queryClient.invalidateQueries({
           queryKey: ["session-history", resolvedGroupId],
+        });
+        void queryClient.invalidateQueries({
+          queryKey: ["group-insights", resolvedGroupId],
         });
       }
     },

@@ -12,7 +12,7 @@ describe("invalidateAccountQueries", () => {
     const queryClient = invalidator();
     await invalidateAccountQueries(queryClient, { type: "account_connected" });
 
-    expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(7);
+    expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(8);
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
       { queryKey: ["friends"] },
       { cancelRefetch: false },
@@ -124,13 +124,17 @@ describe("invalidateAccountQueries", () => {
       group_id: "group-a",
     });
 
-    expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(4);
+    expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(5);
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
       { queryKey: ["session-history", "group-a"] },
       { cancelRefetch: false },
     );
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
       { queryKey: ["session-completion"], refetchType: "active" },
+      { cancelRefetch: false },
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ["group-insights", "group-a"] },
       { cancelRefetch: false },
     );
   });

@@ -103,6 +103,10 @@ export function useSessionRealtime(sessionId: string | null) {
               { queryKey: ["session-history"] },
               { cancelRefetch: false },
             );
+            void queryClient.invalidateQueries(
+              { queryKey: ["group-insights"], refetchType: "active" },
+              { cancelRefetch: false },
+            );
           }
         }
       };

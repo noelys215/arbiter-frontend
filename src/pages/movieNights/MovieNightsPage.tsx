@@ -62,13 +62,13 @@ export default function MovieNightsPage() {
               The choices, moods, and people who made each night yours.
             </p>
           </div>
-          <Button
-            variant="light"
-            className="app-secondary-button h-11 self-start px-4 sm:self-auto"
-            onPress={() => navigate("/app")}
-          >
-            Back to watchlist
-          </Button>
+          <div className="flex flex-wrap items-center gap-5 self-start sm:self-auto">
+            <nav aria-label="Group archive" className="flex min-h-11 items-center gap-5 text-sm font-semibold">
+              <span className="inline-flex min-h-11 items-center border-b border-[#E0B15C] text-[#F7EAD2]" aria-current="page">Movie Nights</span>
+              <Link to={`/app/groups/${groupId}/insights`} className="inline-flex min-h-11 items-center border-b border-transparent text-[#CDB58E] outline-none hover:text-[#F7EAD2] focus-visible:ring-3 focus-visible:ring-[#F2C16E]">Insights</Link>
+            </nav>
+            <Button variant="light" className="app-secondary-button h-11 px-4" onPress={() => navigate("/app")}>Back to watchlist</Button>
+          </div>
         </header>
 
         {historyQuery.isPending ? (

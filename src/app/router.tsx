@@ -19,6 +19,7 @@ import MovieNightDetailPage from "../pages/movieNights/MovieNightDetailPage";
 import type { MovieDetailLocationState } from "../features/movies/moviePresentation";
 
 const MovieDetailPage = lazy(() => import("../pages/movies/MovieDetailPage"));
+const InsightsPage = lazy(() => import("../pages/insights/InsightsPage"));
 
 function MovieDetailRoute({ presentation }: { presentation?: "page" | "overlay" }) {
   return (
@@ -85,6 +86,22 @@ function AppRoutes() {
           element={
             <RequireAuth>
               <MovieNightDetailPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/app/groups/:groupId/insights"
+          element={
+            <RequireAuth>
+              <Suspense
+                fallback={
+                  <div className="flex min-h-[28rem] items-center justify-center bg-[#140C0A] text-sm text-[#EAD9BC]" role="status">
+                    Opening group insights…
+                  </div>
+                }
+              >
+                <InsightsPage />
+              </Suspense>
             </RequireAuth>
           }
         />

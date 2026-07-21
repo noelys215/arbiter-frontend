@@ -147,12 +147,10 @@ export default function RightRail({ friends, selectedGroup, currentUserId, onOpe
               </AvatarGroup>
             ) : null}
             </div>
-            <Link
-              to={`/app/groups/${selectedGroup.id}/movie-nights`}
-              className="mt-4 inline-flex min-h-11 items-center border-b border-[#E0B15C]/28 text-sm font-semibold text-[#EAD9BC] outline-none transition-colors hover:border-[#E0B15C] hover:text-[#F7EAD2] focus-visible:ring-3 focus-visible:ring-[#F2C16E]"
-            >
-              Movie Nights <span aria-hidden="true" className="ml-2">→</span>
-            </Link>
+            <nav aria-label={`${selectedGroup.name} pages`} className="mt-4 flex flex-wrap gap-x-5">
+              <Link to={`/app/groups/${selectedGroup.id}/movie-nights`} className="inline-flex min-h-11 items-center border-b border-[#E0B15C]/28 text-sm font-semibold text-[#EAD9BC] outline-none transition-colors hover:border-[#E0B15C] hover:text-[#F7EAD2] focus-visible:ring-3 focus-visible:ring-[#F2C16E]">Movie Nights</Link>
+              <Link to={`/app/groups/${selectedGroup.id}/insights`} className="inline-flex min-h-11 items-center border-b border-[#E0B15C]/28 text-sm font-semibold text-[#EAD9BC] outline-none transition-colors hover:border-[#E0B15C] hover:text-[#F7EAD2] focus-visible:ring-3 focus-visible:ring-[#F2C16E]">Insights <span aria-hidden="true" className="ml-2">→</span></Link>
+            </nav>
           </section>
         ) : null}
 
