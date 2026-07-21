@@ -46,4 +46,19 @@ describe("production security headers", () => {
     expect(csp).toContain("https://image.tmdb.org");
     expect(csp).toContain("https://va.vercel-scripts.com");
   });
+
+  it("does not cache SPA documents while preserving asset caching", () => {
+    const documentRule = config.headers?.find((entry) =>
+      entry.headers.some(
+        ({ key, value }) => key === "Cache-Control" && value === "no-store",
+      ),
+    );
+
+    expect(documentRule?.source).toBe("/((?!assets/|.*\\.[^/]+$).*)");
+    const documentPattern = new RegExp(`^${documentRule?.source}$`);
+    expect(documentPattern.test("/app")).toBe(true);
+    expect(documentPattern.test("/auth/magic-link/verify")).toBe(true);
+    expect(documentPattern.test("/assets/index.js")).toBe(false);
+    expect(documentPattern.test("/arbiter.png")).toBe(false);
+  });
 });

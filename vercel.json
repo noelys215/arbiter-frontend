@@ -29,6 +29,15 @@
           "value": "max-age=63072000; includeSubDomains"
         }
       ]
+    },
+    {
+      "source": "/((?!assets/|.*\\.[^/]+$).*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
     }
   ],
   "rewrites": [
