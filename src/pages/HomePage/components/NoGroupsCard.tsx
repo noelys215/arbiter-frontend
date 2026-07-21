@@ -22,7 +22,10 @@ export default function NoGroupsCard({ inputClassNames }: NoGroupsCardProps) {
   });
 
   return (
-    <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
+    <Card
+      className="border border-[#E0B15C]/20 bg-[#22130F]"
+      data-tour="create-group"
+    >
       <Card.Header>
         <div>
           <h2 className="text-lg font-semibold text-white">No groups yet</h2>

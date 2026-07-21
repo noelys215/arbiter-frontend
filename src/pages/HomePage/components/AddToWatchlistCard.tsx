@@ -54,7 +54,11 @@ export default function AddToWatchlistCard({
   });
 
   return (
-    <section className="rounded-xl border border-[#E0B15C]/16 bg-[#21130F]/78" aria-labelledby="add-title-heading">
+    <section
+      className="rounded-xl border border-[#E0B15C]/16 bg-[#21130F]/78"
+      aria-labelledby="add-title-heading"
+      data-tour="watchlist-add"
+    >
       <div className="px-4 pt-4">
         <div className="min-w-0">
           <h3 id="add-title-heading" className="text-base font-semibold text-[#F7EAD2]">

@@ -32,6 +32,7 @@ import type { InputClassNames, WatchlistMeta } from "./HomePage/types";
 import SkipLink from "../components/SkipLink";
 import { feedbackAvailability } from "../config/appMetadata";
 import LazyLoadingState from "../components/LazyLoadingState";
+import { useOnboardingTour } from "../features/onboarding/useOnboardingTour";
 
 const AvatarMenuModal = lazy(
   () => import("./HomePage/components/AvatarMenuModal"),
@@ -271,6 +272,22 @@ export default function HomePage() {
     };
   };
 
+  const { replayTour } = useOnboardingTour({
+    me,
+    groupsReady: !groupsLoading && !groupsError && groups !== undefined,
+    hasGroup: Boolean(selectedGroup),
+    watchlistReady: Boolean(
+      selectedGroup &&
+        watchlistQuery.data &&
+        !isWatchlistLoading &&
+        !isWatchlistError &&
+        !isPagePending,
+    ),
+    watchlistCount: watchlistTotalCount,
+    blockingOverlayOpen:
+      manualModal.isOpen || avatarModal.isOpen || feedbackModal.isOpen,
+  });
+
   return (
     <div className="app-page">
       <SkipLink />
@@ -314,7 +331,10 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className="flex w-full flex-col gap-2 sm:w-auto">
+              <div
+                className="flex w-full flex-col gap-2 sm:w-auto"
+                data-tour="group-selector"
+              >
                 <span
                   id="app-group-label"
                   className="text-xs font-semibold uppercase tracking-[0.16em] app-tertiary"
@@ -446,6 +466,14 @@ export default function HomePage() {
             groupInvitations={groupInvitations}
             selectedGroup={selectedGroup}
             onGroupCleared={() => setSelectedGroupId(null)}
+            onReplayTour={() => {
+              avatarModal.close();
+              window.requestAnimationFrame(() => {
+                window.requestAnimationFrame(() => {
+                  void replayTour(accountTriggerRef.current);
+                });
+              });
+            }}
             onOpenFeedback={
               feedbackAvailability.account
                 ? () => {

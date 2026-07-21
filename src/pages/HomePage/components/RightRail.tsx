@@ -154,6 +154,7 @@ export default function RightRail({ friends, selectedGroup, currentUserId, onOpe
             <nav aria-label={`${selectedGroup.name} pages`} className="mt-4 flex flex-wrap gap-x-5">
               <Link
                 to={`/app/groups/${selectedGroup.id}/movie-nights`}
+                data-tour="movie-nights"
                 className="inline-flex min-h-11 items-center border-b border-[#E0B15C]/28 text-sm font-semibold text-[#EAD9BC] outline-none transition-colors hover:border-[#E0B15C] hover:text-[#F7EAD2] focus-visible:ring-3 focus-visible:ring-[#F2C16E]"
                 onMouseEnter={() => void loadMovieNightsPage()}
                 onFocus={() => void loadMovieNightsPage()}
@@ -172,7 +173,10 @@ export default function RightRail({ friends, selectedGroup, currentUserId, onOpe
           </section>
         ) : null}
 
-        <section className={selectedGroup ? "border-t app-rule pt-5" : ""}>
+        <section
+          className={selectedGroup ? "border-t app-rule pt-5" : ""}
+          data-tour="friends"
+        >
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] app-text-metadata">
               Friends

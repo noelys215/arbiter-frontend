@@ -1,6 +1,7 @@
 import { api, apiJson, jsonBody } from "../../lib/api";
 import { clearArbiterSessionContextStorage } from "../../lib/sessionStorage";
 import type { AvatarSource } from "../avatar/avatarTypes";
+import { clearOnboardingSessionState } from "../onboarding/onboardingState";
 
 export type MeResponse = {
   id: string;
@@ -11,7 +12,12 @@ export type MeResponse = {
   avatar_source: AvatarSource | null;
   avatar_style: string | null;
   avatar_seed: string | null;
+  onboarding_tour_version: number | null;
+  onboarding_tour_status: "completed" | "skipped" | null;
+  onboarding_tour_updated_at: string | null;
 };
+
+export type OnboardingTourStatus = "completed" | "skipped";
 
 export type MagicLinkRequestPayload = {
   email: string;
@@ -51,6 +57,16 @@ export async function updateAvatar(payload: UpdateAvatarPayload) {
   });
 }
 
+export async function updateOnboardingTour(
+  version: number,
+  status: OnboardingTourStatus,
+) {
+  return apiJson<MeResponse>("/me/onboarding-tour", {
+    method: "PATCH",
+    ...jsonBody({ version, status }),
+  });
+}
+
 export async function requestMagicLink(payload: MagicLinkRequestPayload) {
   return apiJson<{ ok: boolean }>("/auth/magic-link/request", {
     method: "POST",
@@ -84,5 +100,6 @@ export async function logout() {
     throw error;
   }
   clearArbiterSessionContextStorage(window.localStorage);
+  clearOnboardingSessionState(window.sessionStorage);
   return response;
 }

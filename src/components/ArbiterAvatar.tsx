@@ -103,7 +103,10 @@ export default function ArbiterAvatar({
           referrerPolicy="no-referrer"
         />
       ) : null}
-      <Avatar.Fallback aria-hidden={decorative ? true : undefined}>
+      <Avatar.Fallback
+        aria-hidden={decorative ? true : undefined}
+        className="!text-[#1C110F]"
+      >
         {name
           .split(/\s+/)
           .map((part) => part[0])

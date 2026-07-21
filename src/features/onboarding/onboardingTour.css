@@ -1,0 +1,137 @@
+.arbiter-tour-popover.driver-popover {
+  width: min(21rem, calc(100vw - 2rem));
+  max-width: 21rem;
+  padding: 1.15rem;
+  border: 1px solid rgb(224 177 92 / 0.34);
+  border-radius: 0.5rem;
+  background: #1c110f;
+  color: #f7f1e3;
+  box-shadow: 0 24px 64px rgb(0 0 0 / 0.5);
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+}
+
+.arbiter-tour-popover .driver-popover-title {
+  padding-right: 2rem;
+  color: #f7ead2;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.18;
+}
+
+.arbiter-tour-popover .driver-popover-description {
+  margin-top: 0.55rem;
+  color: #d9c7a8;
+  font-size: 0.925rem;
+  line-height: 1.55;
+}
+
+.arbiter-tour-popover .driver-popover-close-btn {
+  top: 0.65rem;
+  right: 0.65rem;
+  display: inline-grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  color: #ead9bc;
+  font-size: 1.35rem;
+  text-shadow: none;
+}
+
+.arbiter-tour-popover .driver-popover-close-btn:hover,
+.arbiter-tour-popover .driver-popover-close-btn:focus-visible {
+  color: #f2c16e;
+}
+
+.arbiter-tour-popover .driver-popover-footer {
+  align-items: center;
+  margin-top: 1rem;
+  gap: 0.75rem;
+}
+
+.arbiter-tour-popover .driver-popover-progress-text {
+  color: #bfa985;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.arbiter-tour-popover .driver-popover-navigation-btns {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.arbiter-tour-popover .driver-popover-next-btn,
+.arbiter-tour-popover .driver-popover-prev-btn,
+.arbiter-tour-popover .arbiter-tour-skip {
+  min-height: 2.75rem;
+  border-radius: 0.375rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 0.825rem;
+  font-weight: 700;
+  text-shadow: none;
+}
+
+.arbiter-tour-popover .driver-popover-next-btn {
+  border-color: #e0b15c;
+  background: #e0b15c;
+  color: #160c0a;
+}
+
+.arbiter-tour-popover .driver-popover-prev-btn {
+  border-color: rgb(224 177 92 / 0.34);
+  background: transparent;
+  color: #ead9bc;
+}
+
+.arbiter-tour-popover .arbiter-tour-skip {
+  order: -1;
+  margin-right: 0.15rem;
+  background: transparent;
+  color: #d9c7a8;
+}
+
+.arbiter-tour-popover button:focus-visible {
+  outline: 3px solid #f2c16e;
+  outline-offset: 2px;
+}
+
+.driver-popover-arrow-side-left.driver-popover-arrow,
+.driver-popover-arrow-side-right.driver-popover-arrow,
+.driver-popover-arrow-side-top.driver-popover-arrow,
+.driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-color: #1c110f;
+}
+
+@media (max-width: 480px) {
+  .arbiter-tour-popover.driver-popover {
+    padding: 1rem;
+  }
+
+  .arbiter-tour-popover .driver-popover-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .arbiter-tour-popover .driver-popover-navigation-btns {
+    width: 100%;
+  }
+
+  .arbiter-tour-popover .driver-popover-next-btn,
+  .arbiter-tour-popover .driver-popover-prev-btn {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .driver-overlay,
+  .driver-popover,
+  .driver-active-element {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

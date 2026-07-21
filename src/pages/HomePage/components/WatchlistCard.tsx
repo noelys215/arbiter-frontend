@@ -128,6 +128,7 @@ export default function WatchlistCard({
       <section
         className="app-surface overflow-hidden"
         aria-labelledby="watchlist-heading"
+        data-tour="watchlist"
       >
         <div className="border-b app-rule px-5 py-5 sm:px-6">
           <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -151,6 +152,7 @@ export default function WatchlistCard({
               variant="primary"
               isDisabled={!selectedGroupId || totalCount < 2}
               onPress={() => setIsStartConfirmOpen(true)}
+              data-tour="start-movie-night"
             >
               Start Session
             </Button>

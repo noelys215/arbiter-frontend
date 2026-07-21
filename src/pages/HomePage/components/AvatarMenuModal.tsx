@@ -61,6 +61,7 @@ type AvatarMenuModalProps = {
   groupInvitations: GroupInvitation[] | undefined;
   selectedGroup: Group | null;
   onGroupCleared: () => void;
+  onReplayTour: () => void;
   onOpenFeedback?: () => void;
 };
 
@@ -81,6 +82,7 @@ export default function AvatarMenuModal({
   groupInvitations,
   selectedGroup,
   onGroupCleared,
+  onReplayTour,
   onOpenFeedback,
 }: AvatarMenuModalProps) {
   const navigate = useNavigate();
@@ -497,6 +499,20 @@ export default function AvatarMenuModal({
                           </Button>
                         </div>
                       ) : null}
+                      <div className="profile-feedback-section">
+                        <div>
+                          <p className="profile-support-eyebrow">Guide</p>
+                          <p className="mt-1 text-sm app-text-secondary">
+                            Revisit the shared movie-night flow.
+                          </p>
+                        </div>
+                        <Button
+                          className="app-outline-button w-full sm:w-auto"
+                          onPress={onReplayTour}
+                        >
+                          Tour Arbiter again
+                        </Button>
+                      </div>
                       <div className="profile-support-section">
                         <div>
                           <p className="profile-support-eyebrow">Support Arbiter</p>
