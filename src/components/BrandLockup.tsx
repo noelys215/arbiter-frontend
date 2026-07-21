@@ -38,7 +38,7 @@ export default function BrandLockup({
       <div className="flex items-baseline gap-2">
         <Title
           className={cx(
-            "text-4xl font-semibold text-[#E0B15C] sm:text-5xl",
+            "app-heading-serif text-4xl font-semibold text-[#E0B15C] sm:text-5xl",
             titleClassName,
           )}
         >
