@@ -1,4 +1,5 @@
-import { Button, Card, CardBody, CardHeader, Input } from "@heroui/react";
+import { Button, Card } from "@heroui/react";
+import { AppTextField } from "../../../components/ui/AppField";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { createGroup } from "../../../features/groups/groups.api";
@@ -22,35 +23,34 @@ export default function NoGroupsCard({ inputClassNames }: NoGroupsCardProps) {
 
   return (
     <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
-      <CardHeader>
+      <Card.Header>
         <div>
           <h2 className="text-lg font-semibold text-white">No groups yet</h2>
           <p className="text-sm text-[#D9C7A8]">
             Create one when you’re ready to plan a movie night.
           </p>
         </div>
-      </CardHeader>
-      <CardBody>
+      </Card.Header>
+      <Card.Content>
         <div className="space-y-3">
-          <Input
+          <AppTextField
             label="New group name"
             placeholder="NERV squad"
             value={groupName}
             onChange={(event) => setGroupName(event.target.value)}
-            variant="bordered"
-            classNames={inputClassNames}
+            classes={inputClassNames}
           />
           <Button
             className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10"
-            variant="bordered"
+            variant="secondary"
             onPress={() => createGroupMutation.mutate()}
             isDisabled={!groupName.trim()}
-            isLoading={createGroupMutation.isPending}
+            isPending={createGroupMutation.isPending}
           >
             Create Group
           </Button>
         </div>
-      </CardBody>
+      </Card.Content>
     </Card>
   );
 }

@@ -1,17 +1,8 @@
-import {
-  Button,
-  Checkbox,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Radio,
-  RadioGroup,
-  Spinner,
-} from "@heroui/react";
+import { Button, Spinner } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import AppModal, { AppModalBody, AppModalFooter, AppModalHeader, AppModalHeading } from "../../components/ui/AppModal";
+import { AppCheckbox, AppRadio, AppRadioGroup } from "../../components/ui/AppSelection";
 import type { CompletedSession } from "../sessions/sessions.api";
 import { getCriteria, getWinner } from "../sessions/historyPresentation";
 import { getMoodCues } from "../sessions/moodCues.api";
@@ -129,59 +120,57 @@ export default function MovieNightCardDialog({
   const isPreparing = isGenerating || artworkQuery.isFetching;
 
   return (
-    <Modal
+    <AppModal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      size="4xl"
-      scrollBehavior="inside"
-      classNames={{
+      ariaLabel="Create a movie night card"
+      size="lg"
+      classes={{
         backdrop: "bg-[#080403]/72",
-        base: "max-h-[calc(100dvh-1rem)] border border-[#E0B15C]/20 bg-[#1C110F] text-[#F7EAD2] sm:max-h-[calc(100dvh-2rem)] sm:rounded-lg",
+        dialog: "max-h-[calc(100dvh-1rem)] !max-w-[80rem] border border-[#E0B15C]/20 bg-[#1C110F] text-[#F7EAD2] sm:max-h-[calc(100dvh-2rem)] sm:rounded-lg",
         closeButton: "m-2 h-11 w-11 text-[#F7EAD2] hover:bg-[#E0B15C]/10",
       }}
     >
-      <ModalContent>
-        {(onClose) => (
+      {(onClose) => (
           <>
-            <ModalHeader className="flex-col gap-1 px-5 pb-2 pt-6 sm:px-7">
-              <h2 className="app-heading-serif text-3xl text-[#F7EAD2]">Create a movie night card</h2>
+            <AppModalHeader className="flex-col gap-1 px-5 pb-2 pt-6 sm:px-7">
+              <AppModalHeading className="app-heading-serif text-3xl text-[#F7EAD2]">Create a movie night card</AppModalHeading>
               <p className="text-sm font-normal text-[#D8C5A5]">A private keepsake, ready to save or share.</p>
-            </ModalHeader>
-            <ModalBody className="grid min-h-0 items-start gap-5 overflow-y-auto px-5 py-3 sm:px-7 xl:grid-cols-[minmax(0,1fr)_17rem] xl:gap-7">
-              <div className="flex h-[min(20rem,42dvh)] min-h-[16rem] items-center justify-center rounded-md border border-[#E0B15C]/14 bg-[#100806] p-3 sm:h-[min(24rem,44dvh)] xl:h-[min(34rem,60dvh)] xl:min-h-[22rem] xl:p-4" aria-label="Movie night card preview">
-                {isPreparing ? <Spinner color="warning" label="Preparing card" /> : previewUrl ? (
+            </AppModalHeader>
+            <AppModalBody className="grid min-h-0 items-start gap-5 overflow-y-auto px-5 py-3 sm:px-7 xl:grid-cols-[minmax(0,1fr)_17rem] xl:gap-7">
+              <section className="flex h-[min(20rem,42dvh)] min-h-[16rem] items-center justify-center rounded-md border border-[#E0B15C]/14 bg-[#100806] p-3 sm:h-[min(24rem,44dvh)] xl:h-[min(34rem,60dvh)] xl:min-h-[22rem] xl:p-4" aria-label="Movie night card preview">
+                {isPreparing ? <span role="status"><Spinner color="warning" /><span className="sr-only">Preparing card</span></span> : previewUrl ? (
                   <img src={previewUrl} alt="Preview of the shareable movie night card" className={`h-full max-h-full max-w-full object-contain ${format === "square" ? "aspect-square" : "aspect-[9/16]"}`} />
                 ) : null}
-              </div>
+              </section>
               <div className="grid gap-5 sm:grid-cols-2 xl:block xl:space-y-7">
-                <RadioGroup label="Format" value={format} onValueChange={(value) => setFormat(value as CardFormat)} orientation="horizontal" classNames={{ label: "text-sm font-semibold text-[#F7EAD2]", wrapper: "gap-2" }}>
-                  <Radio value="square" classNames={radioClassNames}>Square</Radio>
-                  <Radio value="portrait" classNames={radioClassNames}>Portrait</Radio>
-                </RadioGroup>
-                <RadioGroup label="Style" value={template} onValueChange={(value) => setTemplate(value as CardTemplate)} classNames={{ label: "text-sm font-semibold text-[#F7EAD2]", wrapper: "gap-2" }}>
-                  <Radio value="editorial" classNames={radioClassNames}>Editorial poster</Radio>
-                  <Radio value="programme" classNames={radioClassNames}>Minimal programme</Radio>
-                </RadioGroup>
+                <AppRadioGroup name="card-format" label="Format" value={format} onChange={(value) => setFormat(value as CardFormat)} orientation="horizontal" className="gap-2" labelClassName="text-sm font-semibold text-[#F7EAD2]">
+                  <AppRadio value="square" className={radioClassNames.base} labelClassName={radioClassNames.label} controlClassName={radioClassNames.control}>Square</AppRadio>
+                  <AppRadio value="portrait" className={radioClassNames.base} labelClassName={radioClassNames.label} controlClassName={radioClassNames.control}>Portrait</AppRadio>
+                </AppRadioGroup>
+                <AppRadioGroup name="card-style" label="Style" value={template} onChange={(value) => setTemplate(value as CardTemplate)} className="gap-2" labelClassName="text-sm font-semibold text-[#F7EAD2]">
+                  <AppRadio value="editorial" className={radioClassNames.base} labelClassName={radioClassNames.label} controlClassName={radioClassNames.control}>Editorial poster</AppRadio>
+                  <AppRadio value="programme" className={radioClassNames.base} labelClassName={radioClassNames.label} controlClassName={radioClassNames.control}>Minimal programme</AppRadio>
+                </AppRadioGroup>
                 <div className="space-y-3 sm:col-span-2 xl:col-span-1" aria-labelledby="card-privacy-heading">
                   <h3 id="card-privacy-heading" className="text-sm font-semibold text-[#F7EAD2]">Include on the card</h3>
                   <div className="flex flex-col items-start gap-2">
-                    <Checkbox isSelected={includeGroupName} onValueChange={setIncludeGroupName} classNames={{ label: "text-sm text-[#EAD9BC]", wrapper: "after:bg-[#E0B15C]" }}>Group name</Checkbox>
-                    <Checkbox isSelected={includeMood} onValueChange={setIncludeMood} isDisabled={moodLabels.length === 0} classNames={{ label: "text-sm text-[#EAD9BC]", wrapper: "after:bg-[#E0B15C]" }}>Tonight’s mood</Checkbox>
-                    <Checkbox isSelected={includeAttribution} onValueChange={setIncludeAttribution} classNames={{ label: "text-sm text-[#EAD9BC]", wrapper: "after:bg-[#E0B15C]" }}>Arbiter attribution</Checkbox>
+                    <AppCheckbox selected={includeGroupName} onChange={setIncludeGroupName} labelClassName="text-sm text-[#EAD9BC]" controlClassName="after:bg-[#E0B15C]">Group name</AppCheckbox>
+                    <AppCheckbox selected={includeMood} onChange={setIncludeMood} isDisabled={moodLabels.length === 0} labelClassName="text-sm text-[#EAD9BC]" controlClassName="after:bg-[#E0B15C]">Tonight’s mood</AppCheckbox>
+                    <AppCheckbox selected={includeAttribution} onChange={setIncludeAttribution} labelClassName="text-sm text-[#EAD9BC]" controlClassName="after:bg-[#E0B15C]">Arbiter attribution</AppCheckbox>
                   </div>
                   <p className="text-xs leading-5 text-[#CDB58E]">Participant names, avatars, votes, and private links are never included.</p>
                 </div>
               </div>
               {error ? <p className="lg:col-span-2 text-sm text-[#F0A494]" role="alert">{error}</p> : null}
-            </ModalBody>
-            <ModalFooter className="grid shrink-0 grid-cols-2 gap-2 border-t border-[#E0B15C]/12 px-5 py-3 sm:flex sm:px-7 sm:py-4">
-              <Button variant="light" className="app-secondary-button order-3 col-span-2 h-11 sm:order-none sm:mr-auto" onPress={onClose}>Close</Button>
-              <Button variant="bordered" className="h-11 border-[#E0B15C]/38 text-[#EAD9BC]" onPress={download} isDisabled={!generated || isPreparing}>Save image</Button>
+            </AppModalBody>
+            <AppModalFooter className="grid shrink-0 grid-cols-2 gap-2 border-t border-[#E0B15C]/12 px-5 py-3 sm:flex sm:px-7 sm:py-4">
+              <Button variant="tertiary" className="app-secondary-button order-3 col-span-2 h-11 sm:order-none sm:mr-auto" onPress={onClose}>Close</Button>
+              <Button variant="secondary" className="app-outline-button h-11" onPress={download} isDisabled={!generated || isPreparing}>Save image</Button>
               <Button className="app-primary-button h-11" onPress={() => void share()} isDisabled={!generated || isPreparing}>{"share" in navigator ? "Share card" : "Save card"}</Button>
-            </ModalFooter>
+            </AppModalFooter>
           </>
-        )}
-      </ModalContent>
-    </Modal>
+      )}
+    </AppModal>
   );
 }

@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, useDisclosure } from "@heroui/react";
+import { Button, Card, useOverlayState } from "@heroui/react";
 import { motion, useReducedMotion } from "framer-motion";
 import { lazy, Suspense, useEffect, useState, type RefObject } from "react";
 import { Link, type Location } from "react-router-dom";
@@ -161,7 +161,7 @@ export default function SessionDeckSection({
   isDeckComplete,
   onGoHome,
 }: SessionDeckSectionProps) {
-  const cardDialog = useDisclosure();
+  const cardDialog = useOverlayState();
   const shouldReduceMotion = useReducedMotion();
   const watchPartyInputId = "watch-party-url-input";
   const winnerCard = winnerWatchlistItemId
@@ -293,7 +293,7 @@ export default function SessionDeckSection({
 
         <div className="flex w-full flex-wrap items-center justify-center gap-2">
           <Button
-            variant="bordered"
+            variant="secondary"
             className="border-[#D77B69]/45 text-[#F1A799]"
             isDisabled={!canSwipe}
             aria-label="Vote no on current title"
@@ -304,10 +304,10 @@ export default function SessionDeckSection({
             No
           </Button>
           <Button
-            variant="bordered"
+            variant="secondary"
             className="border-[#E0B15C]/45 text-[#E0B15C]"
             isDisabled={!canUndoSwipe}
-            isLoading={undoSwipeIsPending}
+            isPending={undoSwipeIsPending}
             aria-label="Undo last vote"
             onPress={() => {
               void onUndoSwipe();
@@ -370,7 +370,7 @@ export default function SessionDeckSection({
               {showShortlistButton ? (
                 <Button
                   size="sm"
-                  variant="bordered"
+                  variant="secondary"
                   className="border-[#E0B15C]/45 text-[#E0B15C]"
                   onPress={onOpenShortlist}
                 >
@@ -380,9 +380,9 @@ export default function SessionDeckSection({
               {tieBreakRequired && isGroupLeader ? (
                 <Button
                   size="sm"
-                  variant="bordered"
+                  variant="secondary"
                   className="border-[#E0B15C]/45 text-[#E0B15C]"
-                  isLoading={
+                  isPending={
                     shuffleIsPending || deckPhase === "revealingWinner"
                   }
                   isDisabled={sortedCardsLength === 0}
@@ -399,7 +399,7 @@ export default function SessionDeckSection({
 
         {winnerCard && isTmdbWinner ? (
           <Card className="w-full border border-[#E0B15C]/25 bg-[#22130F]">
-            <CardBody className="flex flex-col gap-3">
+            <Card.Content className="flex flex-col gap-3">
               <p className="session-title-micro text-xs text-[#E0B15C]/65">
                 Streaming
               </p>
@@ -443,13 +443,13 @@ export default function SessionDeckSection({
                   No streaming providers found right now.
                 </p>
               )}
-            </CardBody>
+            </Card.Content>
           </Card>
         ) : null}
 
         {winnerCard ? (
           <Card className="w-full border border-[#E0B15C]/25 bg-[#22130F]">
-            <CardBody className="flex flex-col gap-3">
+            <Card.Content className="flex flex-col gap-3">
               <p className="session-title-micro text-xs text-[#E0B15C]/65">
                 Teleparty
               </p>
@@ -476,7 +476,7 @@ export default function SessionDeckSection({
                     {isGroupLeader ? (
                       <Button
                         size="sm"
-                        variant="bordered"
+                        variant="secondary"
                         className="border-[#E0B15C]/45 text-[#E0B15C]"
                         onPress={() => {
                           setShowWatchPartyEditor((value) => !value);
@@ -518,7 +518,7 @@ export default function SessionDeckSection({
                     <Button
                       size="sm"
                       className="border border-[#E0B15C]/55 bg-[#E0B15C] text-[#171717]"
-                      isLoading={watchPartyIsUpdating}
+                      isPending={watchPartyIsUpdating}
                       isDisabled={watchPartyDraft.trim().length === 0}
                       onPress={() => {
                         void onSetWatchPartyUrl(watchPartyDraft);
@@ -529,9 +529,9 @@ export default function SessionDeckSection({
                     {hasWatchPartyUrl ? (
                       <Button
                         size="sm"
-                        variant="bordered"
+                        variant="secondary"
                         className="border-[#E0B15C]/45 text-[#E0B15C]"
-                        isLoading={watchPartyIsUpdating}
+                        isPending={watchPartyIsUpdating}
                         onPress={() => {
                           void onSetWatchPartyUrl(null);
                         }}
@@ -547,7 +547,7 @@ export default function SessionDeckSection({
                   ) : null}
                 </div>
               ) : null}
-            </CardBody>
+            </Card.Content>
           </Card>
         ) : null}
 
@@ -575,7 +575,7 @@ export default function SessionDeckSection({
                           ? "min-h-11 border border-[#E0B15C]/70 bg-[#E0B15C] text-[#17110F]"
                           : "min-h-11 border border-[#E0B15C]/40 bg-transparent text-[#F2DDBA]"
                       }
-                      isLoading={watchedStatusIsPending}
+                      isPending={watchedStatusIsPending}
                       aria-pressed={completion.watched_status === "watched"}
                       onPress={() => void onWatchedStatus("watched")}
                     >
@@ -583,7 +583,7 @@ export default function SessionDeckSection({
                     </Button>
                     <Button
                       size="sm"
-                      variant="bordered"
+                      variant="secondary"
                       className="min-h-11 border-[#E0B15C]/30 text-[#D9C7A8]"
                       isDisabled={watchedStatusIsPending}
                       aria-pressed={completion.watched_status === "not_watched"}
@@ -595,9 +595,9 @@ export default function SessionDeckSection({
                 ) : null}
                 <Button
                   size="sm"
-                  variant="bordered"
+                  variant="secondary"
                   className="min-h-11 w-fit border-[#E0B15C]/38 text-[#EAD9BC]"
-                  onPress={cardDialog.onOpen}
+                  onPress={cardDialog.open}
                 >
                   Create card
                 </Button>
@@ -614,7 +614,7 @@ export default function SessionDeckSection({
                 </div>
                 <Button
                   className="min-h-11 border border-[#E0B15C]/65 bg-[#E0B15C] text-[#17110F]"
-                  isLoading={completionIsPending}
+                  isPending={completionIsPending}
                   isDisabled={completionIsPending}
                   onPress={() => void onCompleteSession()}
                 >
@@ -632,7 +632,7 @@ export default function SessionDeckSection({
 
         {isDeckComplete && !showWaitingCard && sessionPhase === "swiping" ? (
           <Card className="w-full border border-[#E0B15C]/25 bg-[#22130F]">
-            <CardBody className="flex flex-col gap-3">
+            <Card.Content className="flex flex-col gap-3">
               <p className="session-title-micro text-xs text-[#E0B15C]/65">
                 Deck complete
               </p>
@@ -643,7 +643,7 @@ export default function SessionDeckSection({
               <div className="flex flex-wrap gap-2">
                 <Button
                   size="sm"
-                  variant="bordered"
+                  variant="secondary"
                   className="border-[#E0B15C]/45 text-[#E0B15C]"
                   onPress={onOpenShortlist}
                 >
@@ -657,7 +657,7 @@ export default function SessionDeckSection({
                   Back to Home
                 </Button>
               </div>
-            </CardBody>
+            </Card.Content>
           </Card>
         ) : null}
       </div>
@@ -665,7 +665,7 @@ export default function SessionDeckSection({
         {completion?.status === "completed" && cardDialog.isOpen ? (
           <MovieNightCardDialog
             isOpen={cardDialog.isOpen}
-            onOpenChange={cardDialog.onOpenChange}
+            onOpenChange={cardDialog.setOpen}
             night={completion}
           />
         ) : null}

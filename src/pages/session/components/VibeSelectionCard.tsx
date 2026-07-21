@@ -1,4 +1,5 @@
-import { Button, Textarea } from "@heroui/react";
+import { Button } from "@heroui/react";
+import { AppTextArea } from "../../../components/ui/AppField";
 import type { MoodCue } from "../../../features/sessions/moodCues.api";
 
 const CATEGORY_LABELS: Record<MoodCue["category"], string> = {
@@ -69,7 +70,7 @@ export default function VibeSelectionCard({
               <Button
                 key={cue.id}
                 size="sm"
-                variant="light"
+                variant="tertiary"
                 className={`min-h-11 min-w-0 whitespace-normal border px-3 py-1.5 text-left text-sm font-semibold leading-5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E] ${
                   selected
                     ? "border-[#E0B15C]/65 bg-[#E0B15C]/16 text-[#F7EAD2]"
@@ -77,7 +78,7 @@ export default function VibeSelectionCard({
                 }`}
                 aria-pressed={selected}
                 isDisabled={limitReached}
-                title={cue.description}
+                aria-label={`${cue.label}. ${cue.description}`}
                 onPress={() => onToggleMoodCue(cue.id)}
               >
                 {selected ? <span aria-hidden="true" className="text-[#F2C16E]">✓</span> : null}
@@ -142,21 +143,19 @@ export default function VibeSelectionCard({
       </div>
 
       <div className="mt-8 border-t border-[#E0B15C]/10 pt-6">
-        <Textarea
+        <AppTextArea
           label="A note for tonight (optional)"
-          labelPlacement="outside"
           placeholder="Something romantic but not cheesy."
           description="A short note for your group. It won’t be interpreted by AI."
           value={customMoodText}
-          onValueChange={onCustomMoodTextChange}
+          onChangeValue={onCustomMoodTextChange}
           maxLength={240}
-          minRows={2}
-          variant="bordered"
-          classNames={{
+          rows={2}
+          classes={{
             label: "pb-2 text-sm font-semibold !text-[#F7EAD2]",
             description: "text-[#CDB58E]",
             input: "!text-base !text-[#F7EAD2] placeholder:!text-[#BFA986] caret-[#E0B15C]",
-            inputWrapper: "min-h-[5rem] border-[#E0B15C]/24 !bg-[#22130F]/70 data-[hover=true]:border-[#E0B15C]/40 data-[focus=true]:border-[#E0B15C] data-[focus=true]:ring-1 data-[focus=true]:ring-[#E0B15C]/60 data-[focus=true]:!bg-[#22130F]/70",
+            inputWrapper: "min-h-[5rem] border-[#E0B15C]/24 !bg-[#22130F]/70 hover:border-[#E0B15C]/40 focus:border-[#E0B15C] focus:ring-1 focus:ring-[#E0B15C]/60 focus:!bg-[#22130F]/70",
           }}
         />
         <p className="mt-1 text-right text-xs text-[#CDB58E]">{customMoodText.length} / 240</p>
@@ -177,7 +176,7 @@ export default function VibeSelectionCard({
                     <Button
                       key={tag}
                       size="sm"
-                      variant="light"
+                      variant="tertiary"
                       className={`min-h-11 min-w-0 border px-3 text-sm focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E] ${selected ? "border-[#E0B15C]/55 bg-[#E0B15C]/12 text-[#F7EAD2]" : "border-[#E0B15C]/10 text-[#EAD9BC]"}`}
                       aria-pressed={selected}
                       onPress={() => onToggleGenre(tag)}
@@ -205,7 +204,7 @@ export default function VibeSelectionCard({
                 <Button
                   key={option.label}
                   size="sm"
-                  variant="light"
+                  variant="tertiary"
                   aria-pressed={maxRuntime === option.value}
                   className={`min-h-11 min-w-0 border px-3 text-sm focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E] ${maxRuntime === option.value ? "border-[#E0B15C]/55 bg-[#E0B15C]/12 text-[#F7EAD2]" : "border-[#E0B15C]/10 text-[#EAD9BC]"}`}
                   onPress={() => onMaxRuntimeChange(option.value)}
@@ -220,7 +219,7 @@ export default function VibeSelectionCard({
 
       <div className="mt-5 flex flex-col gap-4 border-t border-[#E0B15C]/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-[#DAC49F]" role="status" aria-live="polite">{selectionSummary}</p>
-        <Button size="lg" className="app-primary-button session-deal-button h-11 w-full px-6 sm:w-auto" isLoading={isGenerating} isDisabled={isGenerateDisabled} onPress={onGenerate}>
+        <Button size="lg" className="app-primary-button session-deal-button h-11 w-full px-6 sm:w-auto" isPending={isGenerating} isDisabled={isGenerateDisabled} onPress={onGenerate}>
           {generateLabel}
         </Button>
       </div>

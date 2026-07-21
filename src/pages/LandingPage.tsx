@@ -1,4 +1,4 @@
-import { useDisclosure } from "@heroui/react";
+import { useOverlayState } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import KoFiSupportLink from "../components/KoFiSupportLink";
@@ -87,8 +87,8 @@ type LegalModalKind = "privacy" | "data-deletion" | "credits";
 
 export default function LandingPage() {
   const location = useLocation();
-  const legalModal = useDisclosure();
-  const feedbackModal = useDisclosure();
+  const legalModal = useOverlayState();
+  const feedbackModal = useOverlayState();
   const feedbackTriggerRef = useRef<HTMLButtonElement>(null);
   const [legalKind, setLegalKind] = useState<LegalModalKind>("privacy");
   const copy = pageCopy[location.pathname] ?? {
@@ -120,7 +120,7 @@ export default function LandingPage() {
 
   const openLegalModal = (kind: LegalModalKind) => {
     setLegalKind(kind);
-    legalModal.onOpen();
+    legalModal.open();
   };
 
   return (
@@ -329,7 +329,7 @@ export default function LandingPage() {
                 ref={feedbackTriggerRef}
                 type="button"
                 className="landing-text-link"
-                onClick={feedbackModal.onOpen}
+                onClick={feedbackModal.open}
               >
                 Feedback
               </button>
@@ -362,13 +362,13 @@ export default function LandingPage() {
       <LegalModal
         kind={legalKind}
         isOpen={legalModal.isOpen}
-        onOpenChange={legalModal.onOpenChange}
+        onOpenChange={legalModal.setOpen}
         onSwitchKind={setLegalKind}
       />
       {feedbackAvailability.public ? (
         <FeedbackDialog
           isOpen={feedbackModal.isOpen}
-          onOpenChange={feedbackModal.onOpenChange}
+          onOpenChange={feedbackModal.setOpen}
           source="landing_footer"
           returnFocusRef={feedbackTriggerRef}
         />

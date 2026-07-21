@@ -1,11 +1,10 @@
-import {
-  Button,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from "@heroui/react";
+import { Button } from "@heroui/react";
+import AppModal, {
+  AppModalBody,
+  AppModalFooter,
+  AppModalHeader,
+  AppModalHeading,
+} from "../../components/ui/AppModal";
 import {
   CreditsContent,
   DataDeletionContent,
@@ -35,24 +34,21 @@ export default function LegalModal({
         : "Credits";
 
   return (
-    <Modal
+    <AppModal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      scrollBehavior="inside"
-      size="3xl"
-      classNames={{
-        base: "border border-[#E0B15C]/25 bg-[#1C110F] text-[#F7F1E3]",
-        body: "px-5 py-6 sm:px-8",
-        footer: "border-t border-[#E0B15C]/15",
+      ariaLabel={title}
+      size="lg"
+      classes={{
+        dialog: "border border-[#E0B15C]/25 bg-[#1C110F] text-[#F7F1E3]",
         closeButton:
           "text-[#F5D9A5] hover:bg-[#E0B15C]/10 focus-visible:outline focus-visible:outline-3 focus-visible:outline-[#F2C16E]",
       }}
     >
-      <ModalContent>
-        {(onClose) => (
+      {(onClose) => (
           <>
-            <ModalHeader className="sr-only">{title}</ModalHeader>
-            <ModalBody>
+            <AppModalHeader className="sr-only"><AppModalHeading>{title}</AppModalHeading></AppModalHeader>
+            <AppModalBody className="px-5 py-6 sm:px-8">
               {kind === "privacy" ? (
                 <PrivacyPolicyContent
                   linkMode="modal"
@@ -66,18 +62,17 @@ export default function LegalModal({
               ) : (
                 <CreditsContent />
               )}
-            </ModalBody>
-            <ModalFooter>
+            </AppModalBody>
+            <AppModalFooter className="border-t border-[#E0B15C]/15">
               <Button
                 className="border border-[#E0B15C]/55 bg-[#E0B15C] text-[#1C110F]"
                 onPress={onClose}
               >
                 Close
               </Button>
-            </ModalFooter>
+            </AppModalFooter>
           </>
-        )}
-      </ModalContent>
-    </Modal>
+      )}
+    </AppModal>
   );
 }

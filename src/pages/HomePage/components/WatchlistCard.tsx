@@ -127,7 +127,7 @@ export default function WatchlistCard({
           <Button
             size="md"
             className="app-primary-button h-11 w-full px-5 sm:w-auto"
-            variant="solid"
+            variant="primary"
             isDisabled={!selectedGroupId || totalCount < 2}
             onPress={() => {
               if (!selectedGroupId) return;

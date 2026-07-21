@@ -26,6 +26,20 @@ type WatchlistListProps = {
   onPageChange: (value: number) => void;
 };
 
+function getVisiblePages(currentPage: number, totalPages: number) {
+  const pages: Array<number | "start-ellipsis" | "end-ellipsis"> = [];
+  for (let page = 1; page <= totalPages; page += 1) {
+    if (page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1) {
+      pages.push(page);
+    } else if (page < currentPage && !pages.includes("start-ellipsis")) {
+      pages.push("start-ellipsis");
+    } else if (page > currentPage && !pages.includes("end-ellipsis")) {
+      pages.push("end-ellipsis");
+    }
+  }
+  return pages;
+}
+
 export default function WatchlistList({
   selectedGroupId,
   items,
@@ -130,10 +144,10 @@ export default function WatchlistList({
               <div className="col-span-2 flex flex-wrap items-center justify-start gap-2 pl-24 sm:col-span-1 sm:justify-end sm:pl-0 sm:pt-1">
                 <Button
                   size="sm"
-                  variant="light"
+                  variant="tertiary"
                   className="app-danger-button min-w-0 px-2"
                   onPress={() => onRemove(item.id)}
-                  isLoading={pendingRemoveId === item.id}
+                  isPending={pendingRemoveId === item.id}
                   aria-label={`Remove ${meta.name} from watchlist`}
                 >
                   Remove
@@ -146,23 +160,51 @@ export default function WatchlistList({
 
       {totalPages > 1 ? (
         <div className="flex justify-center pt-1">
-          <Pagination
-            page={currentPage}
-            total={totalPages}
-            onChange={onPageChange}
-            isCompact
-            showControls
-            variant="bordered"
-            size="sm"
-            classNames={{
-              base: "rounded-2xl border border-[#E0B15C]/30 bg-[#22130F] px-2 py-1",
-              wrapper: "gap-1",
-              item: "border-none bg-transparent text-[#F7EAD2] data-[hover=true]:bg-[#2B1713]",
-              cursor: "bg-[#E0B15C] text-[#1C110F]",
-              prev: "border-none bg-transparent text-[#F7EAD2] data-[hover=true]:bg-[#2B1713]",
-              next: "border-none bg-transparent text-[#F7EAD2] data-[hover=true]:bg-[#2B1713]",
-            }}
-          />
+          <Pagination aria-label="Watchlist pages" size="sm">
+            <Pagination.Content className="gap-1 rounded-lg border border-[#E0B15C]/30 bg-[#22130F] px-2 py-1">
+              <Pagination.Item>
+                <Pagination.Previous
+                  aria-label="Previous page"
+                  isDisabled={currentPage === 1}
+                  onPress={() => onPageChange(currentPage - 1)}
+                  className="text-[#F7EAD2] hover:bg-[#2B1713] disabled:text-[#8F7A62]"
+                >
+                  <Pagination.PreviousIcon />
+                </Pagination.Previous>
+              </Pagination.Item>
+              {getVisiblePages(currentPage, totalPages).map((page) => (
+                typeof page === "number" ? (
+                  <Pagination.Item key={page}>
+                    <Pagination.Link
+                      aria-label={`Page ${page}`}
+                      aria-current={page === currentPage ? "page" : undefined}
+                      isActive={page === currentPage}
+                      onPress={() => onPageChange(page)}
+                      className={page === currentPage
+                        ? "bg-[#E0B15C] text-[#1C110F]"
+                        : "text-[#F7EAD2] hover:bg-[#2B1713]"}
+                    >
+                      {page}
+                    </Pagination.Link>
+                  </Pagination.Item>
+                ) : (
+                  <Pagination.Item key={page}>
+                    <Pagination.Ellipsis className="text-[#BFA986]" />
+                  </Pagination.Item>
+                )
+              ))}
+              <Pagination.Item>
+                <Pagination.Next
+                  aria-label="Next page"
+                  isDisabled={currentPage === totalPages}
+                  onPress={() => onPageChange(currentPage + 1)}
+                  className="text-[#F7EAD2] hover:bg-[#2B1713] disabled:text-[#8F7A62]"
+                >
+                  <Pagination.NextIcon />
+                </Pagination.Next>
+              </Pagination.Item>
+            </Pagination.Content>
+          </Pagination>
         </div>
       ) : null}
     </div>

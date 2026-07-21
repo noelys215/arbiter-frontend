@@ -1,13 +1,9 @@
 import {
-  AvatarGroup,
   Button,
   Chip,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
 } from "@heroui/react";
+import AppAvatarGroup from "../../../components/ui/AppAvatarGroup";
+import AppModal, { AppModalBody, AppModalFooter, AppModalHeader, AppModalHeading } from "../../../components/ui/AppModal";
 import type {
   SessionCandidate,
   SessionVoteParticipant,
@@ -55,11 +51,10 @@ function VoteAvatarGroup({
       <span className="min-w-8 text-xs uppercase tracking-[0.14em] text-[#E0B15C]/75">
         {label}
       </span>
-      <AvatarGroup
+      <AppAvatarGroup
         isBordered
         max={4}
         total={voters.length}
-        size="sm"
         renderCount={(count) => (
           <span className="ms-1 text-xs font-semibold text-[#D9C7A8]">
             +{count}
@@ -75,7 +70,7 @@ function VoteAvatarGroup({
             className="bg-[#E0B15C]/20 text-[#E0B15C]"
           />
         ))}
-      </AvatarGroup>
+      </AppAvatarGroup>
     </div>
   );
 }
@@ -94,21 +89,19 @@ export default function ShortlistModal({
   );
 
   return (
-    <Modal
+    <AppModal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      size="2xl"
-      classNames={{
-        base: "border border-[#E0B15C]/25 bg-[#1C110F]",
-        header: "border-b border-[#E0B15C]/15",
-        footer: "border-t border-[#E0B15C]/15",
+      ariaLabel="Shortlist"
+      size="lg"
+      classes={{
+        dialog: "border border-[#E0B15C]/25 bg-[#1C110F]",
       }}
     >
-      <ModalContent>
-        {(onClose) => (
+      {(onClose) => (
           <>
-            <ModalHeader className="text-[#F5D9A5]">Shortlist</ModalHeader>
-            <ModalBody>
+            <AppModalHeader className="border-b border-[#E0B15C]/15 text-[#F5D9A5]"><AppModalHeading>Shortlist</AppModalHeading></AppModalHeader>
+            <AppModalBody>
               {shortlist.length === 0 ? (
                 <p className="text-sm text-[#D9C7A8]">
                   No shortlist yet. Swipe yes or finish the deck.
@@ -167,22 +160,16 @@ export default function ShortlistModal({
                           {isWinner ? (
                             <Chip
                               size="sm"
-                              variant="flat"
-                              classNames={{
-                                base: "bg-[#E0B15C]/20",
-                                content: "text-[#F5D9A5]",
-                              }}
+                              variant="soft"
+                              className="bg-[#E0B15C]/20 text-[#F5D9A5]"
                             >
                               Winner
                             </Chip>
                           ) : summary?.is_leading ? (
                             <Chip
                               size="sm"
-                              variant="flat"
-                              classNames={{
-                                base: "bg-[#E0B15C]/20",
-                                content: "text-[#F5D9A5]",
-                              }}
+                              variant="soft"
+                              className="bg-[#E0B15C]/20 text-[#F5D9A5]"
                             >
                               Leading
                             </Chip>
@@ -196,19 +183,18 @@ export default function ShortlistModal({
                   })}
                 </div>
               )}
-            </ModalBody>
-            <ModalFooter>
+            </AppModalBody>
+            <AppModalFooter className="border-t border-[#E0B15C]/15">
               <Button
-                variant="bordered"
+                variant="secondary"
                 className="border-[#E0B15C]/35 text-[#E0B15C]"
                 onPress={onClose}
               >
                 Close
               </Button>
-            </ModalFooter>
+            </AppModalFooter>
           </>
-        )}
-      </ModalContent>
-    </Modal>
+      )}
+    </AppModal>
   );
 }

@@ -1,17 +1,11 @@
-import {
-  Button,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from "@heroui/react";
+import { Button } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
 import { updateAvatar } from "../auth/auth.api";
 import type { MeResponse, UpdateAvatarPayload } from "../auth/auth.api";
 import ArbiterAvatar from "../../components/ArbiterAvatar";
+import AppModal, { AppModalBody, AppModalFooter, AppModalHeader, AppModalHeading } from "../../components/ui/AppModal";
 import {
   AVATAR_COLLECTIONS,
   getAvatarStyleConfig,
@@ -173,38 +167,34 @@ export default function AvatarSelectorModal({
   const displayName = getDisplayName(me);
 
   return (
-    <Modal
+    <AppModal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      size="2xl"
-      scrollBehavior="inside"
-      classNames={{
-        base: "border border-[#E0B15C]/20 bg-[#1C110F] text-[#F7F1E3]",
-        header: "border-b border-[#E0B15C]/10",
-        body: "gap-5 py-5",
-        footer: "border-t border-[#E0B15C]/10",
+      ariaLabel="Choose an avatar"
+      size="lg"
+      classes={{
+        dialog: "border border-[#E0B15C]/20 bg-[#1C110F] text-[#F7F1E3]",
         closeButton:
           "text-[#F5D9A5] hover:bg-[#E0B15C]/10 focus-visible:outline focus-visible:outline-3 focus-visible:outline-[#F2C16E]",
       }}
     >
-      <ModalContent>
-        {(onClose) => (
+      {(onClose) => (
           <>
-            <ModalHeader className="flex flex-col gap-1">
-              <h2 className="text-xl font-semibold text-[#F5D9A5]">
+            <AppModalHeader className="flex flex-col gap-1 border-b border-[#E0B15C]/10">
+              <AppModalHeading className="text-xl font-semibold text-[#F5D9A5]">
                 Choose an avatar
-              </h2>
+              </AppModalHeading>
               <p className="text-sm font-normal text-[#D9C7A8]">
                 Pick one for now. You can change it anytime.
               </p>
-            </ModalHeader>
-            <ModalBody>
+            </AppModalHeader>
+            <AppModalBody className="gap-5 py-5">
               <div className="flex flex-wrap gap-2" aria-label="Avatar source">
                 {sourceChoices.map((choice) => (
                   <Button
                     key={choice}
                     size="sm"
-                    variant={source === choice ? "solid" : "bordered"}
+                    variant={source === choice ? "primary" : "secondary"}
                     className={
                       source === choice
                         ? "bg-[#E0B15C] text-[#1C110F]"
@@ -231,7 +221,7 @@ export default function AvatarSelectorModal({
                         key={collection.key}
                         size="sm"
                         variant={
-                          activeCollection === collection.key ? "solid" : "bordered"
+                          activeCollection === collection.key ? "primary" : "secondary"
                         }
                         className={
                           activeCollection === collection.key
@@ -285,7 +275,7 @@ export default function AvatarSelectorModal({
                   </div>
 
                   <Button
-                    variant="bordered"
+                    variant="secondary"
                     className="w-fit border-[#E0B15C]/35 text-[#E0B15C]"
                     onPress={handleShuffle}
                   >
@@ -318,10 +308,10 @@ export default function AvatarSelectorModal({
                   {saveError}
                 </p>
               ) : null}
-            </ModalBody>
-            <ModalFooter className="flex-col gap-2 sm:flex-row sm:justify-between">
+            </AppModalBody>
+            <AppModalFooter className="flex-col gap-2 border-t border-[#E0B15C]/10 sm:flex-row sm:justify-between">
               <Button
-                variant="light"
+                variant="tertiary"
                 className="text-[#D9C7A8] hover:text-white"
                 onPress={onClose}
                 isDisabled={saveMutation.isPending}
@@ -331,15 +321,14 @@ export default function AvatarSelectorModal({
               <Button
                 className="bg-[#E0B15C] text-[#1C110F]"
                 onPress={handleSave}
-                isLoading={saveMutation.isPending}
+                isPending={saveMutation.isPending}
                 isDisabled={source === "generated" && !selectedOption}
               >
                 Save avatar
               </Button>
-            </ModalFooter>
+            </AppModalFooter>
           </>
-        )}
-      </ModalContent>
-    </Modal>
+      )}
+    </AppModal>
   );
 }

@@ -1,4 +1,5 @@
-import { AvatarGroup, Button, Spinner } from "@heroui/react";
+import { Button, Spinner } from "@heroui/react";
+import AppAvatarGroup from "../../components/ui/AppAvatarGroup";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { motion, useReducedMotion } from "framer-motion";
 import { useMemo } from "react";
@@ -67,13 +68,14 @@ export default function MovieNightsPage() {
               <span className="inline-flex min-h-11 items-center border-b border-[#E0B15C] text-[#F7EAD2]" aria-current="page">Movie Nights</span>
               <Link to={`/app/groups/${groupId}/insights`} className="inline-flex min-h-11 items-center border-b border-transparent text-[#CDB58E] outline-none hover:text-[#F7EAD2] focus-visible:ring-3 focus-visible:ring-[#F2C16E]">Insights</Link>
             </nav>
-            <Button variant="light" className="app-secondary-button h-11 px-4" onPress={() => navigate("/app")}>Back to watchlist</Button>
+            <Button variant="tertiary" className="app-secondary-button h-11 px-4" onPress={() => navigate("/app")}>Back to watchlist</Button>
           </div>
         </header>
 
         {historyQuery.isPending ? (
           <div className="flex min-h-72 items-center justify-center" role="status">
-            <Spinner color="warning" label="Loading movie nights" />
+            <Spinner color="warning" />
+            <span className="sr-only">Loading movie nights</span>
           </div>
         ) : historyQuery.isError ? (
           <section className="max-w-xl py-20" role="alert">
@@ -162,7 +164,7 @@ export default function MovieNightsPage() {
                           </p>
                         ) : null}
                         <div className="mt-3 flex flex-wrap items-center gap-3">
-                          <AvatarGroup max={4} aria-label={`${night.participants.length} participants`}>
+                          <AppAvatarGroup max={4} aria-label={`${night.participants.length} participants`}>
                             {night.participants.slice(0, 4).map((participant) => (
                               <ArbiterAvatar
                                 key={participant.id}
@@ -171,7 +173,7 @@ export default function MovieNightsPage() {
                                 decorative
                               />
                             ))}
-                          </AvatarGroup>
+                          </AppAvatarGroup>
                           <span className="text-sm text-[#CDB58E]">
                             {night.participants.length} {night.participants.length === 1 ? "participant" : "participants"}
                           </span>
@@ -195,7 +197,7 @@ export default function MovieNightsPage() {
               <div className="flex justify-center border-t border-[#E0B15C]/10 pt-8">
                 <Button
                   className="app-secondary-button h-11"
-                  isLoading={historyQuery.isFetchingNextPage}
+                  isPending={historyQuery.isFetchingNextPage}
                   onPress={() => historyQuery.fetchNextPage()}
                 >
                   Load more nights

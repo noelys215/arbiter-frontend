@@ -119,7 +119,7 @@ export default function MovieDetailContent({
               {!movie.watchlist && movie.source === "tmdb" ? (
                 <Button
                   className="app-primary-button h-11 px-5"
-                  isLoading={addMutation.isPending}
+                  isPending={addMutation.isPending}
                   isDisabled={addMutation.isPending || !movie.source_id}
                   onPress={() => addMutation.mutate()}
                 >
@@ -233,7 +233,7 @@ export default function MovieDetailContent({
 }
 
 export function MovieDetailLoading() {
-  return <div className="flex min-h-[28rem] items-center justify-center" role="status"><Spinner color="warning" label="Opening film details" /></div>;
+  return <div className="flex min-h-[28rem] items-center justify-center" role="status"><Spinner color="warning" /><span className="sr-only">Opening film details</span></div>;
 }
 
 export function MovieDetailFailure({ onClose }: { onClose: () => void }) {

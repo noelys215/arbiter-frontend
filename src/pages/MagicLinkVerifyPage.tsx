@@ -26,7 +26,7 @@ export default function MagicLinkVerifyPage() {
         <div className="w-full border border-[#E0B15C]/25 bg-[#22130F] p-6">
           {token ? (
             <div className="flex items-center gap-3 text-[#F5D9A5]" role="status">
-              <Spinner color="default" size="sm" />
+              <Spinner color="current" size="sm" />
               <p>Signing you in...</p>
             </div>
           ) : (

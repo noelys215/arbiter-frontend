@@ -1,14 +1,8 @@
-import {
-  Button,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from "@heroui/react";
+import { Button } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { AppTextField } from "../../../components/ui/AppField";
+import AppModal, { AppModalBody, AppModalFooter, AppModalHeader, AppModalHeading } from "../../../components/ui/AppModal";
 import { addManualToWatchlist } from "../../../features/watchlist/watchlist.api";
 import type { InputClassNames, OnOpenChange } from "../types";
 
@@ -55,47 +49,42 @@ export default function ManualAddModal({
   });
 
   return (
-    <Modal
+    <AppModal
       isOpen={isOpen}
       onOpenChange={handleOpenChange}
-      classNames={{
-        base: "bg-[#1C110F] border border-[#E0B15C]/20",
-        header: "border-b border-[#E0B15C]/10",
-        body: "py-6",
-        footer: "border-t border-[#E0B15C]/10",
+      ariaLabel="Add manual item"
+      classes={{
+        dialog: "bg-[#1C110F] border border-[#E0B15C]/20",
       }}
     >
-      <ModalContent>
-        {(onClose) => (
+      {(onClose) => (
           <>
-            <ModalHeader className="text-white">Add manual item</ModalHeader>
-            <ModalBody className="space-y-3">
-              <Input
+            <AppModalHeader className="border-b border-[#E0B15C]/10 text-white"><AppModalHeading>Add manual item</AppModalHeading></AppModalHeader>
+            <AppModalBody className="space-y-3 py-6">
+              <AppTextField
                 label="Title"
                 placeholder="Title"
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 isRequired
-                variant="bordered"
-                classNames={inputClassNames}
+                classes={inputClassNames}
               />
-              <Input
+              <AppTextField
                 label="Year (optional)"
                 placeholder="2024"
                 value={year}
                 onChange={(event) => setYear(event.target.value)}
-                variant="bordered"
-                classNames={inputClassNames}
+                classes={inputClassNames}
               />
-            </ModalBody>
-            <ModalFooter>
+            </AppModalBody>
+            <AppModalFooter className="border-t border-[#E0B15C]/10">
               {addManualMutation.isError ? (
                 <p className="mr-auto text-sm text-[#D77B69]">
                   Unable to add to watchlist.
                 </p>
               ) : null}
               <Button
-                variant="bordered"
+                variant="secondary"
                 className="border-[#D9C7A8]/30 text-[#D9C7A8]"
                 onPress={onClose}
               >
@@ -103,17 +92,16 @@ export default function ManualAddModal({
               </Button>
               <Button
                 className="border-[#E0B15C]/50 text-[#E0B15C] hover:bg-[#E0B15C]/10"
-                variant="bordered"
+                variant="secondary"
                 onPress={() => addManualMutation.mutate()}
                 isDisabled={!title.trim() || !selectedGroupId}
-                isLoading={addManualMutation.isPending}
+                isPending={addManualMutation.isPending}
               >
                 Add
               </Button>
-            </ModalFooter>
+            </AppModalFooter>
           </>
-        )}
-      </ModalContent>
-    </Modal>
+      )}
+    </AppModal>
   );
 }

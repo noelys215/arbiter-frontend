@@ -33,34 +33,13 @@ export default function TopBar({
           versionClassName="sr-only"
         />
 
-        <Tooltip
-          content="Account settings"
-          placement="bottom"
-          classNames={{
-            content:
-              "border border-[#E0B15C]/25 bg-[#22130F] text-[#F7F1E3]",
-          }}
-        >
-          <Badge
-            content={
-              <span aria-hidden="true">
-                {pendingNotificationCount > 99 ? "99+" : pendingNotificationCount}
-              </span>
-            }
-            isInvisible={pendingNotificationCount === 0}
-            placement="top-right"
-            shape="circle"
-            size="sm"
-            classNames={{
-              badge:
-                "min-w-5 border-2 border-[#100806] bg-[#E0B15C] px-1 text-[0.65rem] font-bold text-[#160C0A]",
-            }}
-          >
+        <Badge.Anchor>
+          <Tooltip>
             <Button
               ref={accountTriggerRef}
               isIconOnly
-              variant="light"
-              className="app-account-trigger h-12 w-12 min-w-12 rounded-full border border-[#E0B15C]/20 p-0 transition hover:border-[#E0B15C]/55 sm:h-14 sm:w-14 sm:min-w-14"
+              variant="tertiary"
+              className="app-account-trigger h-12 w-12 min-w-12 rounded-full border border-[#E0B15C]/20 !bg-transparent p-0 transition hover:border-[#E0B15C]/55 sm:h-14 sm:w-14 sm:min-w-14"
               onPress={onAvatarClick}
               aria-label={
                 pendingNotificationCount > 0
@@ -75,8 +54,25 @@ export default function TopBar({
                 decorative
               />
             </Button>
-          </Badge>
-        </Tooltip>
+            <Tooltip.Content
+              placement="bottom"
+              className="border border-[#E0B15C]/25 bg-[#22130F] text-[#F7F1E3]"
+            >
+              Account settings
+            </Tooltip.Content>
+          </Tooltip>
+              {pendingNotificationCount > 0 ? (
+                <Badge
+                  placement="top-right"
+                  size="sm"
+                  className="min-w-5 border-2 border-[#100806] bg-[#E0B15C] px-1 text-[0.65rem] font-bold text-[#160C0A]"
+                >
+                  <span aria-hidden="true">
+                    {pendingNotificationCount > 99 ? "99+" : pendingNotificationCount}
+                  </span>
+                </Badge>
+              ) : null}
+        </Badge.Anchor>
       </div>
     </nav>
   );

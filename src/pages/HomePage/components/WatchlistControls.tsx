@@ -1,4 +1,6 @@
-import { Button, Input, Select, SelectItem } from "@heroui/react";
+import { Button } from "@heroui/react";
+import { AppTextField } from "../../../components/ui/AppField";
+import AppSelect from "../../../components/ui/AppSelect";
 import type { WatchlistSort } from "../../../features/watchlist/watchlist.api";
 import { theaterSelectClassNames } from "../../../lib/selectTheme";
 
@@ -40,24 +42,23 @@ export default function WatchlistControls({
 }: WatchlistControlsProps) {
   return (
     <div className="space-y-3 border-b app-rule pb-4">
-      <Input
+      <AppTextField
         aria-label="Search watchlist"
         placeholder="Search watchlist..."
         value={q}
-        size="sm"
-        onValueChange={onQChange}
-        classNames={{
+        onChangeValue={onQChange}
+        classes={{
           input:
             "!text-[#F7F1E3] placeholder:text-[#D9C7A8]/70 caret-[#E0B15C]",
           inputWrapper:
-            "!bg-[#1A100E] !text-[#F7F1E3] border-[#E0B15C]/35 data-[hover=true]:border-[#E0B15C]/55 data-[focus=true]:!bg-[#1A100E] data-[focus=true]:border-[#E0B15C]/75",
+            "!bg-[#1A100E] !text-[#F7F1E3] border-[#E0B15C]/35 hover:border-[#E0B15C]/55 focus:!bg-[#1A100E] focus:border-[#E0B15C]/75",
         }}
       />
 
       <div className="flex flex-wrap items-center gap-2">
         <Button
           size="sm"
-          variant={mediaType === "all" ? "solid" : "light"}
+          variant={mediaType === "all" ? "primary" : "tertiary"}
           className={
             mediaType === "all"
               ? "app-primary-button"
@@ -70,7 +71,7 @@ export default function WatchlistControls({
         </Button>
         <Button
           size="sm"
-          variant={mediaType === "movie" ? "solid" : "light"}
+          variant={mediaType === "movie" ? "primary" : "tertiary"}
           className={
             mediaType === "movie"
               ? "app-primary-button"
@@ -83,7 +84,7 @@ export default function WatchlistControls({
         </Button>
         <Button
           size="sm"
-          variant={mediaType === "tv" ? "solid" : "light"}
+          variant={mediaType === "tv" ? "primary" : "tertiary"}
           className={
             mediaType === "tv"
               ? "app-primary-button"
@@ -97,42 +98,44 @@ export default function WatchlistControls({
       </div>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <Select
-          aria-label="Filter by genre"
-          size="sm"
-          selectedKeys={genreId ? [String(genreId)] : []}
+        <AppSelect
+          ariaLabel="Filter by genre"
+          value={genreId ? String(genreId) : null}
           placeholder="All genres"
-          onSelectionChange={(keys) => {
-            const [value] = Array.from(keys);
-            if (typeof value === "string" && value.trim().length > 0) {
+          onChange={(value) => {
+            if (value && value.trim().length > 0) {
               const parsed = Number.parseInt(value, 10);
               onGenreIdChange(Number.isFinite(parsed) ? parsed : null);
               return;
             }
             onGenreIdChange(null);
           }}
-          classNames={theaterSelectClassNames}
-        >
-          {genreOptions.map((option) => (
-            <SelectItem key={String(option.id)}>{option.label}</SelectItem>
-          ))}
-        </Select>
+          options={genreOptions.map((option) => ({ id: String(option.id), label: option.label }))}
+          triggerClassName={theaterSelectClassNames.trigger}
+          valueClassName={theaterSelectClassNames.value}
+          listBoxClassName={theaterSelectClassNames.listbox}
+          popoverClassName={theaterSelectClassNames.popoverContent}
+          indicatorClassName={theaterSelectClassNames.selectorIcon}
+        />
 
-        <Select
-          aria-label="Sort watchlist"
-          size="sm"
-          selectedKeys={[sort]}
-          onSelectionChange={(keys) => {
-            const [value] = Array.from(keys);
+        <AppSelect
+          ariaLabel="Sort watchlist"
+          value={sort}
+          onChange={(value) => {
             if (value === "oldest" || value === "recent") {
               onSortChange(value);
             }
           }}
-          classNames={theaterSelectClassNames}
-        >
-          <SelectItem key="recent">Recent added</SelectItem>
-          <SelectItem key="oldest">Oldest to newest</SelectItem>
-        </Select>
+          options={[
+            { id: "recent", label: "Recent added" },
+            { id: "oldest", label: "Oldest to newest" },
+          ]}
+          triggerClassName={theaterSelectClassNames.trigger}
+          valueClassName={theaterSelectClassNames.value}
+          listBoxClassName={theaterSelectClassNames.listbox}
+          popoverClassName={theaterSelectClassNames.popoverContent}
+          indicatorClassName={theaterSelectClassNames.selectorIcon}
+        />
       </div>
 
       <div className="flex items-center justify-between gap-2 text-xs">
@@ -146,7 +149,7 @@ export default function WatchlistControls({
         {hasActiveFilters ? (
           <Button
             size="sm"
-            variant="light"
+            variant="tertiary"
           className="app-secondary-button"
             onPress={onClearFilters}
           >

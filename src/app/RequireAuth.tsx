@@ -40,7 +40,7 @@ export default function RequireAuth({ children }: RequireAuthProps) {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#140C0A] text-[#E0B15C]">
-        <Spinner color="default" />
+        <Spinner color="current" />
       </div>
     );
   }

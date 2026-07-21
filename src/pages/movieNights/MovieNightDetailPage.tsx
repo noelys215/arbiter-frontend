@@ -1,4 +1,5 @@
-import { AvatarGroup, Button, Spinner, useDisclosure } from "@heroui/react";
+import { Button, Spinner, useOverlayState } from "@heroui/react";
+import AppAvatarGroup from "../../components/ui/AppAvatarGroup";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { lazy, Suspense, useMemo } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
@@ -39,7 +40,7 @@ export default function MovieNightDetailPage() {
   const { groupId = "", sessionId = "" } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const cardDialog = useDisclosure();
+  const cardDialog = useOverlayState();
   const queryClient = useQueryClient();
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: getMe });
   const groupQuery = useQuery({
@@ -100,7 +101,8 @@ export default function MovieNightDetailPage() {
     return (
       <MovieNightsShell>
         <div className="flex min-h-[60vh] items-center justify-center" role="status">
-          <Spinner color="warning" label="Opening movie night" />
+          <Spinner color="warning" />
+          <span className="sr-only">Opening movie night</span>
         </div>
       </MovieNightsShell>
     );
@@ -149,8 +151,8 @@ export default function MovieNightDetailPage() {
             </div>
             <div className="max-w-3xl">
               <Button
-                variant="light"
-                className="mb-7 h-11 min-w-0 px-0 text-sm text-[#E4D0AD] data-[hover=true]:bg-transparent data-[hover=true]:text-[#F2C16E]"
+                variant="tertiary"
+                className="mb-7 h-11 min-w-0 !bg-transparent px-0 text-sm text-[#E4D0AD] data-[hovered=true]:!bg-transparent data-[hovered=true]:text-[#F2C16E]"
                 onPress={() => navigate(`/app/groups/${groupId}/movie-nights`)}
               >
                 ← All movie nights
@@ -183,7 +185,7 @@ export default function MovieNightDetailPage() {
                 >
                   View film details
                 </Link>
-                <Button className="app-primary-button h-11 px-5" onPress={cardDialog.onOpen}>
+                <Button className="app-primary-button h-11 px-5" onPress={cardDialog.open}>
                   Create card
                 </Button>
               </div>
@@ -253,11 +255,11 @@ export default function MovieNightDetailPage() {
             <section aria-labelledby="participants-heading">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#CDB58E]">The group</p>
               <h2 id="participants-heading" className="app-heading-serif mt-2 text-2xl text-[#F7EAD2]">Who decided</h2>
-              <AvatarGroup className="mt-5" max={6} aria-label={`${night.participants.length} historical participants`}>
+              <AppAvatarGroup className="mt-5" max={6} aria-label={`${night.participants.length} historical participants`}>
                 {night.participants.map((participant) => (
                   <ArbiterAvatar key={participant.id} user={participant} size="lg" label={participant.display_name} />
                 ))}
-              </AvatarGroup>
+              </AppAvatarGroup>
               <ul className="mt-5 space-y-2">
                 {night.participants.map((participant) => (
                   <li key={participant.id} className="flex justify-between gap-4 text-sm"><span className="text-[#EAD9BC]">{participant.display_name}</span><span className="text-[#CDB58E]">{participant.role === "host" ? "Host" : "Participant"}</span></li>
@@ -273,10 +275,10 @@ export default function MovieNightDetailPage() {
                   {watchedOptions.map((option) => (
                     <Button
                       key={option.value}
-                      variant="light"
+                      variant="tertiary"
                       className={`h-11 justify-start border px-4 ${night.watched_status === option.value ? "border-[#E0B15C]/55 bg-[#E0B15C]/12 text-[#F7EAD2]" : "border-[#E0B15C]/12 text-[#E4D0AD]"}`}
                       aria-pressed={night.watched_status === option.value}
-                      isLoading={watchedMutation.isPending && watchedMutation.variables === option.value}
+                      isPending={watchedMutation.isPending && watchedMutation.variables === option.value}
                       onPress={() => watchedMutation.mutate(option.value)}
                     >
                       <span aria-hidden="true" className="w-4">{night.watched_status === option.value ? "✓" : ""}</span>{option.label}
@@ -304,7 +306,7 @@ export default function MovieNightDetailPage() {
         {cardDialog.isOpen ? (
           <MovieNightCardDialog
             isOpen={cardDialog.isOpen}
-            onOpenChange={cardDialog.onOpenChange}
+            onOpenChange={cardDialog.setOpen}
             night={night}
           />
         ) : null}

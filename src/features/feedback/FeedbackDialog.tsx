@@ -1,18 +1,9 @@
-import {
-  Button,
-  Checkbox,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Radio,
-  RadioGroup,
-  Textarea,
-} from "@heroui/react";
+import { Button } from "@heroui/react";
 import { useMutation } from "@tanstack/react-query";
 import { useRef, useState, type FormEvent, type RefObject } from "react";
+import { AppTextArea, AppTextField } from "../../components/ui/AppField";
+import AppModal, { AppModalBody, AppModalFooter, AppModalHeader, AppModalHeading } from "../../components/ui/AppModal";
+import { AppCheckbox, AppRadio, AppRadioGroup } from "../../components/ui/AppSelection";
 import { buildFeedbackDiagnostics } from "./feedbackDiagnostics";
 import {
   submitFeedback,
@@ -153,177 +144,154 @@ export default function FeedbackDialog({
   };
 
   return (
-    <Modal
+    <AppModal
       isOpen={isOpen}
       onOpenChange={handleOpenChange}
-      size="xl"
-      scrollBehavior="inside"
+      ariaLabel="Share feedback"
+      size="lg"
       isDismissable={!mutation.isPending}
       isKeyboardDismissDisabled={mutation.isPending}
-      classNames={{
-        base: "feedback-dialog max-h-[calc(100dvh-1.5rem)] !max-w-[44rem] border border-[#E0B15C]/20 bg-[#1C110F]",
-        wrapper: "items-end pb-4 sm:items-center sm:pb-0",
+      placement="auto"
+      classes={{
+        dialog: "feedback-dialog max-h-[calc(100dvh-1.5rem)] !max-w-[44rem] border border-[#E0B15C]/20 bg-[#1C110F]",
+        container: "items-end pb-4 sm:items-center sm:pb-0",
         backdrop: "bg-black/38",
         closeButton:
           "feedback-close-button min-h-11 min-w-11 text-[#EAD9BC] hover:bg-[#E0B15C]/10 hover:text-[#F7EAD2]",
-        header: "feedback-dialog-header",
-        body: "feedback-dialog-body",
-        footer: "feedback-dialog-footer",
       }}
     >
-      <ModalContent>
-        {(onClose) =>
+      {(onClose) =>
           mutation.isSuccess ? (
             <>
-              <ModalHeader className="sr-only">Feedback sent</ModalHeader>
-              <ModalBody className="feedback-success py-10 sm:py-14">
+              <AppModalHeader className="sr-only"><AppModalHeading>Feedback sent</AppModalHeading></AppModalHeader>
+              <AppModalBody className="feedback-dialog-body feedback-success py-10 sm:py-14">
                 <p className="landing-eyebrow">Thank you</p>
-                <h2
+                <AppModalHeading
                   ref={successHeadingRef}
                   tabIndex={-1}
                   className="app-heading-serif text-3xl text-[#F7EAD2] sm:text-4xl"
                 >
                   Thanks for helping improve Arbiter.
-                </h2>
+                </AppModalHeading>
                 <p className="app-text-secondary">Your feedback has been sent.</p>
                 {sentWithContact ? (
                   <p className="text-sm app-text-metadata">
                     We may follow up at the email you provided.
                   </p>
                 ) : null}
-              </ModalBody>
-              <ModalFooter>
+              </AppModalBody>
+              <AppModalFooter className="feedback-dialog-footer">
                 <Button className="app-primary-button" size="lg" onPress={onClose}>
                   Done
                 </Button>
-              </ModalFooter>
+              </AppModalFooter>
             </>
           ) : (
             <form onSubmit={handleSubmit} className="contents" noValidate>
-              <ModalHeader className="flex flex-col items-start gap-0.5">
-                <h2 className="app-heading-serif text-3xl text-[#F7EAD2]">
+              <AppModalHeader className="feedback-dialog-header flex flex-col items-start gap-0.5">
+                <AppModalHeading className="app-heading-serif text-3xl text-[#F7EAD2]">
                   Share feedback
-                </h2>
+                </AppModalHeading>
                 <p className="text-sm font-normal app-text-secondary">
                   Help make Arbiter better.
                 </p>
-              </ModalHeader>
-              <ModalBody className="space-y-4">
-                <RadioGroup
+              </AppModalHeader>
+              <AppModalBody className="feedback-dialog-body space-y-4">
+                <AppRadioGroup
                   label="What would you like to send?"
                   value={type}
-                  onValueChange={handleTypeChange}
+                  onChange={handleTypeChange}
+                  name="feedback-type"
                   orientation="horizontal"
-                  classNames={{
-                    label: "text-sm font-semibold text-[#F7EAD2]",
-                    wrapper: "feedback-type-options",
-                  }}
+                  className="feedback-type-options"
+                  labelClassName="text-sm font-semibold text-[#F7EAD2]"
                 >
                   {TYPE_OPTIONS.map((option) => (
-                    <Radio
+                    <AppRadio
                       key={option.value}
                       value={option.value}
-                      classNames={{
-                        base: "feedback-type-option",
-                        label: "feedback-type-label",
-                        wrapper: "feedback-type-radio",
-                        control:
-                          "feedback-type-indicator border-[#E0B15C]/48 group-data-[selected=true]:border-[#E0B15C] group-data-[selected=true]:bg-[#E0B15C]",
-                      }}
+                      className="feedback-type-option"
+                      labelClassName="feedback-type-label feedback-type-radio"
+                      controlClassName="feedback-type-indicator border-[#E0B15C]/48 data-[selected=true]:border-[#E0B15C] data-[selected=true]:bg-[#E0B15C]"
                     >
                       {option.label}
-                    </Radio>
+                    </AppRadio>
                   ))}
-                </RadioGroup>
+                </AppRadioGroup>
 
-                <Textarea
+                <AppTextArea
                   isRequired
                   label={MESSAGE_LABELS[type]}
                   placeholder={MESSAGE_PLACEHOLDERS[type]}
                   value={message}
-                  onValueChange={setMessage}
-                  minRows={3}
-                  maxRows={7}
+                  onChangeValue={setMessage}
+                  rows={3}
                   maxLength={4000}
-                  variant="bordered"
                   isInvalid={messageInvalid}
-                  errorMessage={
-                    messageInvalid ? (
-                      <span role="alert">Please add a little more detail.</span>
-                    ) : undefined
-                  }
+                  errorMessage={messageInvalid ? "Please add a little more detail." : undefined}
                   description={`${message.length.toLocaleString()} / 4,000`}
-                  classNames={{
+                  classes={{
                     label: "feedback-field-label",
                     input: "feedback-message-input text-base",
                     inputWrapper:
                       "feedback-field-wrapper border-[#E0B15C]/32 bg-[#22130F]",
                     description: "feedback-character-count",
-                    errorMessage: "feedback-error-message",
+                    error: "feedback-error-message",
                   }}
                 />
 
                 <div className="feedback-consent-group">
-                  <Checkbox
-                    isSelected={allowContact}
-                    onValueChange={setAllowContact}
+                  <AppCheckbox
+                    selected={allowContact}
+                    onChange={setAllowContact}
                     aria-describedby="feedback-contact-helper"
-                    classNames={{
-                      base: "feedback-checkbox min-h-11",
-                      wrapper: "feedback-checkbox-control",
-                      label: "feedback-checkbox-label",
-                    }}
+                    className="feedback-checkbox min-h-11"
+                    controlClassName="feedback-checkbox-control"
+                    labelClassName="feedback-checkbox-label"
                   >
                     {isAuthenticated
                       ? "Use my account email for a reply"
                       : "You may contact me about this feedback"}
-                  </Checkbox>
+                  </AppCheckbox>
                   <p id="feedback-contact-helper" className="feedback-checkbox-helper">
                     We’ll only use your email to follow up about this message.
                   </p>
                   {allowContact && !isAuthenticated ? (
-                    <Input
+                    <AppTextField
                       isRequired
                       type="email"
                       autoComplete="email"
                       label="Email for a reply"
                       placeholder="you@example.com"
                       value={contactEmail}
-                      onValueChange={setContactEmail}
-                      variant="bordered"
+                      onChangeValue={setContactEmail}
                       isInvalid={emailInvalid}
-                      errorMessage={
-                        emailInvalid ? (
-                          <span role="alert">Enter a valid email address.</span>
-                        ) : undefined
-                      }
-                      classNames={{
+                      errorMessage={emailInvalid ? "Enter a valid email address." : undefined}
+                      classes={{
                         label: "feedback-field-label",
                         input: "feedback-message-input",
                         inputWrapper:
                           "feedback-field-wrapper border-[#E0B15C]/32 bg-[#22130F]",
-                        errorMessage: "feedback-error-message",
+                        error: "feedback-error-message",
                       }}
                     />
                   ) : null}
                 </div>
 
                 <div className="feedback-consent-group">
-                  <Checkbox
-                    isSelected={includeDiagnostics}
+                  <AppCheckbox
+                    selected={includeDiagnostics}
                     aria-describedby="feedback-diagnostics-helper feedback-diagnostics-reassurance"
-                    onValueChange={(selected) => {
+                    onChange={(selected) => {
                       setIncludeDiagnostics(selected);
                       setDiagnosticsTouched(true);
                     }}
-                    classNames={{
-                      base: "feedback-checkbox min-h-11",
-                      wrapper: "feedback-checkbox-control",
-                      label: "feedback-checkbox-label",
-                    }}
+                    className="feedback-checkbox min-h-11"
+                    controlClassName="feedback-checkbox-control"
+                    labelClassName="feedback-checkbox-label"
                   >
                     Include technical details
-                  </Checkbox>
+                  </AppCheckbox>
                   <p
                     id="feedback-diagnostics-helper"
                     className="feedback-checkbox-helper"
@@ -362,11 +330,11 @@ export default function FeedbackDialog({
                     Sending feedback
                   </p>
                 ) : null}
-              </ModalBody>
-              <ModalFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              </AppModalBody>
+              <AppModalFooter className="feedback-dialog-footer flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <Button
                   type="button"
-                  variant="light"
+                  variant="tertiary"
                   className="app-secondary-button w-full sm:w-auto"
                   size="md"
                   onPress={onClose}
@@ -378,16 +346,15 @@ export default function FeedbackDialog({
                   type="submit"
                   className="feedback-submit-button app-primary-button w-full sm:w-auto"
                   size="md"
-                  isLoading={mutation.isPending}
+                  isPending={mutation.isPending}
                   isDisabled={mutation.isPending}
                 >
                   {mutation.isPending ? "Sending…" : "Send feedback"}
                 </Button>
-              </ModalFooter>
+              </AppModalFooter>
             </form>
           )
         }
-      </ModalContent>
-    </Modal>
+    </AppModal>
   );
 }

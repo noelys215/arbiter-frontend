@@ -1,11 +1,5 @@
-import {
-  Button,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from "@heroui/react";
+import { Button } from "@heroui/react";
+import AppModal, { AppModalBody, AppModalFooter, AppModalHeader, AppModalHeading } from "../../../components/ui/AppModal";
 import type { SessionCandidate } from "../../../features/sessions/sessions.api";
 import TitlePosterRow from "./TitlePosterRow";
 
@@ -27,22 +21,20 @@ export default function DealtCardsModal({
   onContinue,
 }: DealtCardsModalProps) {
   return (
-    <Modal
+    <AppModal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
+      ariaLabel="Your dealt cards"
       isDismissable={false}
       hideCloseButton
-      classNames={{
-        base: "border border-[#E0B15C]/25 bg-[#1C110F]",
-        header: "border-b border-[#E0B15C]/15",
-        footer: "border-t border-[#E0B15C]/15",
+      classes={{
+        dialog: "border border-[#E0B15C]/25 bg-[#1C110F]",
       }}
     >
-      <ModalContent>
-        {() => (
+      {() => (
           <>
-            <ModalHeader className="text-[#F5D9A5]">Your Dealt Cards</ModalHeader>
-            <ModalBody>
+            <AppModalHeader className="border-b border-[#E0B15C]/15 text-[#F5D9A5]"><AppModalHeading>Your Dealt Cards</AppModalHeading></AppModalHeader>
+            <AppModalBody>
               {cards.length === 0 ? (
                 <p className="text-sm text-[#D9C7A8]">
                   No titles matched this request. Go back and try a broader vibe.
@@ -60,10 +52,10 @@ export default function DealtCardsModal({
                   ))}
                 </div>
               )}
-            </ModalBody>
-            <ModalFooter>
+            </AppModalBody>
+            <AppModalFooter className="border-t border-[#E0B15C]/15">
               <Button
-                variant="bordered"
+                variant="secondary"
                 className="border-[#E0B15C]/35 text-[#E0B15C]"
                 isDisabled={isSubmitting}
                 onPress={onBack}
@@ -72,16 +64,15 @@ export default function DealtCardsModal({
               </Button>
               <Button
                 className="border border-[#E0B15C]/55 bg-[#E0B15C] text-[#171717]"
-                isLoading={isSubmitting}
+                isPending={isSubmitting}
                 isDisabled={cards.length === 0}
                 onPress={onContinue}
               >
                 Continue
               </Button>
-            </ModalFooter>
+            </AppModalFooter>
           </>
-        )}
-      </ModalContent>
-    </Modal>
+      )}
+    </AppModal>
   );
 }

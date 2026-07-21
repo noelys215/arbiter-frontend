@@ -1,8 +1,8 @@
 import {
-  AvatarGroup,
   Button,
-  useDisclosure,
+  useOverlayState,
 } from "@heroui/react";
+import AppAvatarGroup from "../../../components/ui/AppAvatarGroup";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -27,7 +27,7 @@ type RightRailProps = {
 
 export default function RightRail({ friends, selectedGroup, currentUserId, onOpenAccount }: RightRailProps) {
   const queryClient = useQueryClient();
-  const confirmModal = useDisclosure();
+  const confirmModal = useOverlayState();
   const [pendingUnfriendId, setPendingUnfriendId] = useState<string | null>(
     null,
   );
@@ -101,13 +101,13 @@ export default function RightRail({ friends, selectedGroup, currentUserId, onOpe
 
   const openConfirm = (payload: ConfirmAction) => {
     setConfirmAction(payload);
-    confirmModal.onOpen();
+    confirmModal.open();
   };
 
   const handleConfirm = () => {
     if (!confirmAction) return;
     unfriendMutation.mutate(confirmAction.id);
-    confirmModal.onClose();
+    confirmModal.close();
     setConfirmAction(null);
   };
 
@@ -127,7 +127,7 @@ export default function RightRail({ friends, selectedGroup, currentUserId, onOpe
             </div>
             <div className="mt-3">
             {members.length > 0 ? (
-              <AvatarGroup
+              <AppAvatarGroup
                 isBordered
                 max={3}
                 total={members.length}
@@ -144,7 +144,7 @@ export default function RightRail({ friends, selectedGroup, currentUserId, onOpe
                     className="bg-[#E0B15C]/20 text-[#E0B15C]"
                   />
                 ))}
-              </AvatarGroup>
+              </AppAvatarGroup>
             ) : null}
             </div>
             <nav aria-label={`${selectedGroup.name} pages`} className="mt-4 flex flex-wrap gap-x-5">
@@ -192,11 +192,11 @@ export default function RightRail({ friends, selectedGroup, currentUserId, onOpe
                       {selectedGroup && canInviteToGroup ? (
                         <Button
                           size="sm"
-                          variant="light"
+                          variant="tertiary"
                           className="app-secondary-button"
                           onPress={() => inviteMemberMutation.mutate(friend.id)}
                           isDisabled={isMember || isPending}
-                          isLoading={pendingInviteId === friend.id}
+                          isPending={pendingInviteId === friend.id}
                           aria-label={
                             isMember
                               ? `${label} is already in this group`
@@ -210,7 +210,7 @@ export default function RightRail({ friends, selectedGroup, currentUserId, onOpe
                       ) : null}
                       <Button
                         size="sm"
-                        variant="light"
+                        variant="tertiary"
                         className="app-danger-button"
                         onPress={() =>
                           openConfirm({
@@ -219,7 +219,7 @@ export default function RightRail({ friends, selectedGroup, currentUserId, onOpe
                             label,
                           })
                         }
-                        isLoading={pendingUnfriendId === friend.id}
+                        isPending={pendingUnfriendId === friend.id}
                         aria-label={`Unfriend ${label}`}
                       >
                         Unfriend
@@ -234,7 +234,7 @@ export default function RightRail({ friends, selectedGroup, currentUserId, onOpe
               <p className="text-sm app-muted">
                 No friends here yet. Share an invite to start choosing together.
               </p>
-              <Button size="sm" variant="light" className="app-secondary-button" onPress={onOpenAccount}>
+              <Button size="sm" variant="tertiary" className="app-secondary-button" onPress={onOpenAccount}>
                 Invite a friend
               </Button>
             </div>
@@ -245,7 +245,7 @@ export default function RightRail({ friends, selectedGroup, currentUserId, onOpe
 
       <ConfirmActionModal
         isOpen={confirmModal.isOpen}
-        onOpenChange={confirmModal.onOpenChange}
+        onOpenChange={confirmModal.setOpen}
         confirmAction={confirmAction}
         onConfirm={handleConfirm}
         isLoading={unfriendMutation.isPending}

@@ -1,4 +1,4 @@
-import { Select, SelectItem, useDisclosure } from "@heroui/react";
+import { useOverlayState } from "@heroui/react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getMe } from "../features/auth/auth.api";
@@ -19,6 +19,7 @@ import type { WatchlistItem } from "../features/watchlist/watchlist.api";
 import { getWatchlistRowMetadata } from "../features/watchlist/watchlistMetadata";
 import { tmdbPosterUrl } from "../lib/tmdb";
 import { theaterSelectClassNames } from "../lib/selectTheme";
+import AppSelect from "../components/ui/AppSelect";
 import { TMDB_GENRE_LABEL_BY_ID } from "./session/constants";
 import AddToWatchlistCard from "./HomePage/components/AddToWatchlistCard";
 import AvatarMenuModal from "./HomePage/components/AvatarMenuModal";
@@ -51,9 +52,9 @@ export default function HomePage() {
   const [watchlistGenreId, setWatchlistGenreId] = useState<number | null>(null);
   const [watchlistSort, setWatchlistSort] = useState<WatchlistSort>("recent");
   const [watchlistPage, setWatchlistPage] = useState(1);
-  const manualModal = useDisclosure();
-  const avatarModal = useDisclosure();
-  const feedbackModal = useDisclosure();
+  const manualModal = useOverlayState();
+  const avatarModal = useOverlayState();
+  const feedbackModal = useOverlayState();
 
   const inputClassNames: InputClassNames = {
     label: "!text-[#EAD9BC]",
@@ -270,7 +271,7 @@ export default function HomePage() {
       <TopBar
         me={me}
         accountTriggerRef={accountTriggerRef}
-        onAvatarClick={avatarModal.onOpen}
+        onAvatarClick={avatarModal.open}
         pendingNotificationCount={
           (friendRequests?.incoming.length ?? 0) +
           (groupInvitations?.length ?? 0)
@@ -314,33 +315,20 @@ export default function HomePage() {
                 >
                   Current group
                 </span>
-                <Select
-                  aria-labelledby="app-group-label"
+                <AppSelect
+                  ariaLabel="Current group"
                   placeholder="Select a group"
-                  selectedKeys={resolvedSelectedGroupId ? [resolvedSelectedGroupId] : []}
-                  renderValue={(items) =>
-                    items.map((item) => (
-                      <span key={item.key} className="text-[#F5D9A5]">
-                        {item.textValue}
-                      </span>
-                    ))
-                  }
-                  onSelectionChange={(keys) => {
-                    const [value] = Array.from(keys);
-                    if (typeof value === "string") {
-                      setSelectedGroupId(value);
-                    }
-                  }}
+                  value={resolvedSelectedGroupId}
+                  onChange={(value) => value && setSelectedGroupId(value)}
                   isDisabled={!groups || groups.length === 0}
-                  size="sm"
-                  variant="bordered"
                   className="w-full sm:w-56"
-                  classNames={theaterSelectClassNames}
-                >
-                  {(groups ?? []).map((group) => (
-                    <SelectItem key={group.id}>{group.name}</SelectItem>
-                  ))}
-                </Select>
+                  options={(groups ?? []).map((group) => ({ id: group.id, label: group.name }))}
+                  triggerClassName={theaterSelectClassNames.trigger}
+                  valueClassName={theaterSelectClassNames.value}
+                  listBoxClassName={theaterSelectClassNames.listbox}
+                  popoverClassName={theaterSelectClassNames.popoverContent}
+                  indicatorClassName={theaterSelectClassNames.selectorIcon}
+                />
               </div>
               </header>
             ) : null}
@@ -393,7 +381,7 @@ export default function HomePage() {
                     tmdbResults={tmdbResults}
                     isSearching={tmdbQuery.isFetching}
                     onClearSearch={() => handleSearchChange("")}
-                    onOpenManual={manualModal.onOpen}
+                    onOpenManual={manualModal.open}
                     isManualDisabled={!resolvedSelectedGroupId}
                     inputClassNames={inputClassNames}
                     renderPoster={renderPoster}
@@ -411,7 +399,7 @@ export default function HomePage() {
                 friends={friends}
                 selectedGroup={selectedGroup}
                 currentUserId={me?.id ?? null}
-                onOpenAccount={avatarModal.onOpen}
+                onOpenAccount={avatarModal.open}
               />
             </div>
           </div>
@@ -422,7 +410,7 @@ export default function HomePage() {
       {/* Modals */}
       <ManualAddModal
         isOpen={manualModal.isOpen}
-        onOpenChange={manualModal.onOpenChange}
+        onOpenChange={manualModal.setOpen}
         selectedGroupId={resolvedSelectedGroupId}
         inputClassNames={inputClassNames}
       />
@@ -431,10 +419,10 @@ export default function HomePage() {
         isOpen={avatarModal.isOpen}
         onOpenChange={(nextOpen) => {
           if (nextOpen) {
-            avatarModal.onOpen();
+            avatarModal.open();
             return;
           }
-          avatarModal.onClose();
+          avatarModal.close();
           window.requestAnimationFrame(() => {
             window.requestAnimationFrame(() => accountTriggerRef.current?.focus());
           });
@@ -449,8 +437,8 @@ export default function HomePage() {
         onOpenFeedback={
           feedbackAvailability.account
             ? () => {
-                avatarModal.onClose();
-                window.requestAnimationFrame(feedbackModal.onOpen);
+                avatarModal.close();
+                window.requestAnimationFrame(feedbackModal.open);
               }
             : undefined
         }
@@ -458,7 +446,7 @@ export default function HomePage() {
       {feedbackAvailability.account ? (
         <FeedbackDialog
           isOpen={feedbackModal.isOpen}
-          onOpenChange={feedbackModal.onOpenChange}
+          onOpenChange={feedbackModal.setOpen}
           source="account_profile"
           isAuthenticated
           selectedGroupId={resolvedSelectedGroupId}

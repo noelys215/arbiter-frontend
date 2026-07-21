@@ -40,22 +40,25 @@ export default function SessionHeader({
 
         <div className="flex items-center gap-1.5 sm:gap-3">
           {sessionAction}
-          <Tooltip
-            content={`${userName}${userEmail ? `\n${userEmail}` : ""}`}
-            placement="bottom"
-            classNames={{
-              content:
-                "whitespace-pre-line border border-[#E0B15C]/25 bg-[#22130F] text-[#F7F1E3]",
-            }}
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#E0B15C]/20 p-0 sm:h-14 sm:w-14">
+          <Tooltip>
+            <button
+              type="button"
+              aria-label={`Signed in as ${userName}`}
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-[#E0B15C]/20 p-0 outline-none focus-visible:ring-2 focus-visible:ring-[#F2C16E] sm:h-14 sm:w-14"
+            >
               <ArbiterAvatar
                 user={user}
                 size="lg"
                 label={userName}
                 className="bg-[#E0B15C] text-[#1C110F]"
               />
-            </div>
+            </button>
+            <Tooltip.Content
+              placement="bottom"
+              className="whitespace-pre-line border border-[#E0B15C]/25 bg-[#22130F] text-[#F7F1E3]"
+            >
+              {`${userName}${userEmail ? `\n${userEmail}` : ""}`}
+            </Tooltip.Content>
           </Tooltip>
         </div>
       </div>

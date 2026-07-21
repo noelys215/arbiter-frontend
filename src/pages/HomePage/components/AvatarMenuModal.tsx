@@ -1,21 +1,16 @@
 import {
   Button,
-  Divider,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Tab,
-  Tabs,
-  useDisclosure,
+  Separator,
+  useOverlayState,
 } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { lazy, Suspense, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ArbiterAvatar from "../../../components/ArbiterAvatar";
 import KoFiSupportLink from "../../../components/KoFiSupportLink";
+import { AppTextField } from "../../../components/ui/AppField";
+import AppModal, { AppModalBody, AppModalFooter, AppModalHeader, AppModalHeading } from "../../../components/ui/AppModal";
+import AppTabs, { AppTab } from "../../../components/ui/AppTabs";
 import { logout, updateDisplayName } from "../../../features/auth/auth.api";
 import type { MeResponse } from "../../../features/auth/auth.api";
 import {
@@ -90,8 +85,8 @@ export default function AvatarMenuModal({
 }: AvatarMenuModalProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const confirmModal = useDisclosure();
-  const avatarSelectorModal = useDisclosure();
+  const confirmModal = useOverlayState();
+  const avatarSelectorModal = useOverlayState();
 
   // Friend request state
   const [friendRequestIdentifier, setFriendRequestIdentifier] = useState("");
@@ -329,7 +324,7 @@ export default function AvatarMenuModal({
 
   const openConfirm = (payload: ConfirmAction) => {
     setConfirmAction(payload);
-    confirmModal.onOpen();
+    confirmModal.open();
   };
 
   const handleConfirm = () => {
@@ -343,7 +338,7 @@ export default function AvatarMenuModal({
     } else if (confirmAction.type === "transfer") {
       transferOwnershipMutation.mutate(confirmAction.id);
     }
-    confirmModal.onClose();
+    confirmModal.close();
     setConfirmAction(null);
   };
 
@@ -364,26 +359,23 @@ export default function AvatarMenuModal({
 
   return (
     <>
-      <Modal
+      <AppModal
         isOpen={isOpen}
         onOpenChange={onOpenChange}
-        size="2xl"
-        scrollBehavior="inside"
-        classNames={{
-          base: "max-h-[calc(100dvh-2rem)] border border-[#E0B15C]/20 bg-[#1C110F]",
-          wrapper: "items-end pb-4 sm:items-center sm:pb-0",
+        ariaLabel="Account"
+        size="lg"
+        placement="auto"
+        classes={{
+          dialog: "w-full !max-w-[42rem] max-h-[calc(100dvh-2rem)] border border-[#E0B15C]/20 bg-[#1C110F]",
+          container: "items-end pb-4 sm:items-center sm:pb-0",
           backdrop: "bg-black/32",
           closeButton:
             "text-[#EAD9BC] hover:bg-[#E0B15C]/10 hover:text-[#F7EAD2] focus-visible:ring-2 focus-visible:ring-[#F2C16E]",
-          header: "border-b border-[#E0B15C]/16",
-          body: "py-5",
-          footer: "border-t border-[#E0B15C]/16",
         }}
       >
-        <ModalContent>
-          {(onClose) => (
+        {(onClose) => (
             <>
-              <ModalHeader className="flex items-center gap-4">
+              <AppModalHeader className="!flex-row !items-center !justify-start gap-4 border-b border-[#E0B15C]/16">
                 <ArbiterAvatar
                   user={me}
                   size={56}
@@ -391,35 +383,28 @@ export default function AvatarMenuModal({
                   className="bg-[#E0B15C] text-[#1C110F]"
                 />
                 <div>
-                  <h2 className="app-heading-serif text-3xl leading-none text-[#F7EAD2]">
+                  <AppModalHeading className="app-heading-serif text-3xl leading-none text-[#F7EAD2]">
                     Account
-                  </h2>
+                  </AppModalHeading>
                   <p className="mt-1 text-sm app-muted">
                     Your profile, friends, and movie-night groups.
                   </p>
                 </div>
-              </ModalHeader>
-              <ModalBody className="py-5">
-                <Tabs
+              </AppModalHeader>
+              <AppModalBody className="py-5">
+                <AppTabs
                   aria-label="Account sections"
                   selectedKey={selectedTab}
                   onSelectionChange={(key) =>
                     setSelectedTab(key as "profile" | "friends" | "groups")
                   }
-                  destroyInactiveTabPanel={false}
-                  variant="light"
-                  classNames={{
-                    base: "w-full",
-                    tabList:
-                      "w-full gap-5 rounded-none bg-transparent p-0",
-                    tab: "h-10 border-b-2 border-transparent px-0 font-semibold data-[hover=true]:border-[#E0B15C]/40 data-[selected=true]:border-[#E0B15C]",
-                    tabContent:
-                      "!text-[#EAD9BC] group-data-[selected=true]:!text-[#F7EAD2]",
-                    cursor: "hidden",
-                    panel: "min-h-56 pt-5 sm:min-h-60",
-                  }}
+                  className="w-full"
+                  listClassName="w-full gap-5 rounded-none bg-transparent p-0"
+                  tabClassName="h-10 border-b-2 border-transparent px-0 font-semibold text-[#EAD9BC] data-[hovered=true]:border-[#E0B15C]/40 data-[selected=true]:border-[#E0B15C] data-[selected=true]:text-[#F7EAD2]"
+                  indicatorClassName="hidden"
+                  panelClassName="min-h-56 pt-5 sm:min-h-60"
                 >
-                  <Tab key="profile" title="Profile">
+                  <AppTab id="profile" label="Profile">
                     <section className="space-y-5">
                       <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
                         <ArbiterAvatar
@@ -441,9 +426,8 @@ export default function AvatarMenuModal({
                         </div>
                         <Button
                           size="sm"
-                          variant="bordered"
                           className="app-outline-button w-full sm:w-auto"
-                          onPress={avatarSelectorModal.onOpen}
+                          onPress={avatarSelectorModal.open}
                         >
                           Edit avatar
                         </Button>
@@ -457,18 +441,17 @@ export default function AvatarMenuModal({
                           }
                         }}
                       >
-                        <Input
+                        <AppTextField
                           label="Display name"
                           aria-describedby="display-name-help"
                           value={displayName}
-                          onValueChange={(value) => {
+                          onChangeValue={(value) => {
                             setDisplayNameDraft(value);
                             setProfileSaveMessage(null);
                           }}
                           maxLength={120}
-                          variant="bordered"
                           className="sm:col-start-1 sm:row-start-1"
-                          classNames={inputClassNames}
+                          classes={inputClassNames}
                         />
                         <p
                           id="display-name-help"
@@ -479,9 +462,8 @@ export default function AvatarMenuModal({
                         <Button
                           type="submit"
                           className="app-outline-button w-full sm:col-start-2 sm:row-start-1 sm:w-auto"
-                          variant="bordered"
                           isDisabled={!canSaveDisplayName}
-                          isLoading={updateDisplayNameMutation.isPending}
+                          isPending={updateDisplayNameMutation.isPending}
                         >
                           Save name
                         </Button>
@@ -509,7 +491,6 @@ export default function AvatarMenuModal({
                           </div>
                           <Button
                             className="app-outline-button w-full sm:w-auto"
-                            variant="bordered"
                             onPress={onOpenFeedback}
                           >
                             Send feedback
@@ -529,9 +510,9 @@ export default function AvatarMenuModal({
                         />
                       </div>
                     </section>
-                  </Tab>
+                  </AppTab>
 
-                  <Tab key="friends" title="Friends">
+                  <AppTab id="friends" label="Friends">
                     <section className="space-y-5">
                       <form
                         className="space-y-3"
@@ -550,24 +531,23 @@ export default function AvatarMenuModal({
                           Enter their email or username.
                         </p>
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                          <Input
+                          <AppTextField
                             label="Email or username"
                             placeholder="@username or friend@example.com"
                             autoComplete="off"
                             value={friendRequestIdentifier}
-                            onValueChange={(value) => {
+                            onChangeValue={(value) => {
                               setFriendRequestIdentifier(value);
                               setFriendRequestMessage(null);
                             }}
-                            variant="bordered"
-                            classNames={inputClassNames}
+                            classes={inputClassNames}
                             className="flex-1"
                           />
                           <Button
                             type="submit"
                             className="app-primary-button w-full sm:w-auto"
                             isDisabled={!friendRequestIdentifier.trim()}
-                            isLoading={sendFriendRequestMutation.isPending}
+                            isPending={sendFriendRequestMutation.isPending}
                           >
                             Send request
                           </Button>
@@ -585,7 +565,7 @@ export default function AvatarMenuModal({
                         </div>
                       </form>
 
-                      <Divider className="bg-[#E0B15C]/10" />
+                      <Separator className="bg-[#E0B15C]/10" />
 
                       <div>
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -600,7 +580,7 @@ export default function AvatarMenuModal({
                                 <Button
                                   key={value}
                                   size="sm"
-                                  variant="light"
+                                  variant="tertiary"
                                   className="app-secondary-button"
                                   aria-pressed={friendFilter === value}
                                   onPress={() => setFriendFilter(value)}
@@ -633,10 +613,10 @@ export default function AvatarMenuModal({
                                   {selectedGroup && isOwner ? (
                                     <Button
                                       size="sm"
-                                      variant="light"
+                                      variant="tertiary"
                                       className="app-secondary-button"
                                       isDisabled={inGroup || pending}
-                                      isLoading={targetedGroupInviteMutation.isPending && targetedGroupInviteMutation.variables === friend.id}
+                                      isPending={targetedGroupInviteMutation.isPending && targetedGroupInviteMutation.variables === friend.id}
                                       onPress={() => targetedGroupInviteMutation.mutate(friend.id)}
                                       aria-label={inGroup ? `${label} is already in ${selectedGroup.name}` : pending ? `${label} has a pending invitation to ${selectedGroup.name}` : `Invite ${label} to ${selectedGroup.name}`}
                                     >
@@ -645,7 +625,7 @@ export default function AvatarMenuModal({
                                   ) : null}
                                   <Button
                                     size="sm"
-                                    variant="light"
+                                    variant="tertiary"
                                     className="app-danger-button"
                                     onPress={() =>
                                       openConfirm({
@@ -677,7 +657,7 @@ export default function AvatarMenuModal({
                         ) : null}
                       </div>
 
-                      <Divider className="bg-[#E0B15C]/10" />
+                      <Separator className="bg-[#E0B15C]/10" />
 
                       <div>
                         <div className="flex items-baseline justify-between gap-3">
@@ -723,7 +703,7 @@ export default function AvatarMenuModal({
                                     <Button
                                       size="sm"
                                       className="app-primary-button"
-                                      isLoading={
+                                      isPending={
                                         isPending &&
                                         friendRequestDecisionMutation.variables?.decision === "accept"
                                       }
@@ -740,9 +720,9 @@ export default function AvatarMenuModal({
                                     </Button>
                                     <Button
                                       size="sm"
-                                      variant="light"
+                                      variant="tertiary"
                                       className="app-secondary-button"
-                                      isLoading={
+                                      isPending={
                                         isPending &&
                                         friendRequestDecisionMutation.variables?.decision === "decline"
                                       }
@@ -759,7 +739,7 @@ export default function AvatarMenuModal({
                                     </Button>
                                     <Button
                                       size="sm"
-                                      variant="light"
+                                      variant="tertiary"
                                       className="app-danger-button"
                                       onPress={() =>
                                         openConfirm({
@@ -812,9 +792,9 @@ export default function AvatarMenuModal({
                                     </div>
                                     <Button
                                       size="sm"
-                                      variant="light"
+                                      variant="tertiary"
                                       className="app-secondary-button"
-                                      isLoading={
+                                      isPending={
                                         cancelFriendRequestMutation.isPending &&
                                         cancelFriendRequestMutation.variables === request.id
                                       }
@@ -874,9 +854,9 @@ export default function AvatarMenuModal({
                                   </div>
                                   <Button
                                     size="sm"
-                                    variant="light"
+                                    variant="tertiary"
                                     className="app-secondary-button"
-                                    isLoading={
+                                    isPending={
                                       unblockUserMutation.isPending &&
                                       unblockUserMutation.variables === blockedUser.id
                                     }
@@ -899,9 +879,9 @@ export default function AvatarMenuModal({
                         </p>
                       ) : null}
                     </section>
-                  </Tab>
+                  </AppTab>
 
-                  <Tab key="groups" title="Groups">
+                  <AppTab id="groups" label="Groups">
                     <section className="space-y-5">
                       <div>
                         <h3 className="text-lg font-semibold text-[#F7EAD2]">
@@ -948,14 +928,14 @@ export default function AvatarMenuModal({
                                   <Button
                                     size="sm"
                                     className="app-primary-button"
-                                    isLoading={groupDecisionMutation.isPending && groupDecisionMutation.variables?.inviteId === invite.id}
+                                    isPending={groupDecisionMutation.isPending && groupDecisionMutation.variables?.inviteId === invite.id}
                                     onPress={() => groupDecisionMutation.mutate({ inviteId: invite.id, decision: "accept" })}
                                   >
                                     Join group
                                   </Button>
                                   <Button
                                     size="sm"
-                                    variant="light"
+                                    variant="tertiary"
                                     className="app-secondary-button"
                                     onPress={() => groupDecisionMutation.mutate({ inviteId: invite.id, decision: "decline" })}
                                   >
@@ -972,28 +952,26 @@ export default function AvatarMenuModal({
                         )}
                       </div>
 
-                      <Divider className="bg-[#E0B15C]/10" />
+                      <Separator className="bg-[#E0B15C]/10" />
 
                       <div className="space-y-3">
                         <h3 className="text-lg font-semibold text-[#F7EAD2]">
                           Create a group
                         </h3>
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                          <Input
+                          <AppTextField
                             label="Group name"
                             placeholder="Movie night"
                             value={groupName}
                             onChange={(e) => setGroupName(e.target.value)}
-                            variant="bordered"
-                            classNames={inputClassNames}
+                            classes={inputClassNames}
                             className="flex-1"
                           />
                           <Button
                             className="app-outline-button w-full sm:w-auto"
-                            variant="bordered"
                             onPress={() => createGroupMutation.mutate()}
                             isDisabled={!groupName.trim()}
-                            isLoading={createGroupMutation.isPending}
+                            isPending={createGroupMutation.isPending}
                           >
                             Create group
                           </Button>
@@ -1002,7 +980,7 @@ export default function AvatarMenuModal({
 
                       {selectedGroup ? (
                         <>
-                          <Divider className="bg-[#D77B69]/15" />
+                          <Separator className="bg-[#D77B69]/15" />
                           <section className="space-y-3 rounded-lg border border-[#E0B15C]/16 p-4">
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                               <div>
@@ -1014,7 +992,7 @@ export default function AvatarMenuModal({
                                 </p>
                               </div>
                               <Button
-                                variant="light"
+                                variant="tertiary"
                                 className="app-secondary-button"
                                 onPress={() => setShowGroupSettings((value) => !value)}
                                 aria-expanded={showGroupSettings}
@@ -1039,10 +1017,10 @@ export default function AvatarMenuModal({
                                   }}
                                 >
                                   <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                                    <Input
+                                    <AppTextField
                                       label="Group name"
                                       value={groupEditName}
-                                      onValueChange={(value) => {
+                                      onChangeValue={(value) => {
                                         if (selectedGroup) {
                                           setGroupNameDraft({
                                             groupId: selectedGroup.id,
@@ -1052,16 +1030,14 @@ export default function AvatarMenuModal({
                                         setGroupSaveMessage(null);
                                       }}
                                       maxLength={120}
-                                      variant="bordered"
                                       className="flex-1"
-                                      classNames={inputClassNames}
+                                      classes={inputClassNames}
                                     />
                                     <Button
                                       type="submit"
                                       className="app-outline-button w-full sm:w-auto"
-                                      variant="bordered"
                                       isDisabled={!canSaveGroupName}
-                                      isLoading={updateGroupMutation.isPending}
+                                      isPending={updateGroupMutation.isPending}
                                     >
                                       Save name
                                     </Button>
@@ -1122,7 +1098,7 @@ export default function AvatarMenuModal({
                                             </div>
                                             <Button
                                               size="sm"
-                                              variant="light"
+                                              variant="tertiary"
                                               className="app-secondary-button"
                                               onPress={() =>
                                                 openConfirm({
@@ -1150,7 +1126,6 @@ export default function AvatarMenuModal({
                                 {isOwner ? (
                                   <Button
                                     className="app-danger-button"
-                                    variant="bordered"
                                     onPress={() =>
                                       openConfirm({
                                         type: "delete",
@@ -1158,14 +1133,13 @@ export default function AvatarMenuModal({
                                         label: `Delete ${selectedGroup.name}`,
                                       })
                                     }
-                                    isLoading={deleteGroupMutation.isPending}
+                                    isPending={deleteGroupMutation.isPending}
                                   >
                                     Delete group
                                   </Button>
                                 ) : (
                                   <Button
                                     className="app-danger-button"
-                                    variant="bordered"
                                     onPress={() =>
                                       openConfirm({
                                         type: "leave",
@@ -1173,7 +1147,7 @@ export default function AvatarMenuModal({
                                         label: `Leave ${selectedGroup.name}`,
                                       })
                                     }
-                                    isLoading={leaveGroupMutation.isPending}
+                                    isPending={leaveGroupMutation.isPending}
                                   >
                                     Leave group
                                   </Button>
@@ -1184,12 +1158,12 @@ export default function AvatarMenuModal({
                         </>
                       ) : null}
                     </section>
-                  </Tab>
-                </Tabs>
-              </ModalBody>
-              <ModalFooter className="justify-between">
+                  </AppTab>
+                </AppTabs>
+              </AppModalBody>
+              <AppModalFooter className="justify-between border-t border-[#E0B15C]/16">
                 <Button
-                  variant="light"
+                  variant="tertiary"
                   className="app-secondary-button"
                   onPress={onClose}
                 >
@@ -1197,21 +1171,19 @@ export default function AvatarMenuModal({
                 </Button>
                 <Button
                   className="app-danger-button"
-                  variant="bordered"
                   onPress={() => logoutMutation.mutate()}
-                  isLoading={logoutMutation.isPending}
+                  isPending={logoutMutation.isPending}
                 >
                   Logout
                 </Button>
-              </ModalFooter>
+              </AppModalFooter>
             </>
-          )}
-        </ModalContent>
-      </Modal>
+        )}
+      </AppModal>
 
       <ConfirmActionModal
         isOpen={confirmModal.isOpen}
-        onOpenChange={confirmModal.onOpenChange}
+        onOpenChange={confirmModal.setOpen}
         confirmAction={confirmAction}
         onConfirm={handleConfirm}
         isLoading={isConfirmPending}
@@ -1219,7 +1191,7 @@ export default function AvatarMenuModal({
       <Suspense fallback={null}>
         <AvatarSelectorModal
           isOpen={avatarSelectorModal.isOpen}
-          onOpenChange={avatarSelectorModal.onOpenChange}
+          onOpenChange={avatarSelectorModal.setOpen}
           me={me}
         />
       </Suspense>

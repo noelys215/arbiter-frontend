@@ -1,4 +1,5 @@
-import { Button, Input, Spinner } from "@heroui/react";
+import { Button, Spinner } from "@heroui/react";
+import { AppTextField } from "../../../components/ui/AppField";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -70,17 +71,16 @@ export default function AddToWatchlistCard({
       >
         <div className="space-y-2">
           <div className="flex flex-col gap-3 md:flex-row md:items-end">
-            <Input
+            <AppTextField
               label="Search TMDB"
               placeholder="Search movies or TV shows"
               value={search}
               onChange={(event) => onSearchChange(event.target.value)}
-              variant="bordered"
               className="md:flex-1"
-              classNames={inputClassNames}
+              classes={inputClassNames}
             />
             <Button
-              variant="light"
+              variant="tertiary"
               className="app-secondary-button app-manual-button h-14 w-full md:w-44"
               onPress={onOpenManual}
               isDisabled={isManualDisabled}
@@ -122,7 +122,7 @@ export default function AddToWatchlistCard({
                     </div>
                     <Button
                       size="sm"
-                      variant="light"
+                      variant="tertiary"
                       className="min-w-0 px-3 text-xs font-semibold text-[#F5D9A5]"
                       onPress={() => addTmdbMutation.mutate(item)}
                       isDisabled={!selectedGroupId || addTmdbMutation.isPending}

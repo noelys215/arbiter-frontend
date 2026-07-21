@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardHeader, Divider, useDisclosure } from "@heroui/react";
+import { Button, Card, Separator, useOverlayState } from "@heroui/react";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteGroup, leaveGroup } from "../../../features/groups/groups.api";
@@ -19,7 +19,7 @@ export default function GroupActionsCard({
 }: GroupActionsCardProps) {
   const isOwner = selectedGroup.owner_id === meId;
   const queryClient = useQueryClient();
-  const confirmModal = useDisclosure();
+  const confirmModal = useOverlayState();
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(
     null,
   );
@@ -44,7 +44,7 @@ export default function GroupActionsCard({
 
   const openConfirm = (payload: ConfirmAction) => {
     setConfirmAction(payload);
-    confirmModal.onOpen();
+    confirmModal.open();
   };
 
   const handleConfirm = () => {
@@ -54,7 +54,7 @@ export default function GroupActionsCard({
     } else {
       leaveMutation.mutate();
     }
-    confirmModal.onClose();
+    confirmModal.close();
     setConfirmAction(null);
   };
 
@@ -62,7 +62,7 @@ export default function GroupActionsCard({
 
   return (
     <Card className="border border-[#E0B15C]/20 bg-[#22130F]">
-      <CardHeader className="flex items-center justify-between">
+      <Card.Header className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-[#D9C7A8]">
             Group actions
@@ -80,7 +80,7 @@ export default function GroupActionsCard({
                   label: `Delete ${selectedGroup.name}`,
                 })
               }
-              isLoading={deleteMutation.isPending}
+              isPending={deleteMutation.isPending}
             >
               Delete group
             </Button>
@@ -94,22 +94,22 @@ export default function GroupActionsCard({
                   label: `Leave ${selectedGroup.name}`,
                 })
               }
-              isLoading={leaveMutation.isPending}
+              isPending={leaveMutation.isPending}
             >
               Leave group
             </Button>
           )}
         </div>
-      </CardHeader>
-      <Divider className="bg-[#E0B15C]/15" />
-      <CardBody className="text-sm text-[#D9C7A8]">
+      </Card.Header>
+      <Separator className="bg-[#E0B15C]/15" />
+      <Card.Content className="text-sm text-[#D9C7A8]">
         {isOwner
           ? "Owners can delete their group."
           : "Leaving will remove you from this group."}
-      </CardBody>
+      </Card.Content>
       <ConfirmActionModal
         isOpen={confirmModal.isOpen}
-        onOpenChange={confirmModal.onOpenChange}
+        onOpenChange={confirmModal.setOpen}
         confirmAction={confirmAction}
         onConfirm={handleConfirm}
         isLoading={isConfirmPending}

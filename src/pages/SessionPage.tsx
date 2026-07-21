@@ -112,9 +112,9 @@ export default function SessionPage() {
   const sessionExitAction = activeSessionId ? (
     <Button
       size="sm"
-      variant="bordered"
+      variant="secondary"
       className="app-danger-button h-10 px-4"
-      isLoading={isGroupLeader ? endSessionMutation.isPending : false}
+      isPending={isGroupLeader ? endSessionMutation.isPending : false}
       onPress={isGroupLeader ? handleEndSession : handleLeaveSession}
     >
       {isGroupLeader ? "End Session" : "Leave Session"}
@@ -206,7 +206,7 @@ export default function SessionPage() {
           totalCards={totalCards}
           userSecondsLeft={userSecondsLeft}
           showShortlistButton={showShortlistButton}
-          onOpenShortlist={shortlistModal.onOpen}
+          onOpenShortlist={shortlistModal.open}
           isGroupLeader={isGroupLeader}
           onShuffleWinner={handleShuffleToDecide}
           shuffleIsPending={shuffleMutation.isPending}
@@ -225,7 +225,7 @@ export default function SessionPage() {
 
       <DealtCardsModal
         isOpen={personalPreviewModal.isOpen}
-        onOpenChange={personalPreviewModal.onOpenChange}
+        onOpenChange={personalPreviewModal.setOpen}
         cards={personalPreviewCards}
         isSubmitting={generateDeckMutation.isPending}
         onBack={handleBackToVibeSelection}
@@ -234,7 +234,7 @@ export default function SessionPage() {
 
       <ShortlistModal
         isOpen={shortlistModal.isOpen}
-        onOpenChange={shortlistModal.onOpenChange}
+        onOpenChange={shortlistModal.setOpen}
         shortlist={shortlist}
         voteSummaries={voteSummaries}
         localVotes={localVotes}

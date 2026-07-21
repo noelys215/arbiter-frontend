@@ -136,12 +136,12 @@ export default function InsightsPage() {
               return (
                 <Button
                   key={key}
-                  variant="light"
+                  variant="tertiary"
                   aria-pressed={isSelected}
                   className={`h-11 min-w-0 rounded-sm px-4 text-sm font-semibold ${
                     isSelected
-                      ? "border-b-2 border-[#E0B15C] bg-[#E0B15C]/14 text-[#F7EAD2]"
-                      : "border-b-2 border-transparent text-[#D8C5A4]"
+                      ? "border-b-2 border-[#E0B15C] !bg-[#E0B15C]/14 text-[#F7EAD2]"
+                      : "border-b-2 border-transparent !bg-transparent text-[#D8C5A4]"
                   }`}
                   onPress={() => setPeriod(key)}
                 >
@@ -154,7 +154,8 @@ export default function InsightsPage() {
 
         {insightsQuery.isPending ? (
           <div className="flex min-h-[28rem] items-center justify-center" role="status">
-            <Spinner color="warning" label="Reading your movie nights" />
+            <Spinner color="warning" />
+            <span className="sr-only">Reading your movie nights</span>
           </div>
         ) : insightsQuery.isError || !insights ? (
           <section className="max-w-xl py-20" role="alert">

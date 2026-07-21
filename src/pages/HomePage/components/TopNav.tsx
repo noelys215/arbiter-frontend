@@ -76,7 +76,7 @@ export default function TopNav({
           className="bg-[#E0B15C] text-[#1C110F]"
           size="sm"
           onPress={() => logoutMutation.mutate()}
-          isLoading={logoutMutation.isPending}
+          isPending={logoutMutation.isPending}
         >
           Logout
         </Button>

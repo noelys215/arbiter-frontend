@@ -1,4 +1,3 @@
-import { HeroUIProvider } from "@heroui/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
@@ -65,11 +64,9 @@ function renderDetail() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <MemoryRouter>
-      <HeroUIProvider>
-        <QueryClientProvider client={queryClient}>
-          <MovieDetailContent movie={movie} onClose={vi.fn()} />
-        </QueryClientProvider>
-      </HeroUIProvider>
+      <QueryClientProvider client={queryClient}>
+        <MovieDetailContent movie={movie} onClose={vi.fn()} />
+      </QueryClientProvider>
     </MemoryRouter>,
   );
 }

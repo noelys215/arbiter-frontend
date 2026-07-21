@@ -1,11 +1,5 @@
-import {
-  Button,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from "@heroui/react";
+import { Button } from "@heroui/react";
+import AppModal, { AppModalBody, AppModalFooter, AppModalHeader, AppModalHeading } from "../../../components/ui/AppModal";
 import type { ConfirmAction, OnOpenChange } from "../types";
 
 type ConfirmActionModalProps = {
@@ -36,29 +30,26 @@ export default function ConfirmActionModal({
             : "This will remove the friendship.";
 
   return (
-    <Modal
+    <AppModal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      classNames={{
-        base: "bg-[#1C110F] border border-[#D77B69]/30",
-        header: "border-b border-[#D77B69]/20",
-        body: "py-6",
-        footer: "border-t border-[#D77B69]/20",
+      ariaLabel="Confirm action"
+      classes={{
+        dialog: "bg-[#1C110F] border border-[#D77B69]/30",
       }}
     >
-      <ModalContent>
-        {(onClose) => (
+      {(onClose) => (
           <>
-            <ModalHeader className="text-white">Confirm action</ModalHeader>
-            <ModalBody>
+            <AppModalHeader className="border-b border-[#D77B69]/20 text-white"><AppModalHeading>Confirm action</AppModalHeading></AppModalHeader>
+            <AppModalBody className="py-6">
               <p className="text-sm text-[#EDEDED]">
                 {description}
               </p>
               <p className="text-sm text-[#D9C7A8]">{confirmAction?.label}</p>
-            </ModalBody>
-            <ModalFooter>
+            </AppModalBody>
+            <AppModalFooter className="border-t border-[#D77B69]/20">
               <Button
-                variant="bordered"
+                variant="secondary"
                 className="border-[#D9C7A8]/30 text-[#D9C7A8]"
                 onPress={onClose}
               >
@@ -66,16 +57,15 @@ export default function ConfirmActionModal({
               </Button>
               <Button
                 className={isTransfer ? "app-primary-button" : "app-danger-button"}
-                variant={isTransfer ? "solid" : "bordered"}
+                variant={isTransfer ? "primary" : "secondary"}
                 onPress={onConfirm}
-                isLoading={isLoading}
+                isPending={isLoading}
               >
                 {isTransfer ? "Transfer ownership" : "Confirm"}
               </Button>
-            </ModalFooter>
+            </AppModalFooter>
           </>
-        )}
-      </ModalContent>
-    </Modal>
+      )}
+    </AppModal>
   );
 }

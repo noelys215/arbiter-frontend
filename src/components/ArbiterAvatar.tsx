@@ -27,12 +27,16 @@ const sizeMap = {
   lg: 48,
 };
 
+const radiusClass = {
+  none: "rounded-none",
+  sm: "rounded-sm",
+  md: "rounded-md",
+  lg: "rounded-lg",
+  full: "rounded-full",
+};
+
 function sizeToPixels(size: ArbiterAvatarSize) {
   return typeof size === "number" ? size : sizeMap[size];
-}
-
-function heroSize(size: ArbiterAvatarSize) {
-  return typeof size === "number" ? undefined : size;
 }
 
 export default function ArbiterAvatar({
@@ -84,14 +88,29 @@ export default function ArbiterAvatar({
 
   return (
     <Avatar
-      size={heroSize(size)}
-      src={resolved.source === "provider" ? resolved.url : undefined}
-      name={name}
-      showFallback
-      isBordered={isBordered}
-      radius={radius}
-      className={className ?? "bg-[#E0B15C] text-[#1C110F]"}
-      imgProps={{ referrerPolicy: "no-referrer" }}
-    />
+      aria-label={decorative ? undefined : avatarLabel}
+      className={[
+        className ?? "bg-[#E0B15C] text-[#1C110F]",
+        isBordered ? "ring-2 ring-[#E0B15C]/55" : "",
+        radiusClass[radius],
+      ].join(" ")}
+      style={{ width: pixelSize, height: pixelSize }}
+    >
+      {resolved.source === "provider" ? (
+        <Avatar.Image
+          src={resolved.url}
+          alt={decorative ? "" : avatarLabel}
+          referrerPolicy="no-referrer"
+        />
+      ) : null}
+      <Avatar.Fallback aria-hidden={decorative ? true : undefined}>
+        {name
+          .split(/\s+/)
+          .map((part) => part[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()}
+      </Avatar.Fallback>
+    </Avatar>
   );
 }

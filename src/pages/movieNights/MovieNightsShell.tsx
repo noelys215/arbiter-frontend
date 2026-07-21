@@ -24,8 +24,8 @@ export default function MovieNightsShell({ children }: MovieNightsShellProps) {
       >
         <div className="mx-auto flex h-[73px] max-w-[88rem] items-center justify-between px-4 sm:h-[105px] sm:px-8">
           <Button
-            variant="light"
-            className="h-auto min-w-0 p-0 data-[hover=true]:bg-transparent"
+            variant="tertiary"
+            className="h-auto min-w-0 !bg-transparent p-0 data-[hovered=true]:!bg-transparent"
             onPress={() => navigate("/app")}
             aria-label="Back to Arbiter watchlist"
           >
@@ -38,8 +38,8 @@ export default function MovieNightsShell({ children }: MovieNightsShellProps) {
           </Button>
           <Button
             isIconOnly
-            variant="light"
-            className="h-12 w-12 min-w-12 rounded-full focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E]"
+            variant="tertiary"
+            className="h-12 w-12 min-w-12 rounded-full !bg-transparent focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E]"
             onPress={() => navigate("/app")}
             aria-label="Return to account and watchlist"
           >

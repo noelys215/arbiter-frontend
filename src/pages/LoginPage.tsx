@@ -1,4 +1,4 @@
-import { Button, Input } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useId, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -8,6 +8,7 @@ import {
 } from "../features/auth/auth.api";
 import { subscribeToAuthSuccess } from "../features/auth/authHandoff";
 import SkipLink from "../components/SkipLink";
+import { AppTextField } from "../components/ui/AppField";
 import { API_BASE, IS_LOCAL_DEV } from "../lib/api";
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -89,7 +90,7 @@ export default function LoginPage() {
     label: "login-field-label",
     input: "login-field-input",
     inputWrapper:
-      "login-field-wrapper group-data-[invalid=true]:!border-[#D77B69]/80 group-data-[focus=true]:!border-[#F2C16E]",
+      "login-field-wrapper aria-[invalid=true]:!border-[#D77B69]/80 focus:!border-[#F2C16E]",
   };
 
   const magicLinkMutation = useMutation({ mutationFn: requestMagicLink });
@@ -183,7 +184,7 @@ export default function LoginPage() {
 
           <form className="login-form" onSubmit={handleSubmit} noValidate>
             <div className="login-field-block">
-              <Input
+              <AppTextField
                 type="email"
                 label="Email"
                 placeholder="you@example.com"
@@ -203,10 +204,8 @@ export default function LoginPage() {
                 inputMode="email"
                 isRequired
                 isInvalid={Boolean(emailError)}
-                variant="bordered"
-                radius="sm"
                 aria-describedby={`${emailHelpId} ${emailErrorId} ${statusId}`}
-                classNames={inputClassNames}
+                classes={inputClassNames}
               />
               <p id={emailHelpId} className="login-help-text">
                 We’ll email you a secure sign-in link. No password needed.
@@ -223,7 +222,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="login-primary-button"
-              isLoading={magicLinkMutation.isPending}
+              isPending={magicLinkMutation.isPending}
               isDisabled={isAuthActionPending}
             >
               Continue with email
@@ -238,9 +237,9 @@ export default function LoginPage() {
                 </div>
                 <Button
                   type="button"
-                  variant="bordered"
+                  variant="secondary"
                   className="login-secondary-button"
-                  isLoading={isGoogleRedirecting}
+                  isPending={isGoogleRedirecting}
                   isDisabled={isAuthActionPending}
                   onPress={() => {
                     setIsGoogleRedirecting(true);
@@ -258,9 +257,9 @@ export default function LoginPage() {
                   <Button
                     key={account.key}
                     type="button"
-                    variant="light"
+                    variant="tertiary"
                     className="login-dev-button"
-                    isLoading={localAuthBypassMutation.isPending}
+                    isPending={localAuthBypassMutation.isPending}
                     isDisabled={isAuthActionPending}
                     onPress={() => handleLocalAuthBypass(account.token)}
                   >

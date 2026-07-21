@@ -1,8 +1,3 @@
-import {
-  Modal,
-  ModalBody,
-  ModalContent,
-} from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -12,6 +7,7 @@ import MovieDetailContent, {
 } from "../../features/movies/MovieDetailContent";
 import { getMovieDetail, movieQueryKeys } from "../../features/movies/movies.api";
 import MovieNightsShell from "../movieNights/MovieNightsShell";
+import AppModal, { AppModalBody } from "../../components/ui/AppModal";
 
 type MovieDetailPageProps = {
   presentation?: "page" | "overlay";
@@ -58,25 +54,21 @@ export default function MovieDetailPage({
 
   if (presentation === "overlay") {
     return (
-      <Modal
+      <AppModal
         isOpen
         onOpenChange={(isOpen) => {
           if (!isOpen) close();
         }}
-        scrollBehavior="inside"
-        size="5xl"
-        backdrop="opaque"
-        classNames={{
+        ariaLabel="Movie details"
+        size="lg"
+        classes={{
           backdrop: "bg-[#080403]/72",
-          base: "max-h-[94dvh] overflow-hidden border border-[#E0B15C]/18 bg-[#140C0A] text-[#F7EAD2] sm:rounded-lg",
+          dialog: "max-h-[94dvh] !max-w-[72rem] overflow-hidden border border-[#E0B15C]/18 bg-[#140C0A] text-[#F7EAD2] sm:rounded-lg",
           closeButton: "z-30 m-3 h-11 w-11 text-[#F7EAD2] hover:bg-[#E0B15C]/10 focus-visible:outline-3 focus-visible:outline-[#F2C16E]",
         }}
-        aria-labelledby="movie-detail-heading"
       >
-        <ModalContent>
-          <ModalBody className="p-0">{content}</ModalBody>
-        </ModalContent>
-      </Modal>
+        {() => <AppModalBody className="p-0">{content}</AppModalBody>}
+      </AppModal>
     );
   }
 

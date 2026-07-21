@@ -1,9 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap");
-@import "tailwindcss";
-/* stylelint-disable-next-line at-rule-no-unknown */
-@plugin "./hero.ts";
-/* stylelint-disable-next-line at-rule-no-unknown */
-@source "../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
+@import "@heroui/styles";
 
 @font-face {
   font-family: "ITC Benguiat Book Regular";
@@ -41,6 +37,38 @@
   --app-border-subtle: rgb(224 177 92 / 0.14);
   --app-border-control: rgb(224 177 92 / 0.34);
   --app-control-surface: rgb(224 177 92 / 0.06);
+  /* HeroUI v3 semantic tokens, mapped to Arbiter's existing dark theme. */
+  --background: var(--theater-bg);
+  --foreground: var(--theater-text);
+  --surface: var(--theater-surface);
+  --surface-foreground: var(--theater-text);
+  --surface-secondary: var(--theater-surface-elevated);
+  --surface-secondary-foreground: var(--theater-text);
+  --surface-tertiary: #321c17;
+  --surface-tertiary-foreground: var(--theater-text);
+  --overlay: #1c110f;
+  --overlay-foreground: var(--theater-text);
+  --muted: var(--app-text-tertiary);
+  --default: rgb(224 177 92 / 0.08);
+  --default-foreground: var(--app-text-secondary);
+  --accent: var(--theater-accent);
+  --accent-foreground: #160c0a;
+  --accent-hover: #edc578;
+  --accent-soft: rgb(224 177 92 / 0.14);
+  --accent-soft-foreground: var(--theater-accent-soft);
+  --accent-soft-hover: rgb(224 177 92 / 0.2);
+  --field-background: rgb(20 12 10 / 0.56);
+  --field-foreground: var(--app-text-primary);
+  --field-placeholder: var(--app-placeholder);
+  --field-border: var(--app-border-control);
+  --field-border-width: 1px;
+  --border: var(--app-border-subtle);
+  --separator: rgb(224 177 92 / 0.12);
+  --focus: var(--theater-focus);
+  --link: var(--theater-accent-soft);
+  --backdrop: rgb(8 4 3 / 0.72);
+  --danger: var(--theater-danger);
+  --danger-foreground: #160c0a;
   --landing-bg: #120b09;
   --landing-bg-deep: #0b0605;
   --landing-surface: rgb(28 17 15 / 0.72);

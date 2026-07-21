@@ -1,4 +1,4 @@
-import { useDisclosure } from "@heroui/react";
+import { useOverlayState } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -230,8 +230,8 @@ export function useSessionFlow() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
-  const shortlistModal = useDisclosure();
-  const personalPreviewModal = useDisclosure();
+  const shortlistModal = useOverlayState();
+  const personalPreviewModal = useOverlayState();
 
   const requestedGroupId = searchParams.get("groupId");
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => {
@@ -645,7 +645,7 @@ export function useSessionFlow() {
             ? response.personal_candidates
             : (response.candidates ?? []);
         setPersonalPreviewCards(previewCards);
-        personalPreviewModal.onOpen();
+        personalPreviewModal.open();
         setHasSubmittedDeck(true);
         localStorage.setItem(getDealSubmittedStorageKey(nextSessionId), "1");
       }
@@ -969,7 +969,7 @@ export function useSessionFlow() {
         candidate_count: DEAL_CANDIDATE_COUNT,
       },
     });
-    personalPreviewModal.onClose();
+    personalPreviewModal.close();
   };
 
   const handleBackToVibeSelection = () => {
@@ -979,7 +979,7 @@ export function useSessionFlow() {
     }
     setHasSubmittedDeck(false);
     setDeckPhase("idle");
-    personalPreviewModal.onClose();
+    personalPreviewModal.close();
 
     // Keep backend collecting state in sync with UI "Back": user is editing, not ready.
     if (!resolvedGroupId) return;
