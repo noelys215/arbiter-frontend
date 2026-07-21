@@ -39,6 +39,8 @@ describe("production security headers", () => {
     expect(csp).not.toContain("'unsafe-eval'");
     expect(jsonLdHash).not.toBeNull();
     expect(csp).toContain(jsonLdHash);
+    expect(csp).toContain("https://api.arbitertv.com");
+    expect(csp).toContain("wss://api.arbitertv.com");
     expect(csp).toContain("https://arbiter-api.onrender.com");
     expect(csp).toContain("wss://arbiter-api.onrender.com");
     expect(csp).toContain("https://image.tmdb.org");
