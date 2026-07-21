@@ -1,224 +1,288 @@
-import type { CompletedSession } from "../sessions/sessions.api";
-import { formatDecisionDuration, formatMovieNightDate, getWinner } from "../sessions/historyPresentation";
+import type { ArtworkAnalysis } from "./artworkAnalysis";
+import {
+  archiveFacts,
+  CARD_DIMENSIONS,
+  contextLine,
+  footerCopy,
+  type CardOptions,
+  type SafeCardPayload,
+} from "./cardModel";
+import { fitCardTitle, type TitleFit } from "./cardTypography";
 
-export type CardFormat = "square" | "portrait";
-export type CardTemplate = "editorial" | "programme";
+export type { CardFormat, CardOptions, CardTemplate } from "./cardModel";
 
-export type CardOptions = {
-  format: CardFormat;
-  template: CardTemplate;
-  includeGroupName: boolean;
-  includeMood: boolean;
-  includeAttribution: boolean;
-};
-
-export type MovieNightCardData = {
-  night: CompletedSession;
-  moodLabels: string[];
-  artworkDataUrl?: string | null;
-};
-
-const DIMENSIONS: Record<CardFormat, { width: number; height: number }> = {
-  square: { width: 1080, height: 1080 },
-  portrait: { width: 1080, height: 1920 },
+type CardAssets = {
+  displayFontDataUrl?: string | null;
 };
 
 function escapeXml(value: string) {
-  return value.replace(/[<>&"']/g, (character) => ({
-    "<": "&lt;",
-    ">": "&gt;",
-    "&": "&amp;",
-    '"': "&quot;",
-    "'": "&apos;",
-  })[character] ?? character);
-}
-
-function wrapText(value: string, maxCharacters: number, maxLines: number) {
-  const words = value.trim().split(/\s+/);
-  const lines: string[] = [];
-  for (const word of words) {
-    const current = lines.at(-1);
-    if (!current || `${current} ${word}`.length > maxCharacters) {
-      if (lines.length === maxLines) {
-        lines[maxLines - 1] = `${lines[maxLines - 1].replace(/[.…]$/, "")}…`;
-        break;
-      }
-      lines.push(word);
-    } else {
-      lines[lines.length - 1] = `${current} ${word}`;
-    }
-  }
-  return lines;
-}
-
-function truncateText(value: string, maxCharacters: number) {
-  const normalized = value.trim();
-  if (normalized.length <= maxCharacters) return normalized;
-  return `${normalized.slice(0, maxCharacters - 1).trimEnd()}…`;
-}
-
-function svgTextLines(lines: string[], x: number, lineHeight: number) {
-  return lines
-    .map((line, index) => `<tspan x="${x}" dy="${index === 0 ? 0 : lineHeight}">${escapeXml(line)}</tspan>`)
-    .join("");
-}
-
-function titleLayout(
-  title: string,
-  maxCharacters: number,
-  maxLines: number,
-  preferredSize: number,
-  minimumSize: number,
-) {
-  const lines = wrapText(title, maxCharacters, maxLines);
-  const longestLine = Math.max(...lines.map((line) => line.length), 1);
-  const size = Math.max(
-    minimumSize,
-    Math.floor(preferredSize * Math.min(1, maxCharacters / longestLine)),
+  return value.replace(
+    /[<>&"']/g,
+    (character) =>
+      ({
+        "<": "&lt;",
+        ">": "&gt;",
+        "&": "&amp;",
+        '"': "&quot;",
+        "'": "&apos;",
+      })[character] ?? character,
   );
-  return { lines, size, lineHeight: Math.round(size * 1.02) };
 }
 
-function artworkMarkup(
-  data: MovieNightCardData,
+function fontDefinitions(dataUrl?: string | null) {
+  return dataUrl
+    ? `<style>
+      @font-face {
+        font-family: "Arbiter Display";
+        src: url("${dataUrl}") format("opentype");
+        font-weight: 400;
+      }
+      .display { font-family: "Arbiter Display", Georgia, serif; }
+      .body { font-family: Arial, Helvetica, sans-serif; }
+    </style>`
+    : `<style>
+      .display { font-family: Georgia, serif; }
+      .body { font-family: Arial, Helvetica, sans-serif; }
+    </style>`;
+}
+
+function textLines(
+  fit: TitleFit,
+  x: number,
+  y: number,
+  fill = "#F7EAD2",
+  anchor: "start" | "middle" | "end" = "start",
+) {
+  const tspans = fit.lines
+    .map(
+      (line, index) =>
+        `<tspan x="${x}" dy="${index === 0 ? 0 : fit.lineHeight}">${escapeXml(line)}</tspan>`,
+    )
+    .join("");
+  return `<text class="display" x="${x}" y="${y}" text-anchor="${anchor}" fill="${fill}" font-size="${fit.fontSize}">${tspans}</text>`;
+}
+
+function artworkImage(
+  payload: SafeCardPayload,
+  {
+    x,
+    y,
+    width,
+    height,
+    clipId,
+    opacity = 1,
+    fit = "slice",
+  }: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    clipId: string;
+    opacity?: number;
+    fit?: "meet" | "slice";
+  },
+) {
+  if (!payload.artworkDataUrl) return "";
+  return `<image x="${x}" y="${y}" width="${width}" height="${height}" href="${escapeXml(payload.artworkDataUrl)}" preserveAspectRatio="xMidYMid ${fit}" clip-path="url(#${clipId})" opacity="${opacity}"/>`;
+}
+
+function fallbackArtwork(
   title: string,
   x: number,
   y: number,
   width: number,
   height: number,
 ) {
-  const initial = escapeXml(title.trim().charAt(0).toUpperCase() || "A");
-  const frame = `<rect x="${x - 10}" y="${y - 10}" width="${width + 20}" height="${height + 20}" fill="#0E0908" stroke="#E0B15C" stroke-opacity="0.22"/>`;
-  if (data.artworkDataUrl) {
-    return `${frame}<image x="${x}" y="${y}" width="${width}" height="${height}" href="${escapeXml(data.artworkDataUrl)}" preserveAspectRatio="xMidYMid meet"/>`;
-  }
-  return `${frame}
-    <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="#211210"/>
-    <text x="${x + width / 2}" y="${y + height / 2 + 42}" text-anchor="middle" fill="#E0B15C" fill-opacity="0.72" font-family="Georgia, serif" font-size="${Math.round(width * 0.42)}">${initial}</text>
-    <text x="${x + width / 2}" y="${y + height - 34}" text-anchor="middle" fill="#D9C7A8" font-family="Arial, sans-serif" font-size="18" letter-spacing="4">FEATURE PRESENTATION</text>`;
+  const initial = Array.from(title.trim())[0]?.toUpperCase() || "A";
+  return `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="#2A1713"/>
+    <line x1="${x + width * 0.18}" y1="${y + height * 0.18}" x2="${x + width * 0.82}" y2="${y + height * 0.82}" stroke="#E0B15C" stroke-opacity="0.15"/>
+    <text class="display" x="${x + width / 2}" y="${y + height * 0.66}" text-anchor="middle" fill="#E0B15C" fill-opacity="0.5" font-size="${Math.round(Math.min(width, height) * 0.55)}">${escapeXml(initial)}</text>`;
 }
 
-function sharedFooter({
-  width,
-  height,
-  inset,
-  group,
-  includeAttribution,
-  portrait,
-}: {
-  width: number;
-  height: number;
-  inset: number;
-  group: string;
-  includeAttribution: boolean;
-  portrait: boolean;
-}) {
-  const lineY = height - (portrait ? 162 : 116);
-  const textY = height - (portrait ? 92 : 62);
-  return `<line x1="${inset}" y1="${lineY}" x2="${width - inset}" y2="${lineY}" stroke="#E0B15C" stroke-opacity="0.2"/>
-    <text x="${inset}" y="${textY}" fill="#D9C7A8" font-family="Arial, sans-serif" font-size="${portrait ? 27 : 20}">${escapeXml(group)}</text>
-    ${includeAttribution ? `<text x="${width - inset}" y="${textY}" text-anchor="end" fill="#E0B15C" font-family="Georgia, serif" font-size="${portrait ? 32 : 25}">Arbiter</text>` : ""}`;
+function overlayOpacity(analysis: ArtworkAnalysis | null) {
+  if (!analysis) return 0.78;
+  if (analysis.isSparse || analysis.baseTone === "light") return 0.92;
+  if (analysis.baseTone === "dark") return 0.68;
+  return 0.8;
+}
+
+function eyebrow(payload: SafeCardPayload) {
+  return `MOVIE NIGHT · ${payload.date.toUpperCase()}`;
+}
+
+function brandMark(width: number, y: number) {
+  return `<text class="display" x="${width - 72}" y="${y}" text-anchor="end" fill="#E0B15C" font-size="28">Arbiter</text>`;
+}
+
+function cinematicPoster(
+  payload: SafeCardPayload,
+  options: CardOptions,
+) {
+  const portrait = options.format === "portrait";
+  const { width, height } = CARD_DIMENSIONS[options.format];
+  const art = payload.artworkDataUrl
+    ? artworkImage(payload, {
+        x: portrait ? 0 : 330,
+        y: 0,
+        width: portrait ? width : 750,
+        height,
+        clipId: "cinematic-art",
+      })
+    : fallbackArtwork(
+        payload.title,
+        portrait ? 0 : 330,
+        0,
+        portrait ? width : 750,
+        height,
+      );
+  const title = fitCardTitle(payload.title, {
+    maxWidth: portrait ? 900 : 490,
+    maxLines: portrait ? 4 : 4,
+    preferredSize: portrait ? 124 : 108,
+    minimumSize: portrait ? 64 : 56,
+  });
+  const titleY = portrait ? 1180 : 342;
+  const titleEnd = titleY + (title.lines.length - 1) * title.lineHeight;
+  const detail = contextLine(payload) || "Decided together";
+  const detailY = titleEnd + (portrait ? 88 : 68);
+  const footer = footerCopy(payload, options.template);
+
+  return `<rect width="${width}" height="${height}" fill="#100907"/>
+    ${art}
+    <rect width="${width}" height="${height}" fill="url(#cinematic-shade)"/>
+    <text class="body" x="72" y="${portrait ? 104 : 92}" fill="#F0C875" font-size="${portrait ? 25 : 20}" font-weight="700" letter-spacing="5">${escapeXml(eyebrow(payload))}</text>
+    ${textLines(title, 72, titleY)}
+    <line x1="72" y1="${detailY - 38}" x2="${portrait ? 390 : 230}" y2="${detailY - 38}" stroke="#E0B15C" stroke-width="3"/>
+    <text class="body" x="72" y="${detailY}" fill="#EAD9BC" font-size="${portrait ? 31 : 24}">${escapeXml(detail)}</text>
+    <text class="body" x="72" y="${height - 74}" fill="#D1B78F" font-size="${portrait ? 25 : 19}">${escapeXml(footer)}</text>
+    ${payload.includeAttribution ? brandMark(width, height - 70) : ""}`;
+}
+
+function editorialProgramme(
+  payload: SafeCardPayload,
+  options: CardOptions,
+) {
+  const portrait = options.format === "portrait";
+  const { width, height } = CARD_DIMENSIONS[options.format];
+  const title = fitCardTitle(payload.title, {
+    maxWidth: portrait ? 890 : 820,
+    maxLines: portrait ? 5 : 4,
+    preferredSize: portrait ? 154 : 126,
+    minimumSize: portrait ? 66 : 54,
+  });
+  const titleY = portrait ? 310 : 275;
+  const titleEnd = titleY + (title.lines.length - 1) * title.lineHeight;
+  const stripY = portrait ? 1020 : 690;
+  const stripHeight = portrait ? 430 : 270;
+  const image = payload.artworkDataUrl
+    ? artworkImage(payload, {
+        x: 72,
+        y: stripY,
+        width: width - 144,
+        height: stripHeight,
+        clipId: "programme-art",
+      })
+    : fallbackArtwork(
+        payload.title,
+        72,
+        stripY,
+        width - 144,
+        stripHeight,
+      );
+  const context = payload.moods.join(" · ") || "Tonight’s choice";
+  const footer = footerCopy(payload, options.template);
+
+  return `<rect width="${width}" height="${height}" fill="#18100E"/>
+    <rect x="34" y="34" width="${width - 68}" height="${height - 68}" fill="none" stroke="#E0B15C" stroke-opacity="0.24"/>
+    <text class="body" x="72" y="${portrait ? 105 : 88}" fill="#D4B06B" font-size="${portrait ? 23 : 18}" font-weight="700" letter-spacing="6">ARBITER / SCREENING PROGRAMME</text>
+    <line x1="72" y1="${portrait ? 142 : 122}" x2="${width - 72}" y2="${portrait ? 142 : 122}" stroke="#E0B15C" stroke-opacity="0.35"/>
+    ${textLines(title, 72, titleY)}
+    <text class="body" x="72" y="${Math.max(titleEnd + 92, portrait ? 760 : 565)}" fill="#E0B15C" font-size="${portrait ? 28 : 22}" letter-spacing="2">${escapeXml(context.toUpperCase())}</text>
+    ${image}
+    <text class="body" x="72" y="${stripY + stripHeight + (portrait ? 82 : 60)}" fill="#EAD9BC" font-size="${portrait ? 29 : 22}">${escapeXml(eyebrow(payload))}</text>
+    <line x1="72" y1="${height - 142}" x2="${width - 72}" y2="${height - 142}" stroke="#E0B15C" stroke-opacity="0.22"/>
+    <text class="body" x="72" y="${height - 83}" fill="#D1B78F" font-size="${portrait ? 25 : 19}">${escapeXml(footer)}</text>
+    ${payload.includeAttribution ? brandMark(width, height - 79) : ""}`;
+}
+
+function archiveCard(payload: SafeCardPayload, options: CardOptions) {
+  const portrait = options.format === "portrait";
+  const { width, height } = CARD_DIMENSIONS[options.format];
+  const artX = portrait ? 110 : 70;
+  const artY = portrait ? 190 : 195;
+  const artWidth = portrait ? 420 : 325;
+  const artHeight = portrait ? 630 : 490;
+  const image = payload.artworkDataUrl
+    ? artworkImage(payload, {
+        x: artX,
+        y: artY,
+        width: artWidth,
+        height: artHeight,
+        clipId: "archive-art",
+        fit: payload.artworkKind === "poster" ? "meet" : "slice",
+      })
+    : fallbackArtwork(payload.title, artX, artY, artWidth, artHeight);
+  const titleX = portrait ? 110 : 455;
+  const titleY = portrait ? 965 : 300;
+  const title = fitCardTitle(payload.title, {
+    maxWidth: portrait ? 860 : 535,
+    maxLines: portrait ? 4 : 4,
+    preferredSize: portrait ? 112 : 82,
+    minimumSize: portrait ? 58 : 44,
+  });
+  const titleEnd = titleY + (title.lines.length - 1) * title.lineHeight;
+  const facts = archiveFacts(payload);
+  const factsStart = titleEnd + (portrait ? 110 : 90);
+  const mood = payload.moods.join(" · ");
+  const archiveLabel = payload.groupName
+    ? `${payload.groupName.toUpperCase()} / ARCHIVE`
+    : "ARBITER / MOVIE NIGHT ARCHIVE";
+
+  return `<rect width="${width}" height="${height}" fill="#130C0A"/>
+    <rect x="36" y="36" width="${width - 72}" height="${height - 72}" fill="#1C110F" stroke="#E0B15C" stroke-opacity="0.28"/>
+    <text class="body" x="70" y="98" fill="#D4B06B" font-size="${portrait ? 22 : 18}" font-weight="700" letter-spacing="5">${escapeXml(archiveLabel)}</text>
+    <text class="body" x="${width - 70}" y="98" text-anchor="end" fill="#BFA986" font-size="${portrait ? 22 : 18}">${escapeXml(payload.date)}</text>
+    <line x1="70" y1="132" x2="${width - 70}" y2="132" stroke="#E0B15C" stroke-opacity="0.32"/>
+    <rect x="${artX - 9}" y="${artY - 9}" width="${artWidth + 18}" height="${artHeight + 18}" fill="#0D0807" stroke="#E0B15C" stroke-opacity="0.2"/>
+    ${image}
+    ${textLines(title, titleX, titleY)}
+    <text class="body" x="${titleX}" y="${factsStart}" fill="#D8C5A5" font-size="${portrait ? 29 : 23}">${facts
+      .map(
+        (fact, index) =>
+          `<tspan x="${titleX}" dy="${index === 0 ? 0 : portrait ? 52 : 42}">${escapeXml(fact)}</tspan>`,
+      )
+      .join("")}</text>
+    ${mood ? `<line x1="${titleX}" y1="${factsStart + facts.length * (portrait ? 52 : 42) + 18}" x2="${portrait ? width - 110 : width - 70}" y2="${factsStart + facts.length * (portrait ? 52 : 42) + 18}" stroke="#E0B15C" stroke-opacity="0.18"/><text class="body" x="${titleX}" y="${factsStart + facts.length * (portrait ? 52 : 42) + 64}" fill="#E0B15C" font-size="${portrait ? 27 : 21}">${escapeXml(mood)}</text>` : ""}
+    <text class="body" x="70" y="${height - 82}" fill="#D1B78F" font-size="${portrait ? 24 : 18}">${escapeXml(footerCopy(payload, options.template))}</text>
+    ${payload.includeAttribution ? brandMark(width, height - 78) : ""}`;
 }
 
 export function buildMovieNightCardSvg(
-  data: MovieNightCardData,
+  payload: SafeCardPayload,
   options: CardOptions,
+  assets: CardAssets = {},
 ) {
-  const { width, height } = DIMENSIONS[options.format];
-  const winner = getWinner(data.night);
-  if (!winner) throw new Error("The completed movie night has no winner.");
-  const portrait = options.format === "portrait";
-  const date = formatMovieNightDate(data.night.completed_at ?? data.night.winner_selected_at);
-  const duration = formatDecisionDuration(data.night.decision_duration_seconds);
-  const participantText = `${data.night.participants.length} ${data.night.participants.length === 1 ? "participant" : "participants"}`;
-  const context = [participantText, duration ? `decided in ${duration}` : null].filter(Boolean).join(" · ");
-  const mood = options.includeMood ? data.moodLabels.slice(0, 3).join(" · ") : "";
-  const group = options.includeGroupName
-    ? truncateText(data.night.group_name, portrait ? 48 : 42)
-    : "A private movie night";
-  const eyebrow = `MOVIE NIGHT · ${escapeXml(date.toUpperCase())}`;
+  const { width, height } = CARD_DIMENSIONS[options.format];
+  const content =
+    options.template === "cinematic-poster"
+      ? cinematicPoster(payload, options)
+      : options.template === "editorial-programme"
+        ? editorialProgramme(payload, options)
+        : archiveCard(payload, options);
+  const strength = overlayOpacity(payload.artworkAnalysis);
 
-  if (portrait) {
-    const editorial = options.template === "editorial";
-    const title = titleLayout(winner.title, 22, 2, editorial ? 88 : 82, 58);
-    const titleY = editorial ? 1390 : 270;
-    const metadataY = titleY + title.lines.length * title.lineHeight + 40;
-    const contextLines = wrapText(context, 46, 2);
-    const moodLines = mood ? wrapText(mood, 42, 2) : [];
-    const moodY = metadataY + contextLines.length * 42 + 20;
-    const poster = editorial
-      ? artworkMarkup(data, winner.title, 160, 70, 760, 1140)
-      : artworkMarkup(data, winner.title, 270, 640, 540, 810);
-    return `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-        <rect width="${width}" height="${height}" fill="#0E0908"/>
-        ${editorial ? `<rect x="0" y="0" width="${width}" height="1240" fill="#281512"/>` : `<line x1="90" y1="90" x2="990" y2="90" stroke="#E0B15C" stroke-opacity="0.32"/>`}
-        ${poster}
-        <text x="90" y="${editorial ? 1305 : 165}" fill="#E0B15C" font-family="Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="4">${eyebrow}</text>
-        <text x="90" y="${titleY}" fill="#F7EAD2" font-family="Georgia, serif" font-size="${title.size}" font-weight="700">${svgTextLines(title.lines, 90, title.lineHeight)}</text>
-        <text x="90" y="${metadataY}" fill="#EAD9BC" font-family="Arial, sans-serif" font-size="31">${svgTextLines(contextLines, 90, 42)}</text>
-        ${moodLines.length ? `<text x="90" y="${moodY}" fill="#CDB58E" font-family="Arial, sans-serif" font-size="29">${svgTextLines(moodLines, 90, 42)}</text>` : ""}
-        ${sharedFooter({ width, height, inset: 90, group, includeAttribution: options.includeAttribution, portrait: true })}
-      </svg>`;
-  }
-
-  const editorial = options.template === "editorial";
-  const title = titleLayout(winner.title, editorial ? 13 : 14, 3, editorial ? 76 : 70, 48);
-  const titleX = editorial ? 76 : 470;
-  const titleY = editorial ? 230 : 220;
-  const metadataY = titleY + title.lines.length * title.lineHeight + 46;
-  const contextLines = wrapText(context, editorial ? 27 : 29, 2);
-  const moodLines = mood ? wrapText(mood, editorial ? 27 : 24, 2) : [];
-  const moodY = metadataY + contextLines.length * 34 + 18;
-  const poster = editorial
-    ? artworkMarkup(data, winner.title, 650, 70, 360, 540)
-    : artworkMarkup(data, winner.title, 80, 90, 300, 450);
-  return `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-      <rect width="${width}" height="${height}" fill="#0E0908"/>
-      ${editorial ? `<rect x="600" y="0" width="480" height="760" fill="#281512"/>` : `<line x1="425" y1="90" x2="425" y2="610" stroke="#E0B15C" stroke-opacity="0.3"/>`}
-      ${poster}
-      <text x="${titleX}" y="112" fill="#E0B15C" font-family="Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="4">${eyebrow}</text>
-      <text x="${titleX}" y="${titleY}" fill="#F7EAD2" font-family="Georgia, serif" font-size="${title.size}" font-weight="700">${svgTextLines(title.lines, titleX, title.lineHeight)}</text>
-      <text x="${titleX}" y="${metadataY}" fill="#EAD9BC" font-family="Arial, sans-serif" font-size="25">${svgTextLines(contextLines, titleX, 34)}</text>
-      ${moodLines.length ? `<text x="${titleX}" y="${moodY}" fill="#CDB58E" font-family="Arial, sans-serif" font-size="23">${svgTextLines(moodLines, titleX, 34)}</text>` : ""}
-      ${sharedFooter({ width, height, inset: 76, group, includeAttribution: options.includeAttribution, portrait: false })}
-    </svg>`;
-}
-
-async function svgToPng(svg: string, width: number, height: number) {
-  const svgBlob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
-  const url = URL.createObjectURL(svgBlob);
-  try {
-    const image = new Image();
-    await new Promise<void>((resolve, reject) => {
-      image.onload = () => resolve();
-      image.onerror = () => reject(new Error("Unable to render card artwork."));
-      image.src = url;
-    });
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("Image export is not supported in this browser.");
-    context.drawImage(image, 0, 0, width, height);
-    return await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Unable to export the card.")), "image/png");
-    });
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-}
-
-export async function renderMovieNightCard(data: MovieNightCardData, options: CardOptions) {
-  const winner = getWinner(data.night);
-  const dimensions = DIMENSIONS[options.format];
-  const svg = buildMovieNightCardSvg(data, options);
-  const blob = await svgToPng(svg, dimensions.width, dimensions.height);
-  return {
-    blob,
-    width: dimensions.width,
-    height: dimensions.height,
-    filename: `arbiter-${winner?.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "movie-night"}-${options.format}.png`,
-  };
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+    <defs>
+      ${fontDefinitions(assets.displayFontDataUrl)}
+      <clipPath id="cinematic-art"><rect x="0" y="0" width="${width}" height="${height}"/></clipPath>
+      <clipPath id="programme-art"><rect x="0" y="0" width="${width}" height="${height}"/></clipPath>
+      <clipPath id="archive-art"><rect x="0" y="0" width="${width}" height="${height}"/></clipPath>
+      <linearGradient id="cinematic-shade" x1="0" y1="0" x2="1" y2="${options.format === "portrait" ? 1 : 0}">
+        <stop offset="0" stop-color="#100907" stop-opacity="0.98"/>
+        <stop offset="${options.format === "portrait" ? 0.42 : 0.38}" stop-color="#100907" stop-opacity="${strength}"/>
+        <stop offset="1" stop-color="#100907" stop-opacity="${options.format === "portrait" ? 0.78 : 0.08}"/>
+      </linearGradient>
+    </defs>
+    ${content}
+  </svg>`;
 }

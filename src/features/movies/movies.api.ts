@@ -81,9 +81,10 @@ export async function getMovieDetail(
 export async function getMovieNightArtwork(
   groupId: string,
   candidateId: string,
+  kind: "poster" | "backdrop" = "poster",
 ) {
   const response = await api(
-    `/groups/${encodeURIComponent(groupId)}/movie-night-artwork/${encodeURIComponent(candidateId)}`,
+    `/groups/${encodeURIComponent(groupId)}/movie-night-artwork/${encodeURIComponent(candidateId)}?kind=${kind}`,
     { headers: { Accept: "image/*" } },
   );
   if (!response.ok) throw new Error("Movie artwork is unavailable");

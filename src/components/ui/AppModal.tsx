@@ -15,6 +15,7 @@ type AppModalProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   ariaLabel: string;
+  ariaDescribedBy?: string;
   size?: AppModalSize;
   scroll?: "inside" | "outside";
   placement?: "auto" | "top" | "center" | "bottom";
@@ -29,6 +30,7 @@ export default function AppModal({
   isOpen,
   onOpenChange,
   ariaLabel,
+  ariaDescribedBy,
   size = "md",
   scroll = "inside",
   placement = "center",
@@ -52,7 +54,11 @@ export default function AppModal({
           placement={placement}
           className={classes?.container}
         >
-          <Modal.Dialog aria-label={ariaLabel} className={classes?.dialog}>
+          <Modal.Dialog
+            aria-label={ariaLabel}
+            aria-describedby={ariaDescribedBy}
+            className={classes?.dialog}
+          >
             {({ close }) => (
               <>
                 {!hideCloseButton ? (

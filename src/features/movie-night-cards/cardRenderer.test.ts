@@ -1,161 +1,117 @@
 import { describe, expect, it } from "vitest";
-import type { CompletedSession } from "../sessions/sessions.api";
+import {
+  CARD_DIMENSIONS,
+  CARD_TEMPLATES,
+  cardFilename,
+  createSafeCardPayload,
+  normalizeCardTemplate,
+  type CardOptions,
+} from "./cardModel";
 import { buildMovieNightCardSvg } from "./cardRenderer";
+import { cardTestNight } from "./cardTestFixtures";
 
-const night: CompletedSession = {
-  session_id: "private-session-id",
-  group_id: "private-group-id",
-  group_name: "Match Club",
-  status: "completed",
-  created_at: "2026-07-20T20:00:00Z",
-  started_at: "2026-07-20T20:01:00Z",
-  winner_selected_at: "2026-07-20T20:08:00Z",
-  completed_at: "2026-07-20T20:09:00Z",
-  criteria: { mood_cues: ["easygoing"] },
-  winner_candidate_id: "winner-id",
-  decision_duration_seconds: 420,
-  winner_unanimous: false,
-  had_tie: false,
-  tie_resolution: null,
-  watched_status: "watched",
-  watched_confirmed_at: null,
-  teleparty_was_shared: true,
-  teleparty_shared_at: "2026-07-20T20:10:00Z",
-  teleparty_handoff_at: null,
-  participants: [
-    {
-      id: "participant-id",
-      user_id: "private-user-id",
-      display_name: "Private Participant",
-      avatar_url: null,
-      avatar_source: "initials",
-      avatar_style: null,
-      avatar_seed: null,
-      joined_at: null,
-      submitted_votes: true,
-      role: "host",
-      participation_status: "participated",
-      criteria: null,
-    },
-  ],
-  candidates: [
-    {
-      id: "winner-id",
-      source_watchlist_item_id: "watchlist-id",
-      source_title_id: "title-id",
-      source: "tmdb",
-      source_id: "1",
-      media_type: "movie",
-      title: "A Beautiful Film",
-      release_year: 2026,
-      poster_path: null,
-      backdrop_path: null,
-      runtime_minutes: 104,
-      genres: ["Drama"],
-      overview: null,
-      position: 0,
-      yes_count: 1,
-      no_count: 0,
-      total_vote_count: 1,
-      is_winner: true,
-      is_finalist: true,
-    },
-  ],
+const baseOptions: CardOptions = {
+  format: "square",
+  template: "cinematic-poster",
+  includeGroupName: false,
+  includeMood: true,
+  includeAttribution: true,
 };
 
+function payload(options: CardOptions = baseOptions) {
+  return createSafeCardPayload(
+    {
+      night: cardTestNight,
+      moodLabels: ["Easygoing", "Make us laugh", "Hidden gem"],
+      artworkDataUrl: "data:image/jpeg;base64,cG9zdGVy",
+      artworkKind: "poster",
+      artworkAnalysis: {
+        tone: "light",
+        baseTone: "light",
+        averageLuminance: 0.78,
+        contrast: 0.2,
+        isSparse: false,
+      },
+    },
+    options,
+  );
+}
+
 describe("movie night card rendering", () => {
-  it("uses privacy-preserving defaults and deterministic high-resolution dimensions", () => {
-    const svg = buildMovieNightCardSvg(
-      { night, moodLabels: ["Easygoing"] },
-      {
-        format: "square",
-        template: "editorial",
-        includeGroupName: false,
-        includeMood: true,
-        includeAttribution: true,
-      },
-    );
-
-    expect(svg).toContain('width="1080" height="1080"');
-    expect(svg).toContain("A Beautiful");
-    expect(svg).toContain(">Film<");
-    expect(svg).toContain("Easygoing");
-    expect(svg).toContain("1 participant");
-    expect(svg).not.toContain("Match Club");
-    expect(svg).not.toContain("Private Participant");
-    expect(svg).not.toContain("private-session-id");
-    expect(svg).not.toContain("private-user-id");
-    expect(svg).not.toContain("Teleparty");
-    expect(svg).not.toContain("yes_count");
+  it("renders all three templates at both exact output dimensions", () => {
+    for (const template of CARD_TEMPLATES.map((item) => item.value)) {
+      for (const format of ["square", "portrait"] as const) {
+        const options = { ...baseOptions, template, format };
+        const svg = buildMovieNightCardSvg(payload(options), options);
+        const dimensions = CARD_DIMENSIONS[format];
+        expect(svg).toContain(
+          `width="${dimensions.width}" height="${dimensions.height}"`,
+        );
+        expect(svg).toContain("Beautiful");
+        expect(svg).toContain("Film");
+      }
+    }
   });
 
-  it("only includes the group name after explicit selection", () => {
-    const svg = buildMovieNightCardSvg(
-      { night, moodLabels: [] },
-      {
-        format: "portrait",
-        template: "programme",
-        includeGroupName: true,
-        includeMood: false,
-        includeAttribution: false,
-      },
+  it("maps every legacy style to a stable new template", () => {
+    expect(normalizeCardTemplate("editorial-poster")).toBe(
+      "cinematic-poster",
     );
-    expect(svg).toContain('width="1080" height="1920"');
-    expect(svg).toContain("Match Club");
-    expect(svg).not.toContain(">Arbiter<");
+    expect(normalizeCardTemplate("editorial")).toBe("cinematic-poster");
+    expect(normalizeCardTemplate("minimal-programme")).toBe(
+      "editorial-programme",
+    );
+    expect(normalizeCardTemplate("programme")).toBe("editorial-programme");
   });
 
-  it("embeds available poster artwork and provides a designed missing-art fallback", () => {
+  it("sanitizes the full session before composition", () => {
+    const safe = payload();
+    const serialized = JSON.stringify(safe);
+    expect(serialized).not.toContain("private-session-id");
+    expect(serialized).not.toContain("private-group-id");
+    expect(serialized).not.toContain("private-user-id");
+    expect(serialized).not.toContain("Private Participant");
+    expect(serialized).not.toContain("private.example");
+    expect(serialized).not.toContain("yes_count");
+    expect(serialized).not.toContain("Teleparty");
+    expect(safe.moods).toEqual(["Easygoing", "Make us laugh"]);
+    expect(safe.groupName).toBeNull();
+  });
+
+  it("includes the group only after explicit selection", () => {
+    const options = { ...baseOptions, includeGroupName: true };
+    const safe = payload(options);
+    expect(safe.groupName).toBe("Match Club");
+    expect(buildMovieNightCardSvg(safe, options)).toContain("Match Club");
+  });
+
+  it("embeds artwork or renders a typography-safe fallback", () => {
+    const safe = payload();
+    expect(buildMovieNightCardSvg(safe, baseOptions)).toContain("<image");
+    const noArtwork = { ...safe, artworkDataUrl: null, artworkKind: null };
+    const svg = buildMovieNightCardSvg(noArtwork, baseOptions);
+    expect(svg).not.toContain("<image");
+    expect(svg).toContain(">A</text>");
+  });
+
+  it("keeps fallback typography inside shallow editorial artwork strips", () => {
     const options = {
-      format: "square" as const,
-      template: "editorial" as const,
-      includeGroupName: false,
-      includeMood: false,
-      includeAttribution: true,
+      ...baseOptions,
+      template: "editorial-programme" as const,
     };
-    const withArtwork = buildMovieNightCardSvg(
-      { night, moodLabels: [], artworkDataUrl: "data:image/jpeg;base64,cG9zdGVy" },
-      options,
-    );
-    expect(withArtwork).toContain("<image");
-    expect(withArtwork).toContain("data:image/jpeg;base64,cG9zdGVy");
-    expect(withArtwork).not.toContain("FEATURE PRESENTATION");
+    const noArtwork = {
+      ...payload(options),
+      artworkDataUrl: null,
+      artworkKind: null,
+    };
+    const svg = buildMovieNightCardSvg(noArtwork, options);
 
-    const withoutArtwork = buildMovieNightCardSvg(
-      { night, moodLabels: [], artworkDataUrl: null },
-      options,
-    );
-    expect(withoutArtwork).not.toContain("<image");
-    expect(withoutArtwork).toContain("FEATURE PRESENTATION");
+    expect(svg).toMatch(/font-size="149"[^>]*>A<\/text>/);
   });
 
-  it("bounds long titles, mood text, and group names within their layout zones", () => {
-    const longNight: CompletedSession = {
-      ...night,
-      group_name: "The Extremely Long Friends and Family International Cinema Society",
-      candidates: [
-        {
-          ...night.candidates[0],
-          title: "The Assassination of Jesse James by the Coward Robert Ford",
-        },
-      ],
-    };
-    const svg = buildMovieNightCardSvg(
-      {
-        night: longNight,
-        moodLabels: ["Beautiful to look at", "Something unsettling", "Critically acclaimed"],
-      },
-      {
-        format: "portrait",
-        template: "editorial",
-        includeGroupName: true,
-        includeMood: true,
-        includeAttribution: true,
-      },
+  it("creates a deterministic, sanitized filename with the completed date", () => {
+    expect(cardFilename(payload(), "square")).toBe(
+      "arbiter-a-beautiful-film-2026-07-20-square.png",
     );
-
-    expect((svg.match(/<tspan/g) ?? []).length).toBeLessThanOrEqual(6);
-    expect(svg).toContain("…");
-    expect(svg).not.toContain(longNight.group_name);
   });
 });
