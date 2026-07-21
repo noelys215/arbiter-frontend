@@ -80,19 +80,14 @@ export async function analyzeArtworkDataUrl(dataUrl: string) {
   }
 }
 
-export function selectArtworkKind({
-  template,
-  format,
-  hasPoster,
-  canRequestBackdrop,
-  titleLength,
-}: {
+export function selectArtworkKind(input: {
   template: CardTemplate;
   format: CardFormat;
   hasPoster: boolean;
   canRequestBackdrop: boolean;
   titleLength: number;
 }): ArtworkKind | null {
+  const { template, hasPoster, canRequestBackdrop } = input;
   if (!hasPoster && !canRequestBackdrop) return null;
   if (template === "archive-card") {
     return hasPoster ? "poster" : "backdrop";
@@ -100,11 +95,7 @@ export function selectArtworkKind({
   if (template === "cinematic-poster") {
     return canRequestBackdrop ? "backdrop" : "poster";
   }
-  if (format === "portrait" && titleLength > 34 && canRequestBackdrop) {
-    return "backdrop";
-  }
-  return hasPoster ? "poster" : "backdrop";
+  return canRequestBackdrop ? "backdrop" : hasPoster ? "poster" : null;
 }
 
 export const fallbackArtworkAnalysis = UNKNOWN_ANALYSIS;
-

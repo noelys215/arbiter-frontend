@@ -43,6 +43,15 @@ describe("card artwork analysis", () => {
     expect(
       selectArtworkKind({
         template: "editorial-programme",
+        format: "square",
+        hasPoster: true,
+        canRequestBackdrop: true,
+        titleLength: 9,
+      }),
+    ).toBe("backdrop");
+    expect(
+      selectArtworkKind({
+        template: "editorial-programme",
         format: "portrait",
         hasPoster: false,
         canRequestBackdrop: false,
@@ -51,4 +60,3 @@ describe("card artwork analysis", () => {
     ).toBeNull();
   });
 });
-

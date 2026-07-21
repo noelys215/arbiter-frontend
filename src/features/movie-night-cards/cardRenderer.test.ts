@@ -6,8 +6,13 @@ import {
   createSafeCardPayload,
   normalizeCardTemplate,
   type CardOptions,
+  type SafeCardPayload,
 } from "./cardModel";
-import { buildMovieNightCardSvg } from "./cardRenderer";
+import {
+  buildMovieNightCardSvg,
+  getEditorialProgrammeLayout,
+} from "./cardRenderer";
+import { estimateTextWidth } from "./cardTypography";
 import { cardTestNight } from "./cardTestFixtures";
 
 const baseOptions: CardOptions = {
@@ -35,6 +40,18 @@ function payload(options: CardOptions = baseOptions) {
     },
     options,
   );
+}
+
+const editorialOptions: CardOptions = {
+  ...baseOptions,
+  template: "editorial-programme",
+};
+
+function editorialPayload(
+  title: string,
+  overrides: Partial<SafeCardPayload> = {},
+) {
+  return { ...payload(editorialOptions), title, ...overrides };
 }
 
 describe("movie night card rendering", () => {
@@ -105,8 +122,144 @@ describe("movie night card rendering", () => {
       artworkKind: null,
     };
     const svg = buildMovieNightCardSvg(noArtwork, options);
+    const layout = getEditorialProgrammeLayout(noArtwork, options);
+    const fallbackSize = Number(
+      svg.match(/font-size="(\d+)"[^>]*>A<\/text>/)?.[1],
+    );
 
-    expect(svg).toMatch(/font-size="149"[^>]*>A<\/text>/);
+    expect(fallbackSize).toBeGreaterThan(0);
+    expect(fallbackSize).toBeLessThanOrEqual(layout.stripHeight * 0.55 + 1);
+  });
+
+  it.each([
+    "Up",
+    "Midsommar",
+    "Michiko & Hatchin",
+    "The Ghost in the Shell",
+    "Everything Everywhere All at Once",
+    "A Deliberately Long Three Line Programme Title",
+  ])("keeps Editorial Programme geometry stable for %s", (title) => {
+    for (const format of ["square", "portrait"] as const) {
+      const options = { ...editorialOptions, format };
+      const layout = getEditorialProgrammeLayout(
+        editorialPayload(title),
+        options,
+      );
+      const titleEnd =
+        layout.titleY +
+        (layout.title.lines.length - 1) * layout.title.lineHeight;
+
+      expect(layout.title.lines.join(" ")).toBe(title);
+      expect(layout.title.lines.length).toBeLessThanOrEqual(
+        format === "portrait" ? 5 : 4,
+      );
+      expect(titleEnd).toBeLessThan(layout.moodY);
+      expect(layout.moodY).toBeLessThan(layout.stripY);
+      expect(layout.stripHeight).toBeGreaterThan(0);
+    }
+  });
+
+  it("gives short one-line titles more authority and tightens three-line rhythm", () => {
+    const short = getEditorialProgrammeLayout(
+      editorialPayload("Up"),
+      editorialOptions,
+    );
+    const threeLine = getEditorialProgrammeLayout(
+      editorialPayload("A Deliberately Long Three Line Programme Title"),
+      editorialOptions,
+    );
+
+    expect(short.title.lines).toHaveLength(1);
+    expect(short.title.fontSize).toBeGreaterThanOrEqual(140);
+    expect(threeLine.title.lines.length).toBeGreaterThanOrEqual(3);
+    expect(threeLine.title.lineHeight).toBe(
+      Math.round(threeLine.title.fontSize * 0.86),
+    );
+  });
+
+  it("uses backdrop strips, bounded detail crops, and contained sparse posters", () => {
+    const backdrop = getEditorialProgrammeLayout(
+      editorialPayload("Midsommar", { artworkKind: "backdrop" }),
+      editorialOptions,
+    );
+    const detail = getEditorialProgrammeLayout(
+      editorialPayload("Midsommar", {
+        artworkKind: "poster",
+        artworkAnalysis: {
+          tone: "dark",
+          baseTone: "dark",
+          averageLuminance: 0.12,
+          contrast: 0.35,
+          isSparse: false,
+        },
+      }),
+      editorialOptions,
+    );
+    const sparse = getEditorialProgrammeLayout(
+      editorialPayload("Midsommar", {
+        artworkKind: "poster",
+        artworkAnalysis: {
+          tone: "sparse",
+          baseTone: "light",
+          averageLuminance: 0.8,
+          contrast: 0.04,
+          isSparse: true,
+        },
+      }),
+      editorialOptions,
+    );
+
+    expect(backdrop).toMatchObject({
+      artworkMode: "cinematic-strip",
+      artworkWidth: 936,
+      artworkFit: "slice",
+    });
+    expect(detail.artworkMode).toBe("detail-crop");
+    expect(detail.artworkWidth).toBe(Math.round(936 * 0.8));
+    expect(sparse).toMatchObject({
+      artworkMode: "contained-poster",
+      artworkWidth: 936,
+      artworkFit: "meet",
+    });
+  });
+
+  it("personalizes and safely fits the programme eyebrow", () => {
+    const standard = getEditorialProgrammeLayout(
+      editorialPayload("Midsommar", { groupName: null }),
+      editorialOptions,
+    );
+    const longName = "The Extremely Long International Sunday Cinema Society";
+    const personalized = getEditorialProgrammeLayout(
+      editorialPayload("Midsommar", { groupName: longName }),
+      editorialOptions,
+    );
+    const fittedWidth =
+      estimateTextWidth(personalized.eyebrow, personalized.eyebrowFontSize) +
+      (Array.from(personalized.eyebrow).length - 1) *
+        personalized.eyebrowTracking;
+
+    expect(standard.eyebrow).toBe("ARBITER / SCREENING PROGRAMME");
+    expect(personalized.eyebrow).toBe(
+      `${longName.toUpperCase()} / SCREENING PROGRAMME`,
+    );
+    expect(fittedWidth).toBeLessThanOrEqual(936);
+  });
+
+  it("renders at most two stable mood cues and clarifies the footer hierarchy", () => {
+    const withManyMoods = editorialPayload("Midsommar", {
+      moods: ["Easygoing", "Make us laugh", "Hidden gem"],
+    });
+    const svg = buildMovieNightCardSvg(withManyMoods, editorialOptions);
+    const noMoodSvg = buildMovieNightCardSvg(
+      { ...withManyMoods, moods: [] },
+      editorialOptions,
+    );
+
+    expect(svg).toContain("EASYGOING · MAKE US LAUGH");
+    expect(svg).not.toContain("Hidden gem");
+    expect(svg).toContain("MOVIE NIGHT · JULY 20, 2026");
+    expect(svg).toContain(">Decided together</text>");
+    expect(noMoodSvg).toContain("TONIGHT’S CHOICE");
   });
 
   it("creates a deterministic, sanitized filename with the completed date", () => {

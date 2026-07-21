@@ -7,7 +7,11 @@ import {
   type CardOptions,
   type SafeCardPayload,
 } from "./cardModel";
-import { fitCardTitle, type TitleFit } from "./cardTypography";
+import {
+  estimateTextWidth,
+  fitCardTitle,
+  type TitleFit,
+} from "./cardTypography";
 
 export type { CardFormat, CardOptions, CardTemplate } from "./cardModel";
 
@@ -114,6 +118,149 @@ function brandMark(width: number, y: number) {
   return `<text class="display" x="${width - 72}" y="${y}" text-anchor="end" fill="#E0B15C" font-size="28">Arbiter</text>`;
 }
 
+type EditorialArtworkMode =
+  | "cinematic-strip"
+  | "detail-crop"
+  | "contained-poster"
+  | "fallback";
+
+export type EditorialProgrammeLayout = {
+  title: TitleFit;
+  titleY: number;
+  moodY: number;
+  stripY: number;
+  stripHeight: number;
+  artworkMode: EditorialArtworkMode;
+  artworkX: number;
+  artworkWidth: number;
+  artworkFit: "meet" | "slice";
+  eyebrow: string;
+  eyebrowFontSize: number;
+  eyebrowTracking: number;
+};
+
+function fitTrackedLabel(
+  value: string,
+  maxWidth: number,
+  preferredSize: number,
+  minimumSize: number,
+  preferredTracking: number,
+) {
+  for (let size = preferredSize; size >= minimumSize; size -= 1) {
+    const tracking = Math.max(
+      2,
+      Math.round(preferredTracking * (size / preferredSize)),
+    );
+    const width =
+      estimateTextWidth(value, size) +
+      Math.max(0, Array.from(value).length - 1) * tracking;
+    if (width <= maxWidth) return { fontSize: size, tracking };
+  }
+  return { fontSize: minimumSize, tracking: 2 };
+}
+
+export function getEditorialProgrammeLayout(
+  payload: SafeCardPayload,
+  options: CardOptions,
+): EditorialProgrammeLayout {
+  const portrait = options.format === "portrait";
+  const maxWidth = portrait ? 890 : 820;
+  let title = fitCardTitle(payload.title, {
+    maxWidth,
+    maxLines: portrait ? 5 : 4,
+    preferredSize: portrait ? 154 : 126,
+    minimumSize: portrait ? 66 : 54,
+  });
+  if (title.lines.length === 1) {
+    title = fitCardTitle(payload.title, {
+      maxWidth,
+      maxLines: 1,
+      preferredSize:
+        payload.title.length <= 12
+          ? portrait
+            ? 176
+            : 148
+          : portrait
+            ? 166
+            : 138,
+      minimumSize: title.fontSize,
+    });
+  } else if (title.lines.length >= 3) {
+    title = {
+      ...title,
+      lineHeight: Math.round(title.fontSize * 0.86),
+    };
+  }
+
+  const lineCount = title.lines.length;
+  const titleY = portrait ? 310 : 275;
+  const titleEnd = titleY + (lineCount - 1) * title.lineHeight;
+  const moodY =
+    lineCount === 1
+      ? titleEnd + (portrait ? 132 : 108)
+      : lineCount === 2
+        ? Math.max(titleEnd + (portrait ? 98 : 86), portrait ? 700 : 535)
+        : titleEnd + (portrait ? 74 : 62);
+  const stripBottom = portrait ? 1510 : 842;
+  const stripY =
+    lineCount === 1
+      ? portrait
+        ? 760
+        : 500
+      : lineCount === 2
+        ? portrait
+          ? 900
+          : 610
+        : Math.min(
+            stripBottom - (portrait ? 380 : 150),
+            Math.max(moodY + (portrait ? 90 : 54), portrait ? 930 : 650),
+          );
+
+  const fullArtworkWidth = CARD_DIMENSIONS[options.format].width - 144;
+  const intentionalDetailCrop = Boolean(
+    payload.artworkKind === "poster" &&
+      payload.artworkAnalysis &&
+      !payload.artworkAnalysis.isSparse &&
+      payload.artworkAnalysis.baseTone !== "light" &&
+      payload.artworkAnalysis.contrast >= 0.22,
+  );
+  const artworkMode: EditorialArtworkMode = !payload.artworkDataUrl
+    ? "fallback"
+    : payload.artworkKind === "backdrop"
+      ? "cinematic-strip"
+      : intentionalDetailCrop
+        ? "detail-crop"
+        : "contained-poster";
+  const artworkWidth =
+    artworkMode === "detail-crop"
+      ? Math.round(fullArtworkWidth * 0.8)
+      : fullArtworkWidth;
+  const artworkX = 72 + Math.round((fullArtworkWidth - artworkWidth) / 2);
+  const eyebrow = `${(payload.groupName || "ARBITER").toUpperCase()} / SCREENING PROGRAMME`;
+  const eyebrowFit = fitTrackedLabel(
+    eyebrow,
+    CARD_DIMENSIONS[options.format].width - 144,
+    portrait ? 23 : 18,
+    13,
+    6,
+  );
+
+  return {
+    title,
+    titleY,
+    moodY,
+    stripY,
+    stripHeight: stripBottom - stripY,
+    artworkMode,
+    artworkX,
+    artworkWidth,
+    artworkFit: artworkMode === "contained-poster" ? "meet" : "slice",
+    eyebrow,
+    eyebrowFontSize: eyebrowFit.fontSize,
+    eyebrowTracking: eyebrowFit.tracking,
+  };
+}
+
 function cinematicPoster(
   payload: SafeCardPayload,
   options: CardOptions,
@@ -164,45 +311,41 @@ function editorialProgramme(
 ) {
   const portrait = options.format === "portrait";
   const { width, height } = CARD_DIMENSIONS[options.format];
-  const title = fitCardTitle(payload.title, {
-    maxWidth: portrait ? 890 : 820,
-    maxLines: portrait ? 5 : 4,
-    preferredSize: portrait ? 154 : 126,
-    minimumSize: portrait ? 66 : 54,
-  });
-  const titleY = portrait ? 310 : 275;
-  const titleEnd = titleY + (title.lines.length - 1) * title.lineHeight;
-  const stripY = portrait ? 1020 : 690;
-  const stripHeight = portrait ? 430 : 270;
+  const layout = getEditorialProgrammeLayout(payload, options);
+  const stripBackground = `<rect x="72" y="${layout.stripY}" width="${width - 144}" height="${layout.stripHeight}" fill="#2A1713"/>`;
   const image = payload.artworkDataUrl
-    ? artworkImage(payload, {
-        x: 72,
-        y: stripY,
-        width: width - 144,
-        height: stripHeight,
+    ? `${stripBackground}${artworkImage(payload, {
+        x: layout.artworkX,
+        y: layout.stripY,
+        width: layout.artworkWidth,
+        height: layout.stripHeight,
         clipId: "programme-art",
-      })
+        fit: layout.artworkFit,
+      })}`
     : fallbackArtwork(
         payload.title,
         72,
-        stripY,
+        layout.stripY,
         width - 144,
-        stripHeight,
+        layout.stripHeight,
       );
-  const context = payload.moods.join(" · ") || "Tonight’s choice";
-  const footer = footerCopy(payload, options.template);
+  const context = payload.moods.slice(0, 2).join(" · ") || "Tonight’s choice";
+  const footerRuleY = portrait ? 1582 : 878;
+  const occasionY = portrait ? 1644 : 918;
+  const decidedY = portrait ? 1696 : 956;
+  const brandY = portrait ? 1812 : 997;
 
   return `<rect width="${width}" height="${height}" fill="#18100E"/>
     <rect x="34" y="34" width="${width - 68}" height="${height - 68}" fill="none" stroke="#E0B15C" stroke-opacity="0.24"/>
-    <text class="body" x="72" y="${portrait ? 105 : 88}" fill="#D4B06B" font-size="${portrait ? 23 : 18}" font-weight="700" letter-spacing="6">ARBITER / SCREENING PROGRAMME</text>
+    <text class="body" x="72" y="${portrait ? 105 : 88}" fill="#D4B06B" font-size="${layout.eyebrowFontSize}" font-weight="700" letter-spacing="${layout.eyebrowTracking}">${escapeXml(layout.eyebrow)}</text>
     <line x1="72" y1="${portrait ? 142 : 122}" x2="${width - 72}" y2="${portrait ? 142 : 122}" stroke="#E0B15C" stroke-opacity="0.35"/>
-    ${textLines(title, 72, titleY)}
-    <text class="body" x="72" y="${Math.max(titleEnd + 92, portrait ? 760 : 565)}" fill="#E0B15C" font-size="${portrait ? 28 : 22}" letter-spacing="2">${escapeXml(context.toUpperCase())}</text>
+    ${textLines(layout.title, 72, layout.titleY)}
+    <text class="body" x="72" y="${layout.moodY}" fill="#E0B15C" font-size="${portrait ? 28 : 22}" letter-spacing="2">${escapeXml(context.toUpperCase())}</text>
     ${image}
-    <text class="body" x="72" y="${stripY + stripHeight + (portrait ? 82 : 60)}" fill="#EAD9BC" font-size="${portrait ? 29 : 22}">${escapeXml(eyebrow(payload))}</text>
-    <line x1="72" y1="${height - 142}" x2="${width - 72}" y2="${height - 142}" stroke="#E0B15C" stroke-opacity="0.22"/>
-    <text class="body" x="72" y="${height - 83}" fill="#D1B78F" font-size="${portrait ? 25 : 19}">${escapeXml(footer)}</text>
-    ${payload.includeAttribution ? brandMark(width, height - 79) : ""}`;
+    <line x1="72" y1="${footerRuleY}" x2="${width - 72}" y2="${footerRuleY}" stroke="#E0B15C" stroke-opacity="0.22"/>
+    <text class="body" x="72" y="${occasionY}" fill="#EAD9BC" font-size="${portrait ? 22 : 17}" font-weight="600" letter-spacing="${portrait ? 4 : 3}">${escapeXml(eyebrow(payload))}</text>
+    <text class="body" x="72" y="${decidedY}" fill="#BFA986" font-size="${portrait ? 18 : 14}">Decided together</text>
+    ${payload.includeAttribution ? brandMark(width, brandY) : ""}`;
 }
 
 function archiveCard(payload: SafeCardPayload, options: CardOptions) {
