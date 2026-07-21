@@ -20,9 +20,9 @@ export default function MovieNightsShell({ children }: MovieNightsShellProps) {
       <SkipLink />
       <nav
         aria-label="Primary"
-        className="border-b border-[#E0B15C]/10 bg-[#140C0A]"
+        className="sticky top-0 z-50 border-b border-[#E0B15C]/12 bg-[#100806]/88 px-4 py-3 backdrop-blur-sm sm:px-6"
       >
-        <div className="mx-auto flex h-[73px] max-w-[88rem] items-center justify-between px-4 sm:h-[105px] sm:px-8">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4">
           <Button
             variant="tertiary"
             className="h-auto min-w-0 !bg-transparent p-0 data-[hovered=true]:!bg-transparent"
@@ -31,19 +31,24 @@ export default function MovieNightsShell({ children }: MovieNightsShellProps) {
           >
             <BrandLockup
               titleAs="span"
-              showVersion={false}
-              logoClassName="h-12 w-12 sm:h-16 sm:w-16"
-              titleClassName="text-3xl text-[#F7EAD2] sm:text-4xl"
+              logoClassName="h-10 w-10 sm:h-14 sm:w-14"
+              titleClassName="text-3xl sm:text-4xl"
+              versionClassName="sr-only"
             />
           </Button>
           <Button
             isIconOnly
             variant="tertiary"
-            className="h-12 w-12 min-w-12 rounded-full !bg-transparent focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E]"
+            className="h-12 w-12 min-w-12 rounded-full border border-[#E0B15C]/20 !bg-transparent p-0 transition hover:border-[#E0B15C]/55 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#F2C16E] sm:h-14 sm:w-14 sm:min-w-14"
             onPress={() => navigate("/app")}
             aria-label="Return to account and watchlist"
           >
-            <ArbiterAvatar user={me} size="lg" decorative />
+            <ArbiterAvatar
+              user={me}
+              size="lg"
+              className="bg-[#E0B15C] text-[#1C110F]"
+              decorative
+            />
           </Button>
         </div>
       </nav>

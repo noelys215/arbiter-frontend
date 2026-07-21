@@ -77,11 +77,14 @@ export default function AddToWatchlistCard({
               value={search}
               onChange={(event) => onSearchChange(event.target.value)}
               className="md:flex-1"
-              classes={inputClassNames}
+              classes={{
+                ...inputClassNames,
+                inputWrapper: `${inputClassNames.inputWrapper} h-11`,
+              }}
             />
             <Button
               variant="tertiary"
-              className="app-secondary-button app-manual-button h-14 w-full md:w-44"
+              className="app-secondary-button app-manual-button h-11 w-full md:w-44"
               onPress={onOpenManual}
               isDisabled={isManualDisabled}
             >
