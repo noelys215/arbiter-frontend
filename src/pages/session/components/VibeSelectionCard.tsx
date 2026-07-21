@@ -134,7 +134,7 @@ export default function VibeSelectionCard({
                 <span>More feelings and occasions</span>
                 <span
                   aria-hidden="true"
-                  className="relative flex h-9 w-9 shrink-0 rotate-0 items-center justify-center rounded-full border border-[#E0B15C]/25 text-[#E0B15C] transition-[transform,border-color,background-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform group-open:rotate-45 group-open:border-[#E0B15C]/50 group-open:bg-[#E0B15C]/8 motion-reduce:duration-0"
+                  className="relative flex h-9 w-9 shrink-0 rotate-0 items-center justify-center rounded-full border border-[#E0B15C]/25 text-[#E0B15C] transition-[rotate,border-color,background-color] duration-[600ms] ease-[cubic-bezier(0.45,0,0.55,1)] will-change-[rotate] group-open:rotate-45 group-open:border-[#E0B15C]/50 group-open:bg-[#E0B15C]/8 motion-reduce:duration-0"
                 >
                   <span className="absolute h-px w-4 rounded-full bg-current" />
                   <span className="absolute h-4 w-px rounded-full bg-current" />
@@ -173,7 +173,7 @@ export default function VibeSelectionCard({
           <span>Genre and runtime preferences</span>
           <span
             aria-hidden="true"
-            className="relative flex h-9 w-9 shrink-0 rotate-0 items-center justify-center rounded-full border border-[#E0B15C]/25 text-[#E0B15C] transition-[transform,border-color,background-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform group-open:rotate-45 group-open:border-[#E0B15C]/50 group-open:bg-[#E0B15C]/8 motion-reduce:duration-0"
+            className="relative flex h-9 w-9 shrink-0 rotate-0 items-center justify-center rounded-full border border-[#E0B15C]/25 text-[#E0B15C] transition-[rotate,border-color,background-color] duration-[600ms] ease-[cubic-bezier(0.45,0,0.55,1)] will-change-[rotate] group-open:rotate-45 group-open:border-[#E0B15C]/50 group-open:bg-[#E0B15C]/8 motion-reduce:duration-0"
           >
             <span className="absolute h-px w-4 rounded-full bg-current" />
             <span className="absolute h-4 w-px rounded-full bg-current" />
