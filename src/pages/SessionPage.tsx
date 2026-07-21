@@ -11,10 +11,13 @@ import VibeSelectionCard from "./session/components/VibeSelectionCard";
 import { useSessionFlow } from "./session/hooks/useSessionFlow";
 import SkipLink from "../components/SkipLink";
 import { useLocation } from "react-router-dom";
+import { useState } from "react";
+import AppAlertDialog from "../components/ui/AppAlertDialog";
 import "./session/SessionPage.css";
 
 export default function SessionPage() {
   const location = useLocation();
+  const [isExitConfirmOpen, setIsExitConfirmOpen] = useState(false);
   const {
     groups,
     groupsLoading,
@@ -115,7 +118,7 @@ export default function SessionPage() {
       variant="secondary"
       className="app-danger-button h-10 px-4"
       isPending={isGroupLeader ? endSessionMutation.isPending : false}
-      onPress={isGroupLeader ? handleEndSession : handleLeaveSession}
+      onPress={() => setIsExitConfirmOpen(true)}
     >
       {isGroupLeader ? "End Session" : "Leave Session"}
     </Button>
@@ -130,6 +133,30 @@ export default function SessionPage() {
         userEmail={me?.email ?? ""}
         sessionAction={sessionExitAction}
         onGoHome={goHome}
+      />
+
+      <AppAlertDialog
+        isOpen={isExitConfirmOpen}
+        onOpenChange={setIsExitConfirmOpen}
+        title={isGroupLeader ? "End this session?" : "Leave this session?"}
+        description={
+          isGroupLeader
+            ? "The active session will end for everyone in the group."
+            : "You’ll leave this session and return to the watchlist."
+        }
+        detail={
+          selectedGroup?.name ? `Session for ${selectedGroup.name}` : undefined
+        }
+        confirmLabel={isGroupLeader ? "End session" : "Leave session"}
+        onConfirm={() => {
+          if (isGroupLeader) {
+            handleEndSession();
+            return;
+          }
+          setIsExitConfirmOpen(false);
+          handleLeaveSession();
+        }}
+        isPending={isGroupLeader && endSessionMutation.isPending}
       />
 
       <main

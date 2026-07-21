@@ -1,5 +1,4 @@
-import { Button } from "@heroui/react";
-import AppModal, { AppModalBody, AppModalFooter, AppModalHeader, AppModalHeading } from "../../../components/ui/AppModal";
+import AppAlertDialog from "../../../components/ui/AppAlertDialog";
 import type { ConfirmAction, OnOpenChange } from "../types";
 
 type ConfirmActionModalProps = {
@@ -18,6 +17,26 @@ export default function ConfirmActionModal({
   isLoading,
 }: ConfirmActionModalProps) {
   const isTransfer = confirmAction?.type === "transfer";
+  const title =
+    confirmAction?.type === "delete"
+      ? "Delete this group?"
+      : confirmAction?.type === "leave"
+        ? "Leave this group?"
+        : confirmAction?.type === "block"
+          ? "Block this person?"
+          : isTransfer
+            ? "Transfer group ownership?"
+            : "Remove this friend?";
+  const confirmLabel =
+    confirmAction?.type === "delete"
+      ? "Delete group"
+      : confirmAction?.type === "leave"
+        ? "Leave group"
+        : confirmAction?.type === "block"
+          ? "Block"
+          : isTransfer
+            ? "Transfer ownership"
+            : "Remove friend";
   const description =
     confirmAction?.type === "delete"
       ? "This will permanently delete the group."
@@ -30,42 +49,16 @@ export default function ConfirmActionModal({
             : "This will remove the friendship.";
 
   return (
-    <AppModal
+    <AppAlertDialog
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      ariaLabel="Confirm action"
-      classes={{
-        dialog: "bg-[#1C110F] border border-[#D77B69]/30",
-      }}
-    >
-      {(onClose) => (
-          <>
-            <AppModalHeader className="border-b border-[#D77B69]/20 text-white"><AppModalHeading>Confirm action</AppModalHeading></AppModalHeader>
-            <AppModalBody className="py-6">
-              <p className="text-sm text-[#EDEDED]">
-                {description}
-              </p>
-              <p className="text-sm text-[#D9C7A8]">{confirmAction?.label}</p>
-            </AppModalBody>
-            <AppModalFooter className="border-t border-[#D77B69]/20">
-              <Button
-                variant="secondary"
-                className="border-[#D9C7A8]/30 text-[#D9C7A8]"
-                onPress={onClose}
-              >
-                Cancel
-              </Button>
-              <Button
-                className={isTransfer ? "app-primary-button" : "app-danger-button"}
-                variant={isTransfer ? "primary" : "secondary"}
-                onPress={onConfirm}
-                isPending={isLoading}
-              >
-                {isTransfer ? "Transfer ownership" : "Confirm"}
-              </Button>
-            </AppModalFooter>
-          </>
-      )}
-    </AppModal>
+      title={title}
+      description={description}
+      detail={confirmAction?.label}
+      confirmLabel={confirmLabel}
+      onConfirm={onConfirm}
+      isPending={isLoading}
+      tone={isTransfer ? "accent" : "danger"}
+    />
   );
 }

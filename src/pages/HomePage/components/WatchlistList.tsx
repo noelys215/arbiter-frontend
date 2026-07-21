@@ -19,7 +19,7 @@ type WatchlistListProps = {
   ) => ReactNode;
   getWatchlistMeta: (item: WatchlistItem) => WatchlistMeta;
   getAddedByLabel: (item: WatchlistItem) => string | null;
-  onRemove: (itemId: string | number) => void;
+  onRemove: (item: WatchlistItem) => void;
   pendingRemoveId: string | number | null;
   currentPage: number;
   totalPages: number;
@@ -146,7 +146,7 @@ export default function WatchlistList({
                   size="sm"
                   variant="tertiary"
                   className="app-danger-button min-w-0 px-2"
-                  onPress={() => onRemove(item.id)}
+                  onPress={() => onRemove(item)}
                   isPending={pendingRemoveId === item.id}
                   aria-label={`Remove ${meta.name} from watchlist`}
                 >
