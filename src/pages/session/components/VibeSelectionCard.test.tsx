@@ -42,4 +42,43 @@ describe("VibeSelectionCard", () => {
     fireEvent.click(screen.getByRole("button", { name: /Easygoing/ }));
     expect(onToggleMoodCue).toHaveBeenCalledWith("easygoing");
   });
+
+  it("shows disclosure affordances and toggles both preference sections", () => {
+    render(
+      <VibeSelectionCard
+        selectedGroupName="Match Club"
+        moodCues={[...cues]}
+        moodCuesLoading={false}
+        selectedMoodCueIds={[]}
+        onToggleMoodCue={vi.fn()}
+        availableGenreTags={["Comedy"]}
+        selectedGenreTags={[]}
+        onToggleGenre={vi.fn()}
+        maxRuntime={null}
+        onMaxRuntimeChange={vi.fn()}
+        customMoodText=""
+        onCustomMoodTextChange={vi.fn()}
+        isGenerating={false}
+        isGenerateDisabled={false}
+        generateLabel="Deal the deck"
+        onGenerate={vi.fn()}
+      />,
+    );
+
+    for (const label of [
+      "More feelings and occasions",
+      "Genre and runtime preferences",
+    ]) {
+      const summary = screen.getByText(label).closest("summary");
+      const details = summary?.closest("details");
+      const indicator = summary?.querySelector('[aria-hidden="true"]');
+
+      expect(summary).not.toBeNull();
+      expect(details).not.toHaveAttribute("open");
+      expect(indicator).toHaveTextContent("+");
+
+      fireEvent.click(summary!);
+      expect(details).toHaveAttribute("open");
+    }
+  });
 });

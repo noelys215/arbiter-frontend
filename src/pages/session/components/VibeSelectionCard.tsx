@@ -129,9 +129,15 @@ export default function VibeSelectionCard({
               {renderCueGroup("energy")}
               {renderCueGroup("effect")}
             </div>
-            <details className="mt-5 border-t border-[#E0B15C]/10 pt-3">
-              <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold text-[#EAD9BC] outline-none focus-visible:ring-3 focus-visible:ring-[#F2C16E]">
-                More feelings and occasions
+            <details className="group mt-5 border-t border-[#E0B15C]/10 pt-3">
+              <summary className="flex min-h-11 w-full cursor-pointer list-none items-center justify-between gap-4 rounded-sm text-sm font-semibold text-[#EAD9BC] outline-none transition-colors hover:text-[#F7EAD2] focus-visible:ring-3 focus-visible:ring-[#F2C16E] [&::-webkit-details-marker]:hidden">
+                <span>More feelings and occasions</span>
+                <span
+                  aria-hidden="true"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#E0B15C]/25 text-xl font-normal leading-none text-[#E0B15C] transition-[transform,border-color,background-color] duration-200 group-open:rotate-45 group-open:border-[#E0B15C]/50 group-open:bg-[#E0B15C]/8 motion-reduce:transition-none"
+                >
+                  +
+                </span>
               </summary>
               <div className="grid gap-x-8 gap-y-7 pb-2 pt-4 md:grid-cols-2">
                 {renderCueGroup("occasion")}
@@ -161,9 +167,15 @@ export default function VibeSelectionCard({
         <p className="mt-1 text-right text-xs text-[#CDB58E]">{customMoodText.length} / 240</p>
       </div>
 
-      <details className="mt-5 border-t border-[#E0B15C]/10 pt-5">
-        <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold text-[#EAD9BC] outline-none focus-visible:ring-3 focus-visible:ring-[#F2C16E]">
-          Genre and runtime preferences
+      <details className="group mt-5 border-t border-[#E0B15C]/10 pt-5">
+        <summary className="flex min-h-11 w-full cursor-pointer list-none items-center justify-between gap-4 rounded-sm text-sm font-semibold text-[#EAD9BC] outline-none transition-colors hover:text-[#F7EAD2] focus-visible:ring-3 focus-visible:ring-[#F2C16E] [&::-webkit-details-marker]:hidden">
+          <span>Genre and runtime preferences</span>
+          <span
+            aria-hidden="true"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#E0B15C]/25 text-xl font-normal leading-none text-[#E0B15C] transition-[transform,border-color,background-color] duration-200 group-open:rotate-45 group-open:border-[#E0B15C]/50 group-open:bg-[#E0B15C]/8 motion-reduce:transition-none"
+          >
+            +
+          </span>
         </summary>
         <div className="pb-2 pt-4">
           {availableGenreTags.length > 0 ? (
