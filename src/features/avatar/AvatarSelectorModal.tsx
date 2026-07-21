@@ -189,7 +189,7 @@ export default function AvatarSelectorModal({
               </p>
             </AppModalHeader>
             <AppModalBody className="gap-5 py-5">
-              <div className="flex flex-wrap gap-2" aria-label="Avatar source">
+              <div className="flex flex-wrap gap-3" aria-label="Avatar source">
                 {sourceChoices.map((choice) => (
                   <Button
                     key={choice}
@@ -197,8 +197,8 @@ export default function AvatarSelectorModal({
                     variant={source === choice ? "primary" : "secondary"}
                     className={
                       source === choice
-                        ? "bg-[#E0B15C] text-[#1C110F]"
-                        : "border-[#E0B15C]/35 text-[#E0B15C]"
+                        ? "min-h-11 px-5 bg-[#E0B15C] text-[#1C110F]"
+                        : "min-h-11 px-5 border-[#E0B15C]/35 text-[#E0B15C]"
                     }
                     onPress={() => {
                       setSource(choice);
@@ -211,9 +211,9 @@ export default function AvatarSelectorModal({
               </div>
 
               {source === "generated" ? (
-                <>
+                <div className="mt-5 flex flex-col gap-5">
                   <div
-                    className="grid grid-cols-2 gap-2 sm:grid-cols-5"
+                    className="grid grid-cols-[repeat(auto-fit,minmax(7.5rem,1fr))] gap-3"
                     aria-label="Avatar collections"
                   >
                     {AVATAR_COLLECTIONS.map((collection) => (
@@ -225,8 +225,8 @@ export default function AvatarSelectorModal({
                         }
                         className={
                           activeCollection === collection.key
-                            ? "bg-[#E0B15C] text-[#1C110F]"
-                            : "border-[#E0B15C]/35 text-[#E0B15C]"
+                            ? "min-h-11 w-full min-w-0 bg-[#E0B15C] px-5 text-[#1C110F]"
+                            : "min-h-11 w-full min-w-0 border-[#E0B15C]/35 px-5 text-[#E0B15C]"
                         }
                         onPress={() => handleCollectionChange(collection.key)}
                       >
@@ -281,9 +281,9 @@ export default function AvatarSelectorModal({
                   >
                     Shuffle choices
                   </Button>
-                </>
+                </div>
               ) : (
-                <div className="flex items-center gap-4 rounded-xl border border-[#E0B15C]/15 bg-[#22130F] p-4">
+                <div className="mt-5 flex items-center gap-4 rounded-xl border border-[#E0B15C]/15 bg-[#22130F] p-4">
                   <ArbiterAvatar
                     user={{
                       ...me,
