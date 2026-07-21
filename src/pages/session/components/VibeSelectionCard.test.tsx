@@ -3,10 +3,34 @@ import { describe, expect, it, vi } from "vitest";
 import VibeSelectionCard from "./VibeSelectionCard";
 
 const cues = [
-  { id: "easygoing", label: "Easygoing", description: "Easy", category: "energy", display_order: 1 },
-  { id: "high-energy", label: "High energy", description: "Fast", category: "energy", display_order: 2 },
-  { id: "date-night", label: "Date night", description: "Romantic", category: "occasion", display_order: 3 },
-  { id: "mind-bending", label: "Mind-bending", description: "Strange", category: "taste", display_order: 4 },
+  {
+    id: "easygoing",
+    label: "Easygoing",
+    description: "Easy",
+    category: "energy",
+    display_order: 1,
+  },
+  {
+    id: "high-energy",
+    label: "High energy",
+    description: "Fast",
+    category: "energy",
+    display_order: 2,
+  },
+  {
+    id: "date-night",
+    label: "Date night",
+    description: "Romantic",
+    category: "occasion",
+    display_order: 3,
+  },
+  {
+    id: "mind-bending",
+    label: "Mind-bending",
+    description: "Strange",
+    category: "taste",
+    display_order: 4,
+  },
 ] as const;
 
 describe("VibeSelectionCard", () => {
@@ -43,7 +67,7 @@ describe("VibeSelectionCard", () => {
     expect(onToggleMoodCue).toHaveBeenCalledWith("easygoing");
   });
 
-  it("shows disclosure affordances and toggles both preference sections", () => {
+  it("shows accessible disclosure affordances and toggles both preference sections", () => {
     render(
       <VibeSelectionCard
         selectedGroupName="Match Club"
@@ -69,17 +93,16 @@ describe("VibeSelectionCard", () => {
       "More feelings and occasions",
       "Genre and runtime preferences",
     ]) {
-      const summary = screen.getByText(label).closest("summary");
-      const details = summary?.closest("details");
-      const indicator = summary?.querySelector('[aria-hidden="true"]');
+      const trigger = screen.getByRole("button", { name: label });
+      const indicator = trigger.querySelector('[aria-hidden="true"]');
 
-      expect(summary).not.toBeNull();
-      expect(details).not.toHaveAttribute("open");
+      expect(trigger).toHaveAttribute("aria-expanded", "false");
       expect(indicator).toHaveAttribute("aria-hidden", "true");
       expect(indicator?.querySelectorAll("span")).toHaveLength(2);
 
-      fireEvent.click(summary!);
-      expect(details).toHaveAttribute("open");
+      fireEvent.click(trigger);
+      expect(trigger).toHaveAttribute("aria-expanded", "true");
+      expect(screen.getByRole("region", { name: label })).toBeInTheDocument();
     }
   });
 });
