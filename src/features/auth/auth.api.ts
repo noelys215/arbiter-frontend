@@ -1,4 +1,5 @@
 import { api, apiJson, jsonBody } from "../../lib/api";
+import { clearArbiterSessionContextStorage } from "../../lib/sessionStorage";
 import type { AvatarSource } from "../avatar/avatarTypes";
 
 export type MeResponse = {
@@ -57,6 +58,14 @@ export async function requestMagicLink(payload: MagicLinkRequestPayload) {
   });
 }
 
+export async function verifyMagicLink(grant: string) {
+  return apiJson<{ ok: boolean }>("/auth/magic-link/verify", {
+    method: "POST",
+    cache: "no-store",
+    ...jsonBody({ grant }),
+  });
+}
+
 export async function localAuthBypass(payload: LocalAuthBypassPayload) {
   return apiJson<{ ok: boolean }>("/auth/local-bypass", {
     method: "POST",
@@ -74,5 +83,6 @@ export async function logout() {
     (error as Error & { status?: number }).status = response.status;
     throw error;
   }
+  clearArbiterSessionContextStorage(window.localStorage);
   return response;
 }

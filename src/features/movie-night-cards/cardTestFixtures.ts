@@ -39,7 +39,6 @@ export const cardTestNight: CompletedSession = {
   candidates: [
     {
       id: "winner-id",
-      source_watchlist_item_id: "watchlist-id",
       source_title_id: "title-id",
       source: "tmdb",
       source_id: "1",
@@ -60,4 +59,3 @@ export const cardTestNight: CompletedSession = {
     },
   ],
 };
-

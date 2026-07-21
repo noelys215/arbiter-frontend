@@ -7,6 +7,7 @@ import { addTmdbToWatchlist } from "../watchlist/watchlist.api";
 import { getMoodCues } from "../sessions/moodCues.api";
 import { sessionQueryKeys } from "../sessions/sessionQueryKeys";
 import { tmdbPosterUrl } from "../../lib/tmdb";
+import { normalizeTrailerUrl } from "../../lib/externalLinks";
 import {
   formatMovieMetadata,
   formatShortDate,
@@ -39,6 +40,7 @@ export default function MovieDetailContent({
   const shouldReduceMotion = useReducedMotion();
   const poster = tmdbPosterUrl(movie.poster_path, "w500");
   const backdrop = tmdbPosterUrl(movie.backdrop_path, "original");
+  const trailerUrl = normalizeTrailerUrl(movie.trailer_url);
   const metadata = formatMovieMetadata(movie);
   const cuesQuery = useQuery({
     queryKey: sessionQueryKeys.moodCues,
@@ -135,9 +137,9 @@ export default function MovieDetailContent({
                   Back
                 </Button>
               )}
-              {movie.trailer_url ? (
+              {trailerUrl ? (
                 <a
-                  href={movie.trailer_url}
+                  href={trailerUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-[#EAD9BC] transition-colors hover:text-[#F2C16E] focus-visible:outline-3 focus-visible:outline-[#F2C16E]"

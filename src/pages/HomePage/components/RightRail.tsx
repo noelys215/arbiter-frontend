@@ -188,7 +188,6 @@ export default function RightRail({ friends, selectedGroup, currentUserId, onOpe
                 const label =
                   friend.display_name ??
                   friend.username ??
-                  friend.email ??
                   friend.id;
                 const isMember = memberIds.has(friend.id);
                 const isPending = pendingTargetIds.has(friend.id);

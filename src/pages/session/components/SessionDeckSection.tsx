@@ -22,6 +22,10 @@ import {
 import SessionDeckCard from "./SessionDeckCard";
 import { movieDetailPath } from "../../../features/movies/moviePresentation";
 import LazyLoadingState from "../../../components/LazyLoadingState";
+import {
+  normalizeStreamingProviderUrl,
+  normalizeTelepartyUrl,
+} from "../../../lib/externalLinks";
 
 const MovieNightCardDialog = lazy(
   () => import("../../../features/movie-night-cards/MovieNightCardDialog"),
@@ -46,10 +50,7 @@ function normalizeStreamingOptions(raw: unknown): StreamingOption[] {
     const name = typeof maybeName === "string" ? maybeName.trim() : "";
     if (!name) continue;
 
-    const url =
-      typeof maybeUrl === "string" && maybeUrl.trim().length > 0
-        ? maybeUrl.trim()
-        : null;
+    const url = normalizeStreamingProviderUrl(maybeUrl);
 
     const key = name.toLowerCase();
     if (seen.has(key)) continue;
@@ -177,8 +178,9 @@ export default function SessionDeckSection({
   );
   const [watchPartyDraft, setWatchPartyDraft] = useState("");
   const [showWatchPartyEditor, setShowWatchPartyEditor] = useState(false);
-  const hasWatchPartyUrl =
-    typeof watchPartyUrl === "string" && watchPartyUrl.trim().length > 0;
+  const normalizedWatchPartyUrl = normalizeTelepartyUrl(watchPartyUrl);
+  const normalizedWatchPartyDraft = normalizeTelepartyUrl(watchPartyDraft);
+  const hasWatchPartyUrl = normalizedWatchPartyUrl !== null;
   const deckHeading = showLeaderEndedCard
     ? "Leader has ended the session."
     : winnerWatchlistItemId
@@ -203,7 +205,7 @@ export default function SessionDeckSection({
   useEffect(() => {
     queueMicrotask(() => {
       setWatchPartyDraft(watchPartyUrl ?? "");
-      setShowWatchPartyEditor(!watchPartyUrl && isGroupLeader);
+      setShowWatchPartyEditor(!normalizeTelepartyUrl(watchPartyUrl) && isGroupLeader);
     });
   }, [watchPartyUrl, isGroupLeader]);
 
@@ -466,7 +468,7 @@ export default function SessionDeckSection({
                   </p>
                   <div className="flex flex-wrap gap-2">
                     <a
-                      href={watchPartyUrl ?? "#"}
+                      href={normalizedWatchPartyUrl ?? undefined}
                       target="_blank"
                       rel="noreferrer"
                       onClick={onWatchPartyHandoff}
@@ -520,9 +522,11 @@ export default function SessionDeckSection({
                       size="sm"
                       className="border border-[#E0B15C]/55 bg-[#E0B15C] text-[#171717]"
                       isPending={watchPartyIsUpdating}
-                      isDisabled={watchPartyDraft.trim().length === 0}
+                      isDisabled={normalizedWatchPartyDraft === null}
                       onPress={() => {
-                        void onSetWatchPartyUrl(watchPartyDraft);
+                        if (normalizedWatchPartyDraft) {
+                          void onSetWatchPartyUrl(normalizedWatchPartyDraft);
+                        }
                       }}
                     >
                       Save Teleparty Link

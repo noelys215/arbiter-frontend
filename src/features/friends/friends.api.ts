@@ -3,7 +3,6 @@ import type { AvatarSource } from "../avatar/avatarTypes";
 
 export type Friend = {
   id: string;
-  email: string;
   username: string;
   display_name: string;
   avatar_url: string | null;
@@ -12,7 +11,7 @@ export type Friend = {
   avatar_seed: string | null;
 };
 
-export type InvitePublicUser = Omit<Friend, "email">;
+export type InvitePublicUser = Friend;
 
 export type BlockedUser = InvitePublicUser & {
   blocked_at: string;

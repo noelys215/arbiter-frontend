@@ -13,7 +13,6 @@ export type GroupMember = {
   id: string;
   display_name: string | null;
   username: string | null;
-  email: string;
   avatar_url: string | null;
   avatar_source: AvatarSource | null;
   avatar_style: string | null;
@@ -31,7 +30,7 @@ export type GroupInvite = {
   expires_at: string;
 };
 
-export type GroupInvitePublicUser = Omit<GroupMember, "email">;
+export type GroupInvitePublicUser = GroupMember;
 
 export type GroupInvitation = {
   id: string;

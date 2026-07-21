@@ -60,12 +60,12 @@ const movie: MovieDetail = {
   },
 };
 
-function renderDetail() {
+function renderDetail(movieDetail: MovieDetail = movie) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <MemoryRouter>
       <QueryClientProvider client={queryClient}>
-        <MovieDetailContent movie={movie} onClose={vi.fn()} />
+        <MovieDetailContent movie={movieDetail} onClose={vi.fn()} />
       </QueryClientProvider>
     </MemoryRouter>,
   );
@@ -80,5 +80,28 @@ describe("MovieDetailContent", () => {
     expect(screen.getByText("Voting remains private while the session is active.")).toBeInTheDocument();
     expect(await screen.findByText("Easygoing")).toBeInTheDocument();
     expect(screen.queryByRole("img", { name: /poster/i })).not.toBeInTheDocument();
+  });
+
+  it("only renders approved HTTPS trailer destinations", () => {
+    const { rerender } = renderDetail({
+      ...movie,
+      trailer_url: "https://youtube.com.attacker.example/watch?v=bad",
+    });
+    expect(screen.queryByRole("link", { name: /watch get out trailer/i })).toBeNull();
+
+    rerender(
+      <MemoryRouter>
+        <QueryClientProvider client={new QueryClient()}>
+          <MovieDetailContent
+            movie={{ ...movie, trailer_url: "https://www.youtube.com/watch?v=good" }}
+            onClose={vi.fn()}
+          />
+        </QueryClientProvider>
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("link", { name: /watch get out trailer/i })).toHaveAttribute(
+      "href",
+      "https://www.youtube.com/watch?v=good",
+    );
   });
 });

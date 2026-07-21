@@ -35,7 +35,6 @@ const session = {
   candidates: [
     {
       id: "winner",
-      source_watchlist_item_id: "item-1",
       source: "tmdb",
       source_id: "1",
       media_type: "movie",

@@ -10,6 +10,7 @@ import { subscribeToAuthSuccess } from "../features/auth/authHandoff";
 import SkipLink from "../components/SkipLink";
 import { AppTextField } from "../components/ui/AppField";
 import { API_BASE, IS_LOCAL_DEV } from "../lib/api";
+import { clearArbiterSessionContextStorage } from "../lib/sessionStorage";
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   google_oauth_failed: "Google sign-in failed. Please try again.",
@@ -106,6 +107,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (!magicSentTo) return;
     const unsubscribe = subscribeToAuthSuccess(() => {
+      clearArbiterSessionContextStorage(window.localStorage);
       void queryClient.invalidateQueries({ queryKey: ["me"] });
       void navigate("/app", { replace: true });
     });
@@ -139,6 +141,7 @@ export default function LoginPage() {
       { token },
       {
         onSuccess: () => {
+          clearArbiterSessionContextStorage(window.localStorage);
           void queryClient.invalidateQueries({ queryKey: ["me"] });
           void navigate("/app", { replace: true });
         },
@@ -242,6 +245,7 @@ export default function LoginPage() {
                   isPending={isGoogleRedirecting}
                   isDisabled={isAuthActionPending}
                   onPress={() => {
+                    clearArbiterSessionContextStorage(window.localStorage);
                     setIsGoogleRedirecting(true);
                     window.location.assign(googleLoginUrl);
                   }}

@@ -103,7 +103,7 @@ export default function WatchlistCard({
 
   const getAddedByLabel = (item: WatchlistItem) => {
     const user = item.added_by_user ?? null;
-    const label = user?.display_name ?? user?.username ?? user?.email ?? null;
+    const label = user?.display_name ?? user?.username ?? null;
     if (user?.id && currentUserId && user.id === currentUserId) {
       return "You";
     }

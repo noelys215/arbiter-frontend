@@ -32,7 +32,6 @@ export type WatchlistItem = {
   created_at?: string;
   added_by_user?: {
     id?: string;
-    email?: string;
     username?: string;
     display_name?: string;
     avatar_url?: string | null;

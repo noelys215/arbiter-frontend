@@ -116,7 +116,6 @@ export type CompletedSessionParticipant = {
 
 export type CompletedSessionCandidate = {
   id: string;
-  source_watchlist_item_id: string;
   source_title_id?: string | null;
   source: string | null;
   source_id: string | null;

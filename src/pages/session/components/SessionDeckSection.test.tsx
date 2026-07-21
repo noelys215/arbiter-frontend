@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { createRef, type ComponentProps, type HTMLAttributes } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SwipeDeckHandle } from "../../../components/SwipeDeck";
@@ -155,6 +155,58 @@ describe("SessionDeckSection completion lifecycle", () => {
     expect(screen.getByTestId("swipe-deck").parentElement).toHaveAttribute(
       "data-motion",
       JSON.stringify({ x: 0, rotate: 0 }),
+    );
+  });
+
+  it("only renders normalized Teleparty links", () => {
+    renderSection({
+      watchPartyUrl: "https://www.teleparty.com.attacker.example/join/bad",
+    });
+    expect(screen.queryByRole("link", { name: "Join Teleparty" })).toBeNull();
+    cleanup();
+
+    renderSection({
+      watchPartyUrl: "https://www.teleparty.com/join/good",
+    });
+    expect(screen.getByRole("link", { name: "Join Teleparty" })).toHaveAttribute(
+      "href",
+      "https://www.teleparty.com/join/good",
+    );
+  });
+
+  it("drops unapproved provider URLs while preserving valid providers", () => {
+    renderSection({
+      stackCards: [
+        {
+          ...winner,
+          title: {
+            ...winner.title,
+            source: "tmdb",
+            tmdb_streaming_options: [
+              {
+                provider_name: "Netflix",
+                streaming_url: "https://www.netflix.com/title/123",
+              },
+              {
+                provider_name: "Unsafe",
+                streaming_url: "https://netflix.com.attacker.example/title/123",
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    expect(screen.getByRole("link", { name: "Open Netflix" })).toHaveAttribute(
+      "href",
+      "https://www.netflix.com/title/123",
+    );
+    expect(screen.queryByRole("link", { name: "Open Unsafe" })).toBeNull();
+    expect(
+      screen.getByText("Unsafe").closest("span"),
+    ).toHaveAttribute(
+      "aria-label",
+      "Unsafe (no direct streaming link available)",
     );
   });
 });

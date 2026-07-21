@@ -1,8 +1,10 @@
-export const GROUP_STORAGE_KEY = "arbiter:lastGroupId";
-export const ACTIVE_SESSION_STORAGE_PREFIX = "arbiter:active-session:";
-export const CARD_INDEX_STORAGE_PREFIX = "arbiter:session-card-index:";
-export const SESSION_CONTEXT_STORAGE_PREFIX = "arbiter:session-context:";
-export const DEAL_SUBMITTED_STORAGE_PREFIX = "arbiter:session-deal-submitted:";
+export {
+  ACTIVE_SESSION_STORAGE_PREFIX,
+  CARD_INDEX_STORAGE_PREFIX,
+  DEAL_SUBMITTED_STORAGE_PREFIX,
+  GROUP_STORAGE_KEY,
+  SESSION_CONTEXT_STORAGE_PREFIX,
+} from "../../lib/sessionStorage";
 export const ROUND_TIMER_SECONDS = 60;
 export const DEAL_CANDIDATE_COUNT = 8;
 export const RUNTIME_VIBE_TAGS = ["Under 15 Mins", "Under 30 Mins"] as const;

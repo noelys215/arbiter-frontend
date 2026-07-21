@@ -75,7 +75,6 @@ const completedNight: CompletedSession = {
   candidates: [
     {
       id: "candidate-a",
-      source_watchlist_item_id: "watchlist-a",
       source: "tmdb",
       source_id: "1",
       media_type: "movie",
