@@ -107,6 +107,7 @@ export async function startOnboardingTour(options: StartTourOptions) {
         popover.wrapper.setAttribute("aria-live", "polite");
         const heading = document.createElement("h2");
         heading.id = "arbiter-tour-title";
+        heading.tabIndex = -1;
         heading.textContent = popover.title.textContent;
         popover.title.setAttribute("role", "presentation");
         popover.title.replaceChildren(heading);
@@ -117,6 +118,12 @@ export async function startOnboardingTour(options: StartTourOptions) {
           "aria-describedby",
           popover.description.id,
         );
+        // Driver focuses the first control (Close) after this callback. Move
+        // focus to the heading before paint so the dialog opens without a
+        // misleading action focus while still announcing its content.
+        window.queueMicrotask(() => {
+          if (heading.isConnected) heading.focus({ preventScroll: true });
+        });
         if (!popover.footerButtons.querySelector(".arbiter-tour-skip")) {
           const skip = document.createElement("button");
           skip.type = "button";

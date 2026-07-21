@@ -103,6 +103,10 @@ export default function LoginPage() {
     typeof (magicLinkMutation.error as { detail?: unknown }).detail === "string"
       ? (magicLinkMutation.error as { detail?: string }).detail
       : null;
+  const localBypassErrorMessage =
+    localAuthBypassMutation.error instanceof TypeError
+      ? "The local API is not available. Start the backend and try again."
+      : "Local test sign-in failed. Check the bypass configuration.";
 
   useEffect(() => {
     if (!magicSentTo) return;
@@ -292,7 +296,7 @@ export default function LoginPage() {
               ) : null}
               {localAuthBypassMutation.isError ? (
                 <p className="login-message login-message-error" role="alert">
-                  Local test sign-in failed. Check your bypass environment.
+                  {localBypassErrorMessage}
                 </p>
               ) : null}
               {magicSentTo ? (
